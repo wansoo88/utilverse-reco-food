@@ -1,0 +1,36 @@
+{
+  "home": {
+    "title": "What to eat today?",
+    "subtitle": "AI recommends the perfect menu for you",
+    "searchPlaceholder": "Type what you want or select filters",
+    "recommend": "Get Recommendation",
+    "filterRestored": "✅ Previous filters restored",
+    "blockToast": "🚫 Only food-related questions are allowed",
+    "errorInjection": "🚫 This input is not allowed",
+    "errorTooLong": "⚠️ Input too long (max 200 chars)"
+  },
+  "filter": {
+    "mode": "How?",
+    "cook": "Cook",
+    "order": "Order",
+    "house": "With?",
+    "solo": "Solo",
+    "couple": "Couple",
+    "family": "Family",
+    "vibe": "Mood",
+    "chef": "Chef's Pick",
+    "sweet": "Sweet&Salty",
+    "rain": "Rainy Day",
+    "late": "After Work",
+    "diet": "Diet",
+    "budget": "Budget",
+    "any": "Any",
+    "under10k": "Under $10",
+    "under20k": "Under $20",
+    "over20k": "$20+"
+  },
+  "footer": {
+    "copyright": "© 2026 utilverse.net. All rights reserved.",
+    "description": "AI Food Recommendation Service"
+  }
+}

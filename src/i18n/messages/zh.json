@@ -1,0 +1,36 @@
+{
+  "home": {
+    "title": "今天吃什么？",
+    "subtitle": "AI为您推荐最合适的菜单",
+    "searchPlaceholder": "输入想吃的或选择筛选条件",
+    "recommend": "获取推荐",
+    "filterRestored": "✅ 已恢复上次筛选条件",
+    "blockToast": "🚫 只能回答与食物相关的问题",
+    "errorInjection": "🚫 此输入不被允许",
+    "errorTooLong": "⚠️ 输入过长（最多200字）"
+  },
+  "filter": {
+    "mode": "方式?",
+    "cook": "自己做",
+    "order": "外卖",
+    "house": "和谁?",
+    "solo": "一人",
+    "couple": "两人",
+    "family": "家庭",
+    "vibe": "场景",
+    "chef": "大厨推荐",
+    "sweet": "甜咸",
+    "rain": "下雨天",
+    "late": "加班后",
+    "diet": "减肥",
+    "budget": "预算",
+    "any": "随意",
+    "under10k": "60元以下",
+    "under20k": "120元以下",
+    "over20k": "120元+"
+  },
+  "footer": {
+    "copyright": "© 2026 utilverse.net. All rights reserved.",
+    "description": "AI美食推荐服务"
+  }
+}

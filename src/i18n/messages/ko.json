@@ -1,0 +1,36 @@
+{
+  "home": {
+    "title": "오늘 뭐 먹지?",
+    "subtitle": "AI가 딱 맞는 메뉴를 추천해드려요",
+    "searchPlaceholder": "먹고 싶은 것을 입력하거나 필터를 선택하세요",
+    "recommend": "추천받기",
+    "filterRestored": "✅ 이전 필터 불러옴",
+    "blockToast": "🚫 음식과 관련 없는 질문은 답변할 수 없어요",
+    "errorInjection": "🚫 허용되지 않는 입력입니다",
+    "errorTooLong": "⚠️ 입력이 너무 깁니다 (최대 200자)"
+  },
+  "filter": {
+    "mode": "어떻게?",
+    "cook": "해먹기",
+    "order": "시켜먹기",
+    "house": "누구와?",
+    "solo": "1인",
+    "couple": "2인",
+    "family": "가족",
+    "vibe": "상황",
+    "chef": "흑백요리사",
+    "sweet": "단짠단짠",
+    "rain": "비오는날",
+    "late": "야근후",
+    "diet": "다이어트",
+    "budget": "예산",
+    "any": "상관없음",
+    "under10k": "1만↓",
+    "under20k": "2만↓",
+    "over20k": "2만+"
+  },
+  "footer": {
+    "copyright": "© 2026 utilverse.net. All rights reserved.",
+    "description": "AI 음식 추천 서비스"
+  }
+}

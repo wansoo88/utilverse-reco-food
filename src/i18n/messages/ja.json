@@ -1,0 +1,36 @@
+{
+  "home": {
+    "title": "今日何食べる？",
+    "subtitle": "AIがぴったりのメニューを提案します",
+    "searchPlaceholder": "食べたいものを入力またはフィルターを選択",
+    "recommend": "おすすめを見る",
+    "filterRestored": "✅ 前回のフィルターを復元しました",
+    "blockToast": "🚫 食べ物に関する質問のみお答えできます",
+    "errorInjection": "🚫 この入力は許可されていません",
+    "errorTooLong": "⚠️ 入力が長すぎます（最大200文字）"
+  },
+  "filter": {
+    "mode": "方法?",
+    "cook": "自炊",
+    "order": "デリバリー",
+    "house": "誰と?",
+    "solo": "一人",
+    "couple": "二人",
+    "family": "家族",
+    "vibe": "シーン",
+    "chef": "シェフ推薦",
+    "sweet": "甘辛",
+    "rain": "雨の日",
+    "late": "残業後",
+    "diet": "ダイエット",
+    "budget": "予算",
+    "any": "なんでも",
+    "under10k": "1000円以下",
+    "under20k": "2000円以下",
+    "over20k": "2000円+"
+  },
+  "footer": {
+    "copyright": "© 2026 utilverse.net. All rights reserved.",
+    "description": "AI食事レコメンドサービス"
+  }
+}

@@ -2,61 +2,111 @@
 
 > `/seo-audit` 스킬이 감사 결과를 이 문서에 기록합니다.
 
+## SEO 전략 개요
+
+**조회와 클릭이 잘 되는 구조**가 핵심입니다.
+프로그래매틱 SEO로 30개+ 롱테일 키워드 페이지를 4개 언어로 생성하여 120개+ 인덱싱 가능 페이지를 확보합니다.
+
 ## On-page SEO Rules
 
 ### Meta Tags (모든 페이지 필수)
 
 ```typescript
-// src/components/seo/MetaTags.tsx
-export interface PageMeta {
-  title: string;        // 50-60자, 고유해야 함
-  description: string;  // 150-160자, 고유해야 함
+interface PageMeta {
+  title: string;        // 50-60자, 고유
+  description: string;  // 150-160자, 고유
   canonical: string;    // 절대 URL
-  ogImage?: string;     // 1200x630 권장
+  ogImage?: string;     // 1200x630
+  alternates: {         // 다국어 hreflang
+    ko: string;
+    en: string;
+    ja: string;
+    zh: string;
+  };
 }
 ```
 
-### Title 작성 규칙 (도구 사이트)
-- 패턴: `[도구 이름] - [핵심 기능] | [사이트명]`
-- 예시: `JSON Formatter - 온라인 JSON 정리 도구 | ToolBox`
-- 50-60자 이내, 핵심 키워드를 앞에 배치
+### Title 작성 규칙
+
+**홈페이지:**
+- KO: `오늘 뭐 먹지? AI 음식 추천 | 오늘뭐먹지`
+- EN: `What Should I Eat? AI Food Recommendation | WhatToEat`
+
+**SEO 페이지 (패턴):**
+- KO: `비오는날 혼밥 뭐 먹지? AI 추천 메뉴 TOP 5 | 오늘뭐먹지`
+- EN: `Rainy Day Solo Meal Ideas - AI Picks | WhatToEat`
 
 ### Meta Description 규칙
-- 패턴: `[도구 설명]. [주요 기능 나열]. 무료 온라인 [도구 유형].`
-- 예시: `JSON 데이터를 보기 쉽게 정리하세요. 들여쓰기, 검증, 압축 기능 지원. 무료 온라인 JSON 포맷터.`
-- 150-160자, 행동 유도 포함
+- 행동 유도 + 키워드 포함
+- 예: `비 오는 날 혼자 먹기 좋은 메뉴를 AI가 추천합니다. 흑백요리사 셰프 레시피부터 간단 자취 요리까지. 무료 AI 음식 추천.`
+
+## 프로그래매틱 SEO
+
+### URL 구조
+
+```
+/[lang]/eat/menu/[slug]
+
+예시:
+/ko/eat/menu/비오는날-혼밥-추천
+/en/eat/menu/rainy-day-solo-meal
+/ja/eat/menu/雨の日-一人-おすすめ
+/zh/eat/menu/下雨天-一人-推荐
+```
+
+### 키워드 DB (30개+)
+
+키워드 상세 목록은 `src/data/seoKeywords.ts`에 정의. 주요 카테고리:
+
+| 카테고리 | 예시 slug | 검색 의도 |
+|----------|-----------|----------|
+| 날씨+가구 | `비오는날-혼밥-추천` | 상황형 |
+| 시간+피로 | `야근후-간단한-저녁` | 시간 부족 |
+| 건강 | `다이어트-점심-추천` | 건강식 |
+| 트렌드 | `흑백요리사-레시피-추천` | 트렌드 |
+| 예산 | `만원이하-저녁-추천` | 가성비 |
+| 가족 | `아기-이유식-저녁` | 가족식 |
+| 카테고리 | `파스타-종류별-추천` | 메뉴별 |
+
+### SEO 페이지 구조
+
+```
+/[lang]/eat/menu/[slug]
+├── H1: "비오는날 혼밥 뭐 먹지? AI 추천"
+├── 메타 설명 (150-160자)
+├── AI 프리셋 추천 결과 (ISR 빌드 타임 캐싱)
+├── H2: "추천 메뉴"
+│   └── 메인 1개 + 대안 3개 카드
+├── H2: "유튜브 레시피"
+│   └── 관련 유튜브 5개 임베드/링크
+├── H2: "관련 추천"
+│   └── 내부 링크 5-8개 (다른 키워드 페이지)
+├── CTA: "직접 추천받으러 가기" → 홈
+├── JSON-LD (Article + Recipe schema)
+└── Footer + FooterAd
+```
 
 ## Heading Hierarchy
 
-모든 페이지는 아래 규칙을 따릅니다:
-
 ```
-H1: 페이지당 정확히 1개 (도구 이름 또는 페이지 제목)
-  H2: 주요 섹션 (도구 사용법, 기능 설명, 관련 도구 등)
-    H3: 소제목 (세부 기능, FAQ 항목 등)
+H1: 페이지당 정확히 1개
+  H2: 주요 섹션 (추천 결과, 유튜브 레시피, 관련 추천)
+    H3: 소제목 (개별 메뉴명, FAQ 항목)
 ```
-
-- 헤딩 레벨을 건너뛰지 않음 (H1 → H3 금지)
-- 도구 페이지 권장 H2 구조: 도구 사용법, 기능 설명, 자주 묻는 질문, 관련 도구
 
 ## Structured Data (JSON-LD)
 
-### 도구 페이지
+### SEO 페이지 — Article + Recipe
 
 ```json
 {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "JSON Formatter",
-  "description": "온라인 JSON 정리 도구",
-  "url": "https://example.com/tools/json-formatter",
-  "applicationCategory": "DeveloperApplication",
-  "operatingSystem": "Web Browser",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "KRW"
-  }
+  "@type": "Article",
+  "headline": "비오는날 혼밥 뭐 먹지? AI 추천 메뉴 TOP 5",
+  "author": { "@type": "Organization", "name": "오늘뭐먹지 by utilverse.net" },
+  "datePublished": "2026-03-18",
+  "description": "비 오는 날 혼자 먹기 좋은 메뉴 추천",
+  "inLanguage": "ko"
 }
 ```
 
@@ -67,58 +117,97 @@ H1: 페이지당 정확히 1개 (도구 이름 또는 페이지 제목)
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "홈", "item": "https://example.com" },
-    { "@type": "ListItem", "position": 2, "name": "개발 도구", "item": "https://example.com/categories/developer" },
-    { "@type": "ListItem", "position": 3, "name": "JSON Formatter" }
+    { "@type": "ListItem", "position": 1, "name": "홈", "item": "https://utilverse.net/ko" },
+    { "@type": "ListItem", "position": 2, "name": "메뉴 추천", "item": "https://utilverse.net/ko/eat" },
+    { "@type": "ListItem", "position": 3, "name": "비오는날 혼밥 추천" }
   ]
+}
+```
+
+### WebApplication (홈페이지)
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "오늘뭐먹지",
+  "description": "AI가 추천하는 오늘의 메뉴",
+  "url": "https://utilverse.net",
+  "applicationCategory": "LifestyleApplication",
+  "operatingSystem": "Web Browser",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
 }
 ```
 
 ## Technical SEO
 
-### sitemap.xml
-- `src/app/sitemap.ts`로 자동 생성
-- 모든 도구 페이지, 카테고리 페이지 포함
-- `lastmod`에 마지막 수정일 반영
-- `changefreq`: 도구 페이지 `monthly`, 목록 `weekly`
+### sitemap.xml 자동 생성
+
+```typescript
+// src/app/sitemap.ts
+// 4개 언어 x 30개+ 키워드 = 120개+ URL 생성
+export default async function sitemap() {
+  const langs = ['ko', 'en', 'ja', 'zh'];
+  const keywords = getSeoKeywords();
+  const urls = [];
+
+  // 홈페이지 (4개 언어)
+  langs.forEach(lang => urls.push({ url: `/${lang}`, changeFrequency: 'daily', priority: 1.0 }));
+
+  // SEO 페이지 (4 x 30+)
+  keywords.forEach(kw => {
+    langs.forEach(lang => {
+      urls.push({
+        url: `/${lang}/eat/menu/${kw.slugs[lang]}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      });
+    });
+  });
+
+  return urls;
+}
+```
 
 ### robots.txt
+
 ```
 User-agent: *
 Allow: /
 Disallow: /api/
-Sitemap: https://example.com/sitemap.xml
+Sitemap: https://utilverse.net/sitemap.xml
 ```
 
-### Canonical URLs
-- 모든 페이지에 canonical URL 설정
-- 쿼리 파라미터가 있는 URL도 canonical은 기본 경로로
+### hreflang (다국어 SEO 핵심)
 
-## Content SEO (도구 사이트 특화)
+모든 페이지에 4개 언어 alternate 링크 설정:
 
-### 도구 설명 콘텐츠
-- 각 도구 페이지에 **300자 이상의 설명 텍스트** 포함 (에드센스 정책: 충분한 콘텐츠)
-- 도구 사용법, 활용 사례, FAQ 섹션 구성
-- 관련 키워드를 자연스럽게 포함
+```html
+<link rel="alternate" hreflang="ko" href="https://utilverse.net/ko/eat/menu/비오는날-혼밥-추천" />
+<link rel="alternate" hreflang="en" href="https://utilverse.net/en/eat/menu/rainy-day-solo-meal" />
+<link rel="alternate" hreflang="ja" href="https://utilverse.net/ja/eat/menu/雨の日-一人-おすすめ" />
+<link rel="alternate" hreflang="zh" href="https://utilverse.net/zh/eat/menu/下雨天-一人-推荐" />
+<link rel="alternate" hreflang="x-default" href="https://utilverse.net/ko/eat/menu/비오는날-혼밥-추천" />
+```
 
-### Internal Linking
-- 모든 도구 페이지에서 **관련 도구 2-3개** 링크
-- 카테고리 페이지에서 모든 소속 도구로 링크
-- 홈에서 인기 도구 + 전체 카테고리로 링크
+## Internal Linking 전략
 
-### URL Structure
-- 패턴: `/tools/[descriptive-slug]`
-- 예시: `/tools/json-formatter`, `/tools/base64-encoder`
-- 하이픈 구분, 소문자, 쿼리 파라미터 없음
+- 모든 SEO 페이지에서 **관련 키워드 페이지 5-8개** 링크
+- 홈페이지에서 인기 키워드 10개 링크
+- SEO 페이지 하단 CTA → 홈페이지 (추천 UI)
+- 키워드 간 관계: 날씨 → 날씨, 가구 → 가구, 크로스 링크
 
 ## Social Sharing
 
 ### OpenGraph
 ```html
-<meta property="og:title" content="JSON Formatter - 온라인 JSON 정리 도구" />
-<meta property="og:description" content="JSON 데이터를 보기 쉽게 정리하세요." />
-<meta property="og:type" content="website" />
-<meta property="og:image" content="/og/json-formatter.png" />
+<meta property="og:title" content="비오는날 혼밥 뭐 먹지? AI 추천" />
+<meta property="og:description" content="비 오는 날 혼자 먹기 좋은 메뉴 AI 추천" />
+<meta property="og:type" content="article" />
+<meta property="og:image" content="/og/비오는날-혼밥.png" />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:locale:alternate" content="en_US" />
 ```
 
 ### Twitter Card
@@ -126,19 +215,19 @@ Sitemap: https://example.com/sitemap.xml
 <meta name="twitter:card" content="summary_large_image" />
 ```
 
-## SEO Checklist (페이지 발행 전 확인)
+## SEO Checklist (페이지 발행 전)
 
 - [ ] 고유한 title (50-60자)
 - [ ] 고유한 meta description (150-160자)
-- [ ] H1 태그 1개
-- [ ] 헤딩 계층 올바름
-- [ ] 모든 이미지에 alt 텍스트
+- [ ] H1 태그 1개 (키워드 포함)
+- [ ] hreflang 4개 언어 설정
 - [ ] canonical URL 설정
-- [ ] JSON-LD 구조화 데이터 포함
-- [ ] OpenGraph + Twitter Card 메타 설정
-- [ ] 관련 도구 내부 링크 2-3개
-- [ ] 도구 설명 콘텐츠 300자 이상
+- [ ] JSON-LD 구조화 데이터
+- [ ] OpenGraph + Twitter Card
+- [ ] 관련 페이지 내부 링크 5-8개
+- [ ] 고유 콘텐츠 300자 이상
 - [ ] sitemap에 포함 확인
+- [ ] 이미지 alt 텍스트
 
 ## Audit Results
 
