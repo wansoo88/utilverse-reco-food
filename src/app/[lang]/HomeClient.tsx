@@ -1,25 +1,33 @@
 'use client';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { CalendarView } from '@/components/food/CalendarView';
 import { useFilters } from '@/hooks/useFilters';
 import { useRecommend } from '@/hooks/useRecommend';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useToast } from '@/components/ui/ToastProvider';
 import { FilterSection } from '@/components/food/FilterSection';
-import { RecommendCard } from '@/components/food/RecommendCard';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { validateInput } from '@/lib/security';
 import { HOUSE_KEYWORDS, VIBE_KEYWORDS, BUDGET_KEYWORDS } from '@/data/filterKeywords';
 import { SEO_KEYWORDS } from '@/data/seoKeywords';
+import { trackEvent } from '@/lib/analytics';
 import type { Locale } from '@/config/site';
 import type { FilterState } from '@/types/filter';
 
 interface HomeClientProps {
   lang: Locale;
 }
+
+const RecommendCard = dynamic(
+  () => import('@/components/food/RecommendCard').then((module) => module.RecommendCard),
+);
+
+const CalendarView = dynamic(
+  () => import('@/components/food/CalendarView').then((module) => module.CalendarView),
+);
 
 export const HomeClient = ({ lang }: HomeClientProps) => {
   const t = useTranslations();
@@ -99,14 +107,32 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
       else if (validation.reason === 'not_food') showToast(t('home.blockToast'), 'error');
       return;
     }
+    trackEvent('recommend_submit', {
+      lang,
+      mode: filters.mode,
+      vibe_count: filters.vibes.length,
+      has_query: Boolean(query.trim()),
+    });
     await recommend(query, filters, lang);
   };
+
+  useEffect(() => {
+    if (status === 'success' && data) {
+      trackEvent('recommend_success', {
+        lang,
+        result_type: data.type,
+        fallback: Boolean(data._fallback),
+        item_count: data.items.length,
+      });
+    }
+  }, [data, lang, status]);
 
   const handleSaveToday = () => {
     if (!data) return;
 
     const saved = saveRecommendation(data);
     if (saved) {
+      trackEvent('calendar_save', { lang, result_type: data.type });
       showToast(t('calendar.saved'), 'success');
     }
   };
@@ -114,6 +140,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const handleDeleteEntry = (date: string) => {
     const removed = removeEntry(date);
     if (removed) {
+      trackEvent('calendar_delete', { lang });
       showToast(t('calendar.deleted'), 'info');
     }
   };
@@ -121,6 +148,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const handleUpdateEntry = (date: string, updates: { menu: string; reason: string; type: 'cook' | 'order' }) => {
     const updated = updateEntry(date, updates);
     if (updated) {
+      trackEvent('calendar_update', { lang, result_type: updates.type });
       showToast(t('calendar.updated'), 'success');
     }
   };
@@ -157,6 +185,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               <Link
                 key={topic.slug}
                 href={`/${lang}/eat/menu/${topic.slug}`}
+                onClick={() => trackEvent('quick_topic_click', { lang, slug: topic.slug })}
                 className="rounded-full border border-orange-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-orange-300 hover:text-orange-600"
               >
                 {topic[lang].title}
