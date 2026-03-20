@@ -9,6 +9,24 @@
     "errorInjection": "🚫 허용되지 않는 입력입니다",
     "errorTooLong": "⚠️ 입력이 너무 깁니다 (최대 200자)"
   },
+  "calendar": {
+    "title": "이번 주 메뉴 캘린더",
+    "empty": "아직 저장한 메뉴가 없어요",
+    "saveToday": "오늘 메뉴로 저장",
+    "saved": "🍽️ 오늘 메뉴를 저장했어요",
+    "deleted": "🗑️ 저장된 메뉴를 삭제했어요",
+    "updated": "✏️ 저장된 메뉴를 수정했어요",
+    "cook": "해먹기",
+    "order": "시켜먹기",
+    "week": "주간",
+    "month": "월간",
+    "delete": "삭제",
+    "edit": "수정",
+    "save": "저장",
+    "cancel": "취소",
+    "menuPlaceholder": "메뉴명",
+    "reasonPlaceholder": "한 줄 메모"
+  },
   "filter": {
     "mode": "어떻게?",
     "cook": "해먹기",

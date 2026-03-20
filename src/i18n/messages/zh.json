@@ -9,6 +9,24 @@
     "errorInjection": "🚫 此输入不被允许",
     "errorTooLong": "⚠️ 输入过长（最多200字）"
   },
+  "calendar": {
+    "title": "本周菜单日历",
+    "empty": "还没有保存的菜单",
+    "saveToday": "保存为今天的菜单",
+    "saved": "🍽️ 已保存为今天的菜单",
+    "deleted": "🗑️ 已删除保存的菜单",
+    "updated": "✏️ 已更新保存的菜单",
+    "cook": "自己做",
+    "order": "外卖",
+    "week": "周视图",
+    "month": "月视图",
+    "delete": "删除",
+    "edit": "编辑",
+    "save": "保存",
+    "cancel": "取消",
+    "menuPlaceholder": "菜单名",
+    "reasonPlaceholder": "备注"
+  },
   "filter": {
     "mode": "方式?",
     "cook": "自己做",

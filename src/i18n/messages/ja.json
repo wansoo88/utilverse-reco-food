@@ -9,6 +9,24 @@
     "errorInjection": "🚫 この入力は許可されていません",
     "errorTooLong": "⚠️ 入力が長すぎます（最大200文字）"
   },
+  "calendar": {
+    "title": "今週のメニューカレンダー",
+    "empty": "まだ保存したメニューはありません",
+    "saveToday": "今日のメニューとして保存",
+    "saved": "🍽️ 今日のメニューを保存しました",
+    "deleted": "🗑️ 保存したメニューを削除しました",
+    "updated": "✏️ 保存したメニューを更新しました",
+    "cook": "自炊",
+    "order": "デリバリー",
+    "week": "週間",
+    "month": "月間",
+    "delete": "削除",
+    "edit": "編集",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "menuPlaceholder": "メニュー名",
+    "reasonPlaceholder": "メモ"
+  },
   "filter": {
     "mode": "方法?",
     "cook": "自炊",

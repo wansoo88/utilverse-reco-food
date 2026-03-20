@@ -1,6 +1,7 @@
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { LOCALES, type Locale } from '@/config/site';
+import { ToastProvider } from '@/components/ui/ToastProvider';
 import { notFound } from 'next/navigation';
 
 interface Props {
@@ -23,7 +24,9 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages}>
-      {children}
+      <ToastProvider>
+        {children}
+      </ToastProvider>
     </NextIntlClientProvider>
   );
 }

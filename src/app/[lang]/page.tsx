@@ -1,18 +1,27 @@
-import { useTranslations } from 'next-intl';
-import { SITE_NAME } from '@/config/site';
 import type { Metadata } from 'next';
+import { LOCALES, SITE_NAME, SITE_DESCRIPTION, type Locale } from '@/config/site';
+import { HomeClient } from './HomeClient';
 
-export const metadata: Metadata = {
-  title: SITE_NAME,
-};
+interface Props {
+  params: Promise<{ lang: string }>;
+}
 
-export default function HomePage() {
-  const t = useTranslations('home');
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { lang } = await params;
+  return {
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    alternates: {
+      canonical: `/${lang}`,
+    },
+  };
+}
 
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-4xl font-bold">{t('title')}</h1>
-      <p className="mt-4 text-gray-600">{t('subtitle')}</p>
-    </main>
-  );
+export function generateStaticParams() {
+  return LOCALES.map((lang) => ({ lang }));
+}
+
+export default async function HomePage({ params }: Props) {
+  const { lang } = await params;
+  return <HomeClient lang={lang as Locale} />;
 }

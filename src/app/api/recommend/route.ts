@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateInput, sanitizeInput } from '@/lib/security';
 import { localRecommend } from '@/lib/localRecommend';
-import { DEFAULT_FILTER } from '@/types/filter';
+import { DEFAULT_FILTER, type FilterState } from '@/types/filter';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as { query?: string; filters?: unknown };
+    const body = await req.json() as { query?: string; filters?: unknown; lang?: string };
     const rawQuery = typeof body.query === 'string' ? body.query : '';
+    const lang = typeof body.lang === 'string' ? body.lang : 'ko';
 
     // Layer 2: 서버 사이드 검증
     const validation = validateInput(rawQuery);
@@ -15,13 +16,13 @@ export async function POST(req: NextRequest) {
     }
 
     const sanitized = sanitizeInput(rawQuery);
-    const filters = typeof body.filters === 'object' && body.filters !== null
-      ? { ...DEFAULT_FILTER, ...(body.filters as object) }
-      : DEFAULT_FILTER;
+    const filters: FilterState =
+      typeof body.filters === 'object' && body.filters !== null
+        ? { ...DEFAULT_FILTER, ...(body.filters as Partial<FilterState>) }
+        : DEFAULT_FILTER;
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // Gemini API 키가 없으면 폴백
     if (!apiKey) {
       return NextResponse.json(localRecommend(filters));
     }
@@ -35,14 +36,13 @@ export async function POST(req: NextRequest) {
       systemInstruction: SYSTEM_PROMPT,
     });
 
-    const userPrompt = buildUserPrompt(sanitized, filters, 'ko');
+    const userPrompt = buildUserPrompt(sanitized, filters, lang);
     const result = await model.generateContent(userPrompt);
     const text = result.response.text().replace(/```json\n?|\n?```/g, '').trim();
 
     const parsed = JSON.parse(text) as unknown;
     return NextResponse.json(parsed);
   } catch {
-    // 쿼터 초과나 파싱 실패 시 폴백
     return NextResponse.json(localRecommend(DEFAULT_FILTER));
   }
 }

@@ -9,6 +9,24 @@
     "errorInjection": "🚫 This input is not allowed",
     "errorTooLong": "⚠️ Input too long (max 200 chars)"
   },
+  "calendar": {
+    "title": "This Week's Menu Calendar",
+    "empty": "No saved menu yet",
+    "saveToday": "Save as today's menu",
+    "saved": "🍽️ Saved as today's menu",
+    "deleted": "🗑️ Saved menu removed",
+    "updated": "✏️ Saved menu updated",
+    "cook": "Cook",
+    "order": "Order",
+    "week": "Week",
+    "month": "Month",
+    "delete": "Delete",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "menuPlaceholder": "Menu name",
+    "reasonPlaceholder": "Short note"
+  },
   "filter": {
     "mode": "How?",
     "cook": "Cook",
