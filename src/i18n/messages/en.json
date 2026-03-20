@@ -4,6 +4,8 @@
     "subtitle": "AI recommends the perfect menu for you",
     "searchPlaceholder": "Type what you want or select filters",
     "recommend": "Get Recommendation",
+    "popularTitle": "Popular topic paths",
+    "popularSubtitle": "Jump straight into commonly searched menu situations",
     "filterRestored": "✅ Previous filters restored",
     "blockToast": "🚫 Only food-related questions are allowed",
     "errorInjection": "🚫 This input is not allowed",

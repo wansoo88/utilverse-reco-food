@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { CalendarView } from '@/components/food/CalendarView';
@@ -9,9 +10,10 @@ import { useToast } from '@/components/ui/ToastProvider';
 import { FilterSection } from '@/components/food/FilterSection';
 import { RecommendCard } from '@/components/food/RecommendCard';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
-import { FooterAd } from '@/components/ads/FooterAd';
+import { SiteFooter } from '@/components/ui/SiteFooter';
 import { validateInput } from '@/lib/security';
 import { HOUSE_KEYWORDS, VIBE_KEYWORDS, BUDGET_KEYWORDS } from '@/data/filterKeywords';
+import { SEO_KEYWORDS } from '@/data/seoKeywords';
 import type { Locale } from '@/config/site';
 import type { FilterState } from '@/types/filter';
 
@@ -27,6 +29,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const { entries, saveRecommendation, removeEntry, updateEntry } = useCalendar();
   const [query, setQuery] = useState('');
   const [restoredShown, setRestoredShown] = useState(false);
+  const quickTopics = SEO_KEYWORDS.slice(0, 8);
 
   // 필터 복원 토스트
   useEffect(() => {
@@ -142,6 +145,26 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           <p className="mt-1 text-gray-500 text-sm">{t('home.subtitle')}</p>
         </div>
 
+        <section className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-100 p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-orange-600">{t('home.popularTitle')}</p>
+              <p className="mt-1 text-sm text-gray-500">{t('home.popularSubtitle')}</p>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {quickTopics.map((topic) => (
+              <Link
+                key={topic.slug}
+                href={`/${lang}/eat/menu/${topic.slug}`}
+                className="rounded-full border border-orange-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-orange-300 hover:text-orange-600"
+              >
+                {topic[lang].title}
+              </Link>
+            ))}
+          </div>
+        </section>
+
         {/* 필터 섹션 */}
         <FilterSection
           filters={filters}
@@ -221,13 +244,11 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
       </main>
 
       {/* 푸터 + 광고 */}
-      <footer className="border-t border-gray-100 bg-white">
-        <FooterAd />
-        <div className="max-w-5xl mx-auto px-4 py-4 text-center text-xs text-gray-400">
-          <p>{t('footer.copyright')}</p>
-          <p className="mt-0.5">{t('footer.description')}</p>
-        </div>
-      </footer>
+      <SiteFooter
+        lang={lang}
+        copyright={t('footer.copyright')}
+        description={t('footer.description')}
+      />
     </div>
   );
 };

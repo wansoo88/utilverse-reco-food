@@ -1,8 +1,16 @@
 import type { Metadata } from 'next';
+import { Noto_Sans_KR } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/config/site';
 import { ADSENSE_PUB_ID, isAdsenseEnabled } from '@/config/adsense';
+
+const notoSansKr = Noto_Sans_KR({
+  subsets: ['latin'],
+  variable: '--font-body',
+  display: 'swap',
+  weight: ['400', '500', '700', '800'],
+});
 
 export const metadata: Metadata = {
   title: {
@@ -23,8 +31,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html suppressHydrationWarning>
-      <body>
+    <html suppressHydrationWarning className={notoSansKr.variable}>
+      <body className="font-[family-name:var(--font-body)] text-gray-900 antialiased">
         {children}
         {isAdsenseEnabled() && (
           <Script

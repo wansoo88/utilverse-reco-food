@@ -4,6 +4,8 @@
     "subtitle": "AIがぴったりのメニューを提案します",
     "searchPlaceholder": "食べたいものを入力またはフィルターを選択",
     "recommend": "おすすめを見る",
+    "popularTitle": "人気の探し方",
+    "popularSubtitle": "よく検索される状況別メニューページへすぐ移動できます",
     "filterRestored": "✅ 前回のフィルターを復元しました",
     "blockToast": "🚫 食べ物に関する質問のみお答えできます",
     "errorInjection": "🚫 この入力は許可されていません",

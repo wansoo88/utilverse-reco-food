@@ -58,12 +58,22 @@
 
 ### Phase 5: 성능 최적화 & 배포
 - [ ] Core Web Vitals 최적화 (LCP < 2.5s, INP < 200ms, CLS < 0.1)
-- [ ] 이미지/폰트 최적화 (next/font, WebP)
+- [x] 기본 폰트 최적화 (next/font)
+- [ ] 이미지 최적화 (WebP/OG 이미지)
 - [ ] 번들 분석 & 코드 스플리팅
 - [ ] Vercel 프로덕션 배포
 - [ ] GA4 연동 & 이벤트 추적
 - [ ] Search Console 등록 & 색인 요청
 - [ ] AdSense 사이트 등록 & 승인 신청
+
+### 운영 신뢰성 보강
+- [x] 소개 페이지 (`/[lang]/about`)
+- [x] 개인정보처리방침 (`/[lang]/privacy`)
+- [x] 이용약관 (`/[lang]/terms`)
+- [x] 문의 페이지 (`/[lang]/contact`)
+- [x] 푸터 법적/신뢰 링크 연결
+- [x] 홈 인기 주제 바로가기
+- [x] SEO 페이지 본문 설명 강화
 
 ## Task Tracker
 
@@ -80,6 +90,7 @@
 | ✅ | 추천 UI & Gemini 연동 | P1 | FRONTEND.md, BACKEND.md |
 | 🔵 | 프로그래매틱 SEO 페이지 확장 | P1 | SEO.md |
 | 🔵 | 캘린더 기능 | P2 | FRONTEND.md |
+| 🔵 | 운영 신뢰성/승인 대응 보강 | P2 | HANDOFF.md |
 | ⬜ | 성능 최적화 & 배포 | P2 | PERFORMANCE.md, HANDOFF.md |
 
 **범례**: ✅ 완료 · 🔵 진행 중 · ⬜ 대기
@@ -97,3 +108,5 @@
 | 2026-03-20 | 흑백요리사 1·2 Top 10 하드코딩 | 트렌드 핵심, 추가 트렌드는 AI 위임 |
 | 2026-03-20 | 캘린더는 localStorage 주간 뷰부터 구현 | 서버 없이 빠르게 저장/복원 가능한 UX 우선 |
 | 2026-03-20 | SEO 상세 페이지는 ISR + Article JSON-LD 우선 적용 | 정적 색인성과 구현 복잡도 균형 |
+| 2026-03-20 | 신뢰 페이지를 다국어 정적 페이지로 제공 | 승인 심사와 사용자 신뢰 확보 목적 |
+| 2026-03-20 | 기본 웹폰트는 `next/font`로 로컬 최적화 | 초기 렌더 안정성과 CLS 완화 목적 |
