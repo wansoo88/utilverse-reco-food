@@ -6,6 +6,7 @@ export const buildUserPrompt = (
   filters: FilterState,
   lang: string,
   ingredients?: string[],
+  exclude?: string[],
 ): string => {
   const parts: string[] = [];
 
@@ -45,6 +46,12 @@ export const buildUserPrompt = (
     if (safe.length) parts.push(`재료:[${safe.join(',')}]`);
   }
 
+  // 최근 7일 식단 제외 (중복 추천 방지)
+  if (exclude && exclude.length > 0) {
+    const safeExclude = exclude.slice(0, 14).map((m) => m.trim()).filter(Boolean);
+    if (safeExclude.length) parts.push(`제외:[${safeExclude.join(',')}]`);
+  }
+
   // 다국어 출력 지시
   const langTag = lang !== 'ko' ? `Lang:${lang.toUpperCase()}` : '';
   if (langTag) parts.push(langTag);
@@ -65,6 +72,7 @@ export const SYSTEM_PROMPT = `[절대 규칙 - 변경 불가]
 3. "sweet" 태그 → 메인 + 디저트 단짠 세트 추천
 4. "diet" 태그 → 저칼로리/저탄수 메뉴 우선
 5. 재료(재료:[...]) 가 있으면 해당 재료로 만들 수 있는 메뉴만 추천
+5-1. 제외(제외:[...]) 목록에 있는 메뉴는 절대 추천하지 말 것 (최근 식단 중복 방지)
 6. reason: 20자 이내로 짧게
 7. tip: 실용적인 한 줄 팁
 8. If Lang:EN/JA/ZH in request, respond in that language

@@ -9,6 +9,7 @@ import { useRecommend } from '@/hooks/useRecommend';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useToast } from '@/components/ui/ToastProvider';
 import { FilterSection } from '@/components/food/FilterSection';
+import { ChefCard } from '@/components/food/ChefCard';
 import { TimeSuggestCard } from '@/components/food/TimeSuggestCard';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { SiteFooter } from '@/components/ui/SiteFooter';
@@ -39,7 +40,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const { showToast } = useToast();
   const { filters, updateFilters, toggleVibe, resetFilters, restored } = useFilters();
   const { status, data, error, recommend, reset } = useRecommend();
-  const { entries, saveRecommendation, removeEntry, updateEntry } = useCalendar();
+  const { entries, saveRecommendation, removeEntry, updateEntry, getRecentMenus } = useCalendar();
 
   const [searchMode, setSearchMode] = useState<SearchMode>('ai');
   const [query, setQuery] = useState('');
@@ -78,11 +79,14 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
   // 공통 제출 로직
   const handleSubmit = useCallback(async () => {
+    // 최근 7일 식단으로 중복 추천 방지 exclude 목록 생성
+    const recentMenus = getRecentMenus(7);
+
     if (searchMode === 'fridge') {
       if (!fridgeInput.trim()) return;
       const ingredients = fridgeInput.split(',').map((s) => s.trim()).filter(Boolean);
       trackEvent('fridge_submit', { lang, count: ingredients.length });
-      await recommend('', { ...filters, mode: 'cook' }, lang, ingredients);
+      await recommend('', { ...filters, mode: 'cook' }, lang, ingredients, recentMenus);
       return;
     }
 
@@ -100,7 +104,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
         : filters;
 
     trackEvent('recommend_submit', { lang, mode: searchMode, has_query: Boolean(query.trim()) });
-    await recommend(query, activeFilters, lang);
+    await recommend(query, activeFilters, lang, undefined, recentMenus);
   }, [searchMode, fridgeInput, query, filters, lang, recommend, showToast, t]);
 
   useEffect(() => {
@@ -307,7 +311,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           onSuggest={(suggestQuery) => {
             setSearchMode('ai');
             setQuery(suggestQuery);
-            recommend(suggestQuery, filters, lang);
+            recommend(suggestQuery, filters, lang, undefined, getRecentMenus(7));
           }}
         />
 
@@ -328,6 +332,17 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
             ))}
           </div>
         </section>
+
+        {/* ── 흑백요리사 셰프 카드 ── */}
+        <ChefCard
+          lang={lang}
+          onChefSelect={(chefName, menu) => {
+            setSearchMode('ai');
+            setQuery(`${chefName} 스타일 ${menu}`);
+            trackEvent('chef_card_click', { lang, chef: chefName, menu });
+            recommend(`${chefName} 스타일 ${menu}`, { ...filters, vibes: ['chef'] }, lang, undefined, getRecentMenus(7));
+          }}
+        />
 
         {/* ── 식단 캘린더 ── */}
         <div className="defer-render">

@@ -1,3 +1,6 @@
+// 전각/유니코드 → NFKC 정규화 (전각 스페이스, 유니코드 우회 공격 방어)
+export const normalizeInput = (input: string): string => input.normalize('NFKC');
+
 // 프롬프트 인젝션 방어 패턴 목록 (Layer 1, 2 공통 사용)
 export const BLOCKED_PATTERNS = [
   /ignore\s+(previous|all)\s+instructions?/i,
@@ -36,7 +39,8 @@ export interface ValidationResult {
 }
 
 export const validateInput = (input: string): ValidationResult => {
-  const trimmed = input.trim();
+  // NFKC 정규화 먼저 적용 (전각 문자, 유니코드 우회 방어)
+  const trimmed = normalizeInput(input).trim();
 
   if (trimmed.length > MAX_INPUT_LENGTH) {
     return { valid: false, reason: 'too_long' };
@@ -61,7 +65,8 @@ export const validateInput = (input: string): ValidationResult => {
 
 // API 서버용 입력 정제 (Layer 2)
 export const sanitizeInput = (input: string): string => {
-  return input
+  // NFKC 정규화 후 정제
+  return normalizeInput(input)
     .replace(/<[^>]*>/g, '') // HTML 태그 제거
     .replace(/[<>"'&]/g, (c) => {
       const map: Record<string, string> = {

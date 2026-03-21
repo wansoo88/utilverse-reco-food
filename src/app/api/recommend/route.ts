@@ -5,10 +5,11 @@ import { DEFAULT_FILTER, type FilterState } from '@/types/filter';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as { query?: string; filters?: unknown; lang?: string; ingredients?: string[] };
+    const body = await req.json() as { query?: string; filters?: unknown; lang?: string; ingredients?: string[]; exclude?: string[] };
     const rawQuery = typeof body.query === 'string' ? body.query : '';
     const lang = typeof body.lang === 'string' ? body.lang : 'ko';
     const ingredients = Array.isArray(body.ingredients) ? body.ingredients as string[] : [];
+    const exclude = Array.isArray(body.exclude) ? body.exclude as string[] : [];
 
     // Layer 2: 서버 사이드 검증
     const validation = validateInput(rawQuery);
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
       systemInstruction: SYSTEM_PROMPT,
     });
 
-    const userPrompt = buildUserPrompt(sanitized, filters, lang, ingredients);
+    const userPrompt = buildUserPrompt(sanitized, filters, lang, ingredients, exclude);
     const result = await model.generateContent(userPrompt);
     const text = result.response.text().replace(/```json\n?|\n?```/g, '').trim();
 

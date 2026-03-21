@@ -16,6 +16,7 @@ export const useRecommend = () => {
     filters: FilterState,
     lang: Locale,
     ingredients?: string[],
+    exclude?: string[],
   ) => {
     setStatus('loading');
     setError(null);
@@ -23,7 +24,7 @@ export const useRecommend = () => {
       const res = await fetch('/api/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, filters, lang, ingredients }),
+        body: JSON.stringify({ query, filters, lang, ingredients, exclude }),
       });
 
       const json = await res.json() as RecommendResponse | RecommendError;

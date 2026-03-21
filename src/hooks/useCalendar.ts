@@ -100,10 +100,23 @@ export const useCalendar = () => {
     return changed;
   }, [entries, persist]);
 
+  // 최근 N일 식단 메뉴명 반환 (Gemini exclude 파라미터용)
+  const getRecentMenus = useCallback((days = 7): string[] => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = formatLocalDate(cutoff);
+
+    return entries
+      .filter((entry) => entry.date >= cutoffStr)
+      .map((entry) => entry.menu)
+      .filter(Boolean);
+  }, [entries]);
+
   return {
     entries,
     saveRecommendation,
     removeEntry,
     updateEntry,
+    getRecentMenus,
   };
 };
