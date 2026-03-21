@@ -32,7 +32,8 @@ export async function POST(req: NextRequest) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      // 무료 한도 최대 모델: gemini-2.0-flash-lite (1,500 RPD, 빠른 응답)
+      model: 'gemini-2.0-flash-lite',
       systemInstruction: SYSTEM_PROMPT,
     });
 
