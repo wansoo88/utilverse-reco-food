@@ -6,6 +6,7 @@ import './globals.css';
 import { SITE_NAME, SITE_DESCRIPTION, SITE_URL } from '@/config/site';
 import { ADSENSE_PUB_ID, isAdsenseEnabled } from '@/config/adsense';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
+import { WebVitalsReporter } from '@/components/analytics/WebVitalsReporter';
 
 const notoSansKr = Noto_Sans_KR({
   subsets: ['latin'],
@@ -54,6 +55,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>
+        <WebVitalsReporter />
         {isAdsenseEnabled() && (
           <Script
             async

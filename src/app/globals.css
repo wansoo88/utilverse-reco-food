@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+html {
+  background: #f9fafb;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.defer-render {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 600px;
+}

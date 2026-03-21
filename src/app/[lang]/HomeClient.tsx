@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useFilters } from '@/hooks/useFilters';
@@ -23,10 +24,16 @@ interface HomeClientProps {
 
 const RecommendCard = dynamic(
   () => import('@/components/food/RecommendCard').then((module) => module.RecommendCard),
+  {
+    loading: () => <div className="min-h-[260px] rounded-3xl border border-gray-200 bg-white shadow-sm" />,
+  },
 );
 
 const CalendarView = dynamic(
   () => import('@/components/food/CalendarView').then((module) => module.CalendarView),
+  {
+    loading: () => <div className="min-h-[420px] rounded-3xl border border-gray-200 bg-white shadow-sm" />,
+  },
 );
 
 export const HomeClient = ({ lang }: HomeClientProps) => {
@@ -166,12 +173,25 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
       {/* 메인 */}
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-6">
         {/* 히어로 */}
-        <div className="text-center pt-2">
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-            {t('home.title')}
-          </h1>
-          <p className="mt-1 text-gray-500 text-sm">{t('home.subtitle')}</p>
-        </div>
+        <section className="grid items-center gap-5 rounded-[2rem] border border-white/80 bg-white p-6 shadow-sm lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="text-center lg:text-left">
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 md:text-4xl">
+              {t('home.title')}
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-gray-500 md:text-base">{t('home.subtitle')}</p>
+          </div>
+          <div className="mx-auto w-full max-w-[280px]">
+            <Image
+              src="/hero-bowl.svg"
+              alt="Food bowl illustration"
+              width={640}
+              height={480}
+              priority
+              sizes="(max-width: 1024px) 280px, 320px"
+              className="h-auto w-full"
+            />
+          </div>
+        </section>
 
         <section className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-100 p-5 shadow-sm">
           <div className="flex items-center justify-between gap-4">
@@ -252,24 +272,26 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </div>
         )}
 
-        <CalendarView
-          entries={entries}
-          lang={lang}
-          title={t('calendar.title')}
-          emptyLabel={t('calendar.empty')}
-          cookLabel={t('calendar.cook')}
-          orderLabel={t('calendar.order')}
-          weekLabel={t('calendar.week')}
-          monthLabel={t('calendar.month')}
-          deleteLabel={t('calendar.delete')}
-          editLabel={t('calendar.edit')}
-          saveLabel={t('calendar.save')}
-          cancelLabel={t('calendar.cancel')}
-          menuPlaceholder={t('calendar.menuPlaceholder')}
-          reasonPlaceholder={t('calendar.reasonPlaceholder')}
-          onDelete={handleDeleteEntry}
-          onUpdate={handleUpdateEntry}
-        />
+        <div className="defer-render">
+          <CalendarView
+            entries={entries}
+            lang={lang}
+            title={t('calendar.title')}
+            emptyLabel={t('calendar.empty')}
+            cookLabel={t('calendar.cook')}
+            orderLabel={t('calendar.order')}
+            weekLabel={t('calendar.week')}
+            monthLabel={t('calendar.month')}
+            deleteLabel={t('calendar.delete')}
+            editLabel={t('calendar.edit')}
+            saveLabel={t('calendar.save')}
+            cancelLabel={t('calendar.cancel')}
+            menuPlaceholder={t('calendar.menuPlaceholder')}
+            reasonPlaceholder={t('calendar.reasonPlaceholder')}
+            onDelete={handleDeleteEntry}
+            onUpdate={handleUpdateEntry}
+          />
+        </div>
       </main>
 
       {/* 푸터 + 광고 */}
