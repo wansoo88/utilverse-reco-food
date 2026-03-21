@@ -6,7 +6,11 @@
 
 ✅ **Phase 1: 프로젝트 셋업 & 기반 구축** (완료 — 2026-03-20)
 ✅ **Phase 2: 핵심 추천 UI 개발** (완료 — 2026-03-20)
-🔵 **Phase 3: 캘린더 & 프로그래매틱 SEO 확장** (진행 중)
+✅ **Phase 3: 캘린더 & 프로그래매틱 SEO 확장** (완료 — 2026-03-20)
+✅ **Phase 4: 프로그래매틱 SEO** (완료 — 2026-03-20)
+✅ **Phase 6: UX 고도화** (완료 — 2026-03-21)
+🔵 **Phase 5: 성능 최적화 & 배포** (진행 중)
+🔵 **Phase 7: 검증 & 수익화 준비** (진행 중)
 
 ## Milestones
 
@@ -68,11 +72,72 @@
 - [ ] Search Console 등록 & 색인 요청
 - [ ] AdSense 사이트 등록 & 승인 신청
 
-### Phase 6: UX 고도화 (경쟁사 비교 기반)
-- [x] 추천 결과에 실행 링크 추가 (해먹기→레시피, 시켜먹기→배달앱)
-- [x] 시간대별 자동 추천 카드 (아침/점심/저녁/야식 자동 제안)
-- [x] 식단 캘린더 인사이트 (7일 패턴 분석 + 넛지 메시지)
-- [x] 냉장고 파먹기 모드 (재료 입력 → 메뉴 추천)
+### Phase 6: UX 고도화 (경쟁사 비교 기반) ✅ 완료
+- [x] 통합 검색 블록 (3모드 탭: 일반검색 / AI추천 / 냉장고 파먹기)
+- [x] 검색 결과 검색창 바로 아래 인라인 표시
+- [x] AI 추천 모드 필터 접기/펼치기 (비간섭 배치)
+- [x] 냉장고 파먹기 모드 (재료 입력 → cook 모드 Gemini 추천)
+- [x] /api/recipes — Gemini 트렌드 레시피 5개 API 신설
+- [x] RecipeSuggestions 컴포넌트 (유튜브 3개 + 레시피 사이트 2개 링크)
+- [x] RecommendCard 심플화 + 레시피 통합
+- [x] 시간대별 자동 추천 카드 (아침/점심/저녁/야식)
+- [x] 식단 캘린더 인사이트 (7일 패턴 분석 + 넛지)
+- [x] promptBuilder v5 (ingredients, 파이프 구조)
+- [x] 4개 언어 i18n 전체 확장 (search.* / recipe.* / nav.* 키 신규)
+- [x] docs/PROMPT.md v5 업데이트
+
+### Phase 7: 검증 & 수익화 준비 🔵 진행 중
+
+#### 7-1. 테스트 (즉시)
+- [ ] `test_ai.md` 기반 크롬 수동 테스트 63개 케이스 실행
+  - TC-01 기본 UI 렌더링
+  - TC-02 시간대별 자동 추천 카드
+  - TC-03 냉장고 파먹기 모드
+  - TC-04 AI 추천 결과 + 레시피 링크
+  - TC-05 식단 캘린더 인사이트
+  - TC-06 필터 & 기본 추천
+  - TC-07 다국어 전환 (EN/JA/ZH 전체 UI 번역 확인)
+  - TC-08 반응형 모바일 레이아웃
+  - TC-09 성능 & 접근성
+
+#### 7-2. 번역 완결 (단기)
+- [ ] `SiteFooter.tsx` — FOOTER_COPY(하드코딩) → i18n `footer.*` 키로 통일
+- [ ] About / Privacy / Terms / Contact 페이지 — i18n 키 연동 또는 legalContent.ts 언어별 완결 확인
+- [ ] LanguageSelector 전환 시 전체 텍스트 실시간 변경 E2E 검증
+
+#### 7-3. 성능 최적화 (단기)
+- [ ] Core Web Vitals 측정 (Lighthouse or PageSpeed Insights)
+  - LCP < 2.5s
+  - INP < 200ms
+  - CLS < 0.1 (광고 슬롯 고정 치수 확인)
+- [ ] /api/recipes 응답 지연 시 skeleton UI 표시 확인
+- [ ] 번들 크기 분석 (`pnpm build` 후 `.next/analyze` 확인)
+
+#### 7-4. 보안 강화 (단기)
+- [ ] 전각/유니코드 정규화 (NFKC) — `src/lib/security.ts` 추가
+- [ ] Rate Limiting per IP (10 req/min) — Vercel Edge Middleware 또는 API 레벨
+
+#### 7-5. Vercel 배포 (배포 전)
+- [ ] Vercel 프로젝트 연결 & 환경변수 설정
+  - `GEMINI_API_KEY`
+  - `NEXT_PUBLIC_ADSENSE_PUB_ID`
+  - `NEXT_PUBLIC_GA_ID`
+  - `NEXT_PUBLIC_SITE_URL=https://utilverse.net`
+- [ ] 프로덕션 빌드 검증 (`pnpm build` 에러 없음 확인)
+- [ ] 커스텀 도메인 연결 (utilverse.net 또는 서브도메인)
+
+#### 7-6. 수익화 (배포 후)
+- [ ] Google Search Console 등록 & sitemap 제출
+- [ ] Google AdSense 사이트 등록 & 승인 신청
+  - 승인 전: footer 광고 슬롯 플레이스홀더 유지
+  - 승인 후: `NEXT_PUBLIC_ADSENSE_PUB_ID` 환경변수 입력 → 자동 활성화
+- [ ] GA4 이벤트 수신 확인 (recommend_submit, fridge_submit, calendar_save 등)
+
+#### 7-7. 중기 개선 (배포 이후)
+- [ ] 캘린더 최근 7일 식단 → `exclude` 파라미터로 Gemini 중복 추천 방지
+- [ ] 위치 기반 시켜먹기 (Geolocation API — 선택적 동의)
+- [ ] 흑백요리사 셰프 추천 콘텐츠 카드 (chefs.ts 데이터 홈 활용)
+- [ ] SEO 키워드 DB 확장 (현재 40개 → 100개 목표)
 
 ### 운영 신뢰성 보강
 - [x] 소개 페이지 (`/[lang]/about`)
@@ -96,11 +161,21 @@
 | ✅ | ads.txt + robots.txt + sitemap (next-sitemap) | P0 | ADSENSE.md |
 | ✅ | FooterAd 에드센스 통합 | P0 | ADSENSE.md |
 | ✅ | 추천 UI & Gemini 연동 | P1 | FRONTEND.md, BACKEND.md |
-| 🔵 | 프로그래매틱 SEO 페이지 확장 | P1 | SEO.md |
-| 🔵 | 캘린더 기능 | P2 | FRONTEND.md |
-| ✅ | UX 고도화 (실행 링크, 시간대 카드, 인사이트, 냉장고 모드) | P1 | FRONTEND.md |
-| 🔵 | 운영 신뢰성/승인 대응 보강 | P2 | HANDOFF.md |
-| ⬜ | 성능 최적화 & 배포 | P2 | PERFORMANCE.md, HANDOFF.md |
+| ✅ | 프로그래매틱 SEO 페이지 확장 | P1 | SEO.md |
+| ✅ | 캘린더 기능 | P2 | FRONTEND.md |
+| ✅ | UX 고도화 (통합 검색, 레시피 API, 인사이트, 냉장고 모드) | P1 | FRONTEND.md |
+| ✅ | 운영 신뢰성/승인 대응 보강 | P2 | HANDOFF.md |
+| 🔵 | 크롬 수동 테스트 63케이스 실행 (test_ai.md) | P0 | docs/test_ai.md |
+| 🔵 | 번역 완결 검증 (EN/JA/ZH 전체 UI) | P1 | FRONTEND.md |
+| 🔵 | SiteFooter i18n 통일 (FOOTER_COPY → footer.* 키) | P1 | FRONTEND.md |
+| ⬜ | 보안 강화 (유니코드 정규화, Rate Limiting) | P1 | BACKEND.md |
+| ⬜ | Core Web Vitals 측정 & 최적화 | P2 | PERFORMANCE.md |
+| ⬜ | Vercel 프로덕션 배포 + 환경변수 설정 | P0 | HANDOFF.md |
+| ⬜ | Search Console 등록 & sitemap 제출 | P1 | SEO.md |
+| ⬜ | AdSense 사이트 등록 & 승인 신청 | P1 | ADSENSE.md |
+| ⬜ | 캘린더 exclude 파라미터 Gemini 연동 | P2 | BACKEND.md |
+| ⬜ | 흑백요리사 셰프 콘텐츠 카드 홈 노출 | P3 | FRONTEND.md |
+| ⬜ | SEO 키워드 DB 확장 (40개 → 100개) | P3 | SEO.md |
 
 **범례**: ✅ 완료 · 🔵 진행 중 · ⬜ 대기
 
@@ -123,3 +198,7 @@
 | 2026-03-21 | 시간대별 자동 추천 카드 도입 | 식신·카카오 AI메이트의 자동 제안 패턴 벤치마킹 |
 | 2026-03-21 | 캘린더 인사이트 (7일 패턴 분석) | 다이닝코드 패턴 학습 기능 경량화 도입 |
 | 2026-03-21 | 냉장고 파먹기 모드 | Whisk/Yummly 재료 기반 추천 포지션 공략, 검색 수요 높음 |
+| 2026-03-21 | 3모드 통합 검색 블록 도입 | 분산된 검색/필터/냉장고 UI를 단일 블록으로 통합, 결과 인라인 표시 |
+| 2026-03-21 | /api/recipes Gemini 레시피 API 신설 | 정적 딥링크 → AI 생성 트렌드 레시피 5개로 대체, 콘텐츠 가치 향상 |
+| 2026-03-21 | i18n 전체 확장 (search/recipe/nav 키) | 언어 전환 시 모든 UI 텍스트가 즉시 변환되도록 완결 |
+| 2026-03-21 | promptBuilder v5 (파이프 구조 + ingredients) | 토큰 효율 + 재료 기반 추천 지원, docs/PROMPT.md에 v5 아키텍처 기록 |
