@@ -193,6 +193,33 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </div>
         </section>
 
+        <div className="relative">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+            placeholder={t('home.searchPlaceholder')}
+            maxLength={200}
+            className="w-full rounded-[1.7rem] border border-gray-200 bg-white px-5 py-4 pr-24 text-base shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-orange-400"
+          />
+          {query && (
+            <button
+              onClick={handleReset}
+              className="absolute right-18 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg cursor-pointer"
+            >
+              ✕
+            </button>
+          )}
+          <button
+            onClick={handleSubmit}
+            disabled={status === 'loading'}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-2xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 cursor-pointer"
+          >
+            {status === 'loading' ? '...' : t('home.recommend')}
+          </button>
+        </div>
+
         <section className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-100 p-5 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -223,34 +250,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           onBudgetChange={handleBudgetChange}
           t={t}
         />
-
-        {/* 검색창 */}
-        <div className="relative">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            placeholder={t('home.searchPlaceholder')}
-            maxLength={200}
-            className="w-full px-4 py-3 pr-20 rounded-2xl border border-gray-200 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
-          />
-          {query && (
-            <button
-              onClick={handleReset}
-              className="absolute right-16 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg cursor-pointer"
-            >
-              ✕
-            </button>
-          )}
-          <button
-            onClick={handleSubmit}
-            disabled={status === 'loading'}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
-          >
-            {status === 'loading' ? '...' : t('home.recommend')}
-          </button>
-        </div>
 
         {/* 로딩 */}
         {status === 'loading' && (

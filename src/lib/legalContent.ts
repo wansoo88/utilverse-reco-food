@@ -146,7 +146,7 @@ export const CONTACT_CONTENT: Record<Locale, LegalPageContent> = {
     description: '서비스 제안, 오류 제보, 광고 및 협업 문의를 위한 안내입니다.',
     sections: [
       { heading: '문의 가능한 내용', paragraphs: ['추천 결과 오류, 잘못된 번역, 페이지 문제, 서비스 제안 등을 문의할 수 있습니다.', '광고 및 협업 관련 문의도 이 페이지를 통해 접수할 수 있습니다.'] },
-      { heading: '문의 방법', paragraphs: ['현재는 저장형 문의 폼 대신 이메일 기반 응대를 준비 중입니다.', '임시 문의 채널: utilverse.net@gmail.com'] },
+      { heading: '문의 방법', paragraphs: ['현재는 저장형 문의 폼 대신 이메일 기반 응대를 준비 중입니다.', '임시 문의 채널: kimcomplete8888@gmail.com'] },
       { heading: '처리 안내', paragraphs: ['문의 내용에 따라 회신까지 시간이 걸릴 수 있습니다.', '개인정보나 결제정보처럼 민감한 정보는 보내지 마세요.'] },
     ],
   },
@@ -155,7 +155,7 @@ export const CONTACT_CONTENT: Record<Locale, LegalPageContent> = {
     description: 'Contact guidance for product feedback, bug reports, and advertising inquiries.',
     sections: [
       { heading: 'Topics', paragraphs: ['You can contact us about translation issues, recommendation quality, bugs, or product suggestions.', 'Advertising and partnership inquiries are also accepted through this page.'] },
-      { heading: 'How to reach us', paragraphs: ['A structured contact form is not live yet, so email is the temporary channel.', 'Temporary contact email: utilverse.net@gmail.com'] },
+      { heading: 'How to reach us', paragraphs: ['A structured contact form is not live yet, so email is the temporary channel.', 'Temporary contact email: kimcomplete8888@gmail.com'] },
       { heading: 'Response note', paragraphs: ['Response time may vary depending on the inquiry type and workload.', 'Please do not send sensitive personal or payment information.'] },
     ],
   },
@@ -164,7 +164,7 @@ export const CONTACT_CONTENT: Record<Locale, LegalPageContent> = {
     description: 'サービス提案、不具合報告、広告や協業相談のための案内です。',
     sections: [
       { heading: '問い合わせ内容', paragraphs: ['翻訳の問題、推薦品質、不具合、サービス提案などを送ることができます。', '広告や協業に関する相談も受け付けています。'] },
-      { heading: '連絡方法', paragraphs: ['現在は保存型フォームではなく、メール対応を準備中です。', '暫定連絡先: utilverse.net@gmail.com'] },
+      { heading: '連絡方法', paragraphs: ['現在は保存型フォームではなく、メール対応を準備中です。', '暫定連絡先: kimcomplete8888@gmail.com'] },
       { heading: '案内', paragraphs: ['内容によって返信まで時間がかかる場合があります。', '機密性の高い個人情報や決済情報は送らないでください。'] },
     ],
   },
@@ -173,7 +173,7 @@ export const CONTACT_CONTENT: Record<Locale, LegalPageContent> = {
     description: '用于产品建议、错误反馈、广告与合作咨询的联系说明。',
     sections: [
       { heading: '可联系内容', paragraphs: ['可反馈翻译问题、推荐质量、页面错误或产品建议。', '广告和合作咨询也可通过本页进行联系。'] },
-      { heading: '联系方式', paragraphs: ['目前尚未上线表单，暂时通过邮箱处理。', '临时联系邮箱：utilverse.net@gmail.com'] },
+      { heading: '联系方式', paragraphs: ['目前尚未上线表单，暂时通过邮箱处理。', '临时联系邮箱：kimcomplete8888@gmail.com'] },
       { heading: '处理说明', paragraphs: ['根据咨询内容不同，回复时间可能有所差异。', '请不要发送敏感个人信息或支付信息。'] },
     ],
   },
