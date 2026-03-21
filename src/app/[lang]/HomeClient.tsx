@@ -9,6 +9,7 @@ import { useRecommend } from '@/hooks/useRecommend';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useToast } from '@/components/ui/ToastProvider';
 import { FilterSection } from '@/components/food/FilterSection';
+import { TimeSuggestCard } from '@/components/food/TimeSuggestCard';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { validateInput } from '@/lib/security';
@@ -44,6 +45,9 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const { entries, saveRecommendation, removeEntry, updateEntry } = useCalendar();
   const [query, setQuery] = useState('');
   const [restoredShown, setRestoredShown] = useState(false);
+  // 냉장고 파먹기 모드 상태
+  const [fridgeMode, setFridgeMode] = useState(false);
+  const [fridgeQuery, setFridgeQuery] = useState('');
   const quickTopics = SEO_KEYWORDS.slice(0, 8);
 
   // 필터 복원 토스트
@@ -103,7 +107,22 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const handleReset = () => {
     resetFilters();
     setQuery('');
+    setFridgeQuery('');
     reset();
+  };
+
+  // 냉장고 파먹기 제출 — 재료 기반 쿼리로 변환 후 동일 API 호출
+  const handleFridgeSubmit = async () => {
+    if (!fridgeQuery.trim()) return;
+    const ingredientQuery = `냉장고 재료: ${fridgeQuery.trim()}`;
+    const validation = validateInput(ingredientQuery);
+    if (!validation.valid) {
+      if (validation.reason === 'injection') showToast(t('home.errorInjection'), 'error');
+      else if (validation.reason === 'too_long') showToast(t('home.errorTooLong'), 'error');
+      return;
+    }
+    trackEvent('fridge_mode_submit', { lang, ingredient_count: fridgeQuery.split(',').length });
+    await recommend(ingredientQuery, { ...filters, mode: 'cook' }, lang);
   };
 
   const handleSubmit = async () => {
@@ -220,6 +239,55 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </button>
         </div>
 
+        {/* 냉장고 파먹기 토글 + 입력 */}
+        <div className="space-y-2">
+          <button
+            onClick={() => setFridgeMode((prev) => !prev)}
+            className={`flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-medium transition-colors ${fridgeMode ? 'border-sky-300 bg-sky-50 text-sky-700' : 'border-gray-200 bg-white text-gray-600 hover:border-sky-300 hover:text-sky-600'}`}
+          >
+            {t('fridge.toggle')}
+          </button>
+          {fridgeMode && (
+            <div className="rounded-[1.7rem] border border-sky-200 bg-sky-50 p-4 space-y-3">
+              <p className="text-xs text-sky-600">{t('fridge.hint')}</p>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={fridgeQuery}
+                  onChange={(e) => setFridgeQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleFridgeSubmit()}
+                  placeholder={t('fridge.placeholder')}
+                  maxLength={150}
+                  className="w-full rounded-[1.2rem] border border-sky-200 bg-white px-4 py-3 pr-36 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-sky-400"
+                />
+                <button
+                  onClick={handleFridgeSubmit}
+                  disabled={status === 'loading'}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-sky-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-sky-600 disabled:bg-sky-300"
+                >
+                  {t('fridge.recommend')}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 시간대별 자동 추천 카드 */}
+        <TimeSuggestCard
+          messages={{
+            morning: t('timeSuggest.morning'),
+            lunch: t('timeSuggest.lunch'),
+            afternoon: t('timeSuggest.afternoon'),
+            dinner: t('timeSuggest.dinner'),
+            late: t('timeSuggest.late'),
+            cta: t('timeSuggest.cta'),
+          }}
+          onSuggest={(suggestQuery) => {
+            setQuery(suggestQuery);
+            recommend(suggestQuery, filters, lang);
+          }}
+        />
+
         <section className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-100 p-5 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -287,6 +355,13 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
             cancelLabel={t('calendar.cancel')}
             menuPlaceholder={t('calendar.menuPlaceholder')}
             reasonPlaceholder={t('calendar.reasonPlaceholder')}
+            insightMessages={{
+              title: t('insight.title'),
+              cookHeavy: t('insight.cookHeavy'),
+              orderHeavy: t('insight.orderHeavy'),
+              balanced: t('insight.balanced'),
+              noData: t('insight.noData'),
+            }}
             onDelete={handleDeleteEntry}
             onUpdate={handleUpdateEntry}
           />

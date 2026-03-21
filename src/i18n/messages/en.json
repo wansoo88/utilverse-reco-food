@@ -49,6 +49,27 @@
     "under20k": "Under $20",
     "over20k": "$20+"
   },
+  "timeSuggest": {
+    "morning": "🌅 Good morning! What are you having for breakfast today?",
+    "lunch": "☀️ It's lunchtime! What will you eat today?",
+    "afternoon": "🍵 Afternoon snack time! Craving something sweet?",
+    "dinner": "🌙 Dinner time! What are you having tonight?",
+    "late": "🌃 Late-night snack time! Feeling peckish?",
+    "cta": "Get AI Recommendation"
+  },
+  "fridge": {
+    "toggle": "🧊 Fridge Cook",
+    "placeholder": "Enter ingredients separated by commas (e.g. eggs, kimchi, tofu)",
+    "recommend": "Recommend from Ingredients",
+    "hint": "AI will suggest menus you can make with your fridge ingredients"
+  },
+  "insight": {
+    "title": "📊 Meal Pattern",
+    "cookHeavy": "You've been cooking a lot in the last {{count}} days. How about ordering in today?",
+    "orderHeavy": "You've ordered a lot in the last {{count}} days. How about cooking today?",
+    "balanced": "Great balance of cooking and ordering 👏",
+    "noData": "Record your meals to get pattern insights"
+  },
   "footer": {
     "copyright": "© 2026 utilverse.info. All rights reserved.",
     "description": "AI Food Recommendation Service"

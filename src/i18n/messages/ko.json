@@ -49,6 +49,27 @@
     "under20k": "2만↓",
     "over20k": "2만+"
   },
+  "timeSuggest": {
+    "morning": "🌅 좋은 아침이에요! 오늘 아침은 뭐 드실 건가요?",
+    "lunch": "☀️ 점심 시간이에요. 오늘 점심은 뭐 드실 건가요?",
+    "afternoon": "🍵 오후 간식 시간! 달콤한 거 땡기지 않나요?",
+    "dinner": "🌙 저녁 시간이에요. 오늘 저녁은 뭐 드실 건가요?",
+    "late": "🌃 야식 시간! 출출하지 않으세요?",
+    "cta": "AI 추천받기"
+  },
+  "fridge": {
+    "toggle": "🧊 냉장고 파먹기",
+    "placeholder": "재료를 쉼표로 입력하세요 (예: 계란, 김치, 두부)",
+    "recommend": "재료로 추천받기",
+    "hint": "냉장고 속 재료로 만들 수 있는 메뉴를 AI가 추천해드려요"
+  },
+  "insight": {
+    "title": "📊 식단 패턴",
+    "cookHeavy": "최근 {{count}}일 중 해먹기가 많았어요. 오늘은 편하게 시켜먹는 건 어떨까요?",
+    "orderHeavy": "최근 {{count}}일 중 시켜먹기가 많았어요. 오늘은 직접 해먹어 보는 건 어떨까요?",
+    "balanced": "해먹기와 시켜먹기가 균형 잡혀 있어요 👏",
+    "noData": "식단을 기록하면 패턴 분석을 해드려요"
+  },
   "footer": {
     "copyright": "© 2026 utilverse.info. All rights reserved.",
     "description": "AI 음식 추천 서비스"

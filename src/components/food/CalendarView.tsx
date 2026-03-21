@@ -4,6 +4,14 @@ import { useEffect, useMemo, useState } from 'react';
 import type { CalendarEntry } from '@/types/calendar';
 import type { Locale } from '@/config/site';
 
+interface InsightMessages {
+  title: string;
+  cookHeavy: string;
+  orderHeavy: string;
+  balanced: string;
+  noData: string;
+}
+
 interface CalendarViewProps {
   entries: CalendarEntry[];
   lang: Locale;
@@ -19,6 +27,7 @@ interface CalendarViewProps {
   cancelLabel: string;
   menuPlaceholder: string;
   reasonPlaceholder: string;
+  insightMessages: InsightMessages;
   onDelete: (date: string) => void;
   onUpdate: (date: string, updates: Pick<CalendarEntry, 'menu' | 'reason' | 'type'>) => void;
 }
@@ -30,6 +39,19 @@ const formatDateKey = (date: Date) => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+};
+
+// 최근 N일 식단 패턴 분석
+const analyzePattern = (entries: CalendarEntry[], days: number) => {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffKey = formatDateKey(cutoff);
+
+  const recent = entries.filter((e) => e.date >= cutoffKey);
+  const cookCount = recent.filter((e) => e.type === 'cook').length;
+  const orderCount = recent.filter((e) => e.type === 'order').length;
+
+  return { total: recent.length, cookCount, orderCount };
 };
 
 export const CalendarView = ({
@@ -47,11 +69,13 @@ export const CalendarView = ({
   cancelLabel,
   menuPlaceholder,
   reasonPlaceholder,
+  insightMessages,
   onDelete,
   onUpdate,
 }: CalendarViewProps) => {
   const [view, setView] = useState<'week' | 'month'>('week');
   const [editingDate, setEditingDate] = useState<string | null>(null);
+  const insight = useMemo(() => analyzePattern(entries, 7), [entries]);
   const [draftMenu, setDraftMenu] = useState('');
   const [draftReason, setDraftReason] = useState('');
   const today = useMemo(() => new Date(), []);
@@ -124,6 +148,15 @@ export const CalendarView = ({
     cancelEdit();
   };
 
+  // 인사이트 메시지 결정 — 최근 7일 패턴 기반
+  const insightText = useMemo(() => {
+    if (insight.total === 0) return insightMessages.noData;
+    const cookRatio = insight.cookCount / insight.total;
+    if (cookRatio >= 0.7) return insightMessages.cookHeavy.replace('{{count}}', String(insight.total));
+    if (cookRatio <= 0.3) return insightMessages.orderHeavy.replace('{{count}}', String(insight.total));
+    return insightMessages.balanced;
+  }, [insight, insightMessages]);
+
   return (
     <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between gap-4">
@@ -145,6 +178,22 @@ export const CalendarView = ({
             {monthLabel}
           </button>
         </div>
+      </div>
+      {/* 식단 패턴 인사이트 */}
+      <div className="mt-3 flex items-center gap-2 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-2.5">
+        <span className="text-xs font-semibold text-gray-500">{insightMessages.title}</span>
+        <span className="text-xs text-gray-500">|</span>
+        <p className="text-xs text-gray-600">{insightText}</p>
+        {insight.total > 0 && (
+          <div className="ml-auto flex shrink-0 gap-1.5">
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+              🍳 {insight.cookCount}
+            </span>
+            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+              🛵 {insight.orderCount}
+            </span>
+          </div>
+        )}
       </div>
       <div className={`mt-4 grid gap-3 ${view === 'week' ? 'sm:grid-cols-2 xl:grid-cols-7' : 'sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7'}`}>
         {days.map((day) => {

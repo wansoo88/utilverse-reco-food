@@ -49,6 +49,27 @@
     "under20k": "120元以下",
     "over20k": "120元+"
   },
+  "timeSuggest": {
+    "morning": "🌅 早上好！今天早饭吃什么？",
+    "lunch": "☀️ 午饭时间到了！今天中午吃什么？",
+    "afternoon": "🍵 下午茶时间！想吃点甜的吗？",
+    "dinner": "🌙 晚饭时间！今晚吃什么？",
+    "late": "🌃 宵夜时间！有点饿了吗？",
+    "cta": "获取AI推荐"
+  },
+  "fridge": {
+    "toggle": "🧊 冰箱食材",
+    "placeholder": "用逗号输入食材（例：鸡蛋、泡菜、豆腐）",
+    "recommend": "根据食材推荐",
+    "hint": "AI将根据您冰箱里的食材推荐可做的菜单"
+  },
+  "insight": {
+    "title": "📊 饮食规律",
+    "cookHeavy": "最近{{count}}天自己做得比较多。今天点外卖放松一下吧？",
+    "orderHeavy": "最近{{count}}天点外卖比较多。今天试试自己做吧？",
+    "balanced": "自炊和点餐比例均衡 👏",
+    "noData": "记录饮食后可以分析您的饮食规律"
+  },
   "footer": {
     "copyright": "© 2026 utilverse.info. All rights reserved.",
     "description": "AI美食推荐服务"
