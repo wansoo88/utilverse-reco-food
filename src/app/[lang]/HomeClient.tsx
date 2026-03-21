@@ -13,28 +13,25 @@ import { TimeSuggestCard } from '@/components/food/TimeSuggestCard';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { validateInput } from '@/lib/security';
-import { HOUSE_KEYWORDS, VIBE_KEYWORDS, BUDGET_KEYWORDS } from '@/data/filterKeywords';
 import { SEO_KEYWORDS } from '@/data/seoKeywords';
 import { trackEvent } from '@/lib/analytics';
 import type { Locale } from '@/config/site';
 import type { FilterState } from '@/types/filter';
+
+type SearchMode = 'text' | 'ai' | 'fridge';
 
 interface HomeClientProps {
   lang: Locale;
 }
 
 const RecommendCard = dynamic(
-  () => import('@/components/food/RecommendCard').then((module) => module.RecommendCard),
-  {
-    loading: () => <div className="min-h-[260px] rounded-3xl border border-gray-200 bg-white shadow-sm" />,
-  },
+  () => import('@/components/food/RecommendCard').then((m) => m.RecommendCard),
+  { loading: () => <div className="min-h-[200px] animate-pulse rounded-2xl bg-gray-100" /> },
 );
 
 const CalendarView = dynamic(
-  () => import('@/components/food/CalendarView').then((module) => module.CalendarView),
-  {
-    loading: () => <div className="min-h-[420px] rounded-3xl border border-gray-200 bg-white shadow-sm" />,
-  },
+  () => import('@/components/food/CalendarView').then((m) => m.CalendarView),
+  { loading: () => <div className="min-h-[360px] animate-pulse rounded-3xl bg-gray-100" /> },
 );
 
 export const HomeClient = ({ lang }: HomeClientProps) => {
@@ -43,11 +40,13 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const { filters, updateFilters, toggleVibe, resetFilters, restored } = useFilters();
   const { status, data, error, recommend, reset } = useRecommend();
   const { entries, saveRecommendation, removeEntry, updateEntry } = useCalendar();
+
+  const [searchMode, setSearchMode] = useState<SearchMode>('ai');
   const [query, setQuery] = useState('');
+  const [fridgeInput, setFridgeInput] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [restoredShown, setRestoredShown] = useState(false);
-  // 냉장고 파먹기 모드 상태
-  const [fridgeMode, setFridgeMode] = useState(false);
-  const [fridgeQuery, setFridgeQuery] = useState('');
+
   const quickTopics = SEO_KEYWORDS.slice(0, 8);
 
   // 필터 복원 토스트
@@ -60,72 +59,33 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
   // 에러 토스트
   useEffect(() => {
-    if (error === 'food_only') {
-      showToast(t('home.blockToast'), 'error');
-    }
+    if (error === 'food_only') showToast(t('home.blockToast'), 'error');
   }, [error, showToast, t]);
 
-  // 필터 → 검색창 키워드 자동 동기화
-  const syncQueryFromFilters = useCallback((f: FilterState) => {
-    const parts: string[] = [];
-    const houseKw = HOUSE_KEYWORDS[lang];
-    const vibeKw = VIBE_KEYWORDS[lang];
-    const budgetKw = BUDGET_KEYWORDS[lang];
-
-    if (f.house && houseKw?.[f.house]) parts.push(houseKw[f.house]);
-    f.vibes.forEach((v) => { if (vibeKw?.[v]) parts.push(vibeKw[v]); });
-    if (f.budget !== 'any' && budgetKw?.[f.budget]) parts.push(budgetKw[f.budget]!);
-
-    setQuery(parts.join(' '));
-  }, [lang]);
-
-  const handleModeChange = (mode: FilterState['mode']) => {
-    updateFilters({ mode });
-  };
-
-  const handleHouseChange = (house: FilterState['house']) => {
-    const next = { ...filters, house };
-    updateFilters({ house });
-    syncQueryFromFilters(next);
-  };
-
-  const handleVibeToggle = (vibe: FilterState['vibes'][number]) => {
-    const vibes = filters.vibes.includes(vibe)
-      ? filters.vibes.filter((v) => v !== vibe)
-      : [...filters.vibes, vibe];
-    const next = { ...filters, vibes };
-    toggleVibe(vibe);
-    syncQueryFromFilters(next);
-  };
-
-  const handleBudgetChange = (budget: FilterState['budget']) => {
-    const next = { ...filters, budget };
-    updateFilters({ budget });
-    syncQueryFromFilters(next);
-  };
-
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     resetFilters();
     setQuery('');
-    setFridgeQuery('');
+    setFridgeInput('');
     reset();
-  };
+  }, [resetFilters, reset]);
 
-  // 냉장고 파먹기 제출 — 재료 기반 쿼리로 변환 후 동일 API 호출
-  const handleFridgeSubmit = async () => {
-    if (!fridgeQuery.trim()) return;
-    const ingredientQuery = `냉장고 재료: ${fridgeQuery.trim()}`;
-    const validation = validateInput(ingredientQuery);
-    if (!validation.valid) {
-      if (validation.reason === 'injection') showToast(t('home.errorInjection'), 'error');
-      else if (validation.reason === 'too_long') showToast(t('home.errorTooLong'), 'error');
+  const handleModeChange = (mode: FilterState['mode']) => updateFilters({ mode });
+  const handleHouseChange = (house: FilterState['house']) => {
+    updateFilters({ house: filters.house === house ? null : house });
+  };
+  const handleVibeToggle = (vibe: FilterState['vibes'][number]) => toggleVibe(vibe);
+  const handleBudgetChange = (budget: FilterState['budget']) => updateFilters({ budget });
+
+  // 공통 제출 로직
+  const handleSubmit = useCallback(async () => {
+    if (searchMode === 'fridge') {
+      if (!fridgeInput.trim()) return;
+      const ingredients = fridgeInput.split(',').map((s) => s.trim()).filter(Boolean);
+      trackEvent('fridge_submit', { lang, count: ingredients.length });
+      await recommend('', { ...filters, mode: 'cook' }, lang, ingredients);
       return;
     }
-    trackEvent('fridge_mode_submit', { lang, ingredient_count: fridgeQuery.split(',').length });
-    await recommend(ingredientQuery, { ...filters, mode: 'cook' }, lang);
-  };
 
-  const handleSubmit = async () => {
     const validation = validateInput(query);
     if (!validation.valid) {
       if (validation.reason === 'injection') showToast(t('home.errorInjection'), 'error');
@@ -133,29 +93,24 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
       else if (validation.reason === 'not_food') showToast(t('home.blockToast'), 'error');
       return;
     }
-    trackEvent('recommend_submit', {
-      lang,
-      mode: filters.mode,
-      vibe_count: filters.vibes.length,
-      has_query: Boolean(query.trim()),
-    });
-    await recommend(query, filters, lang);
-  };
+
+    const activeFilters: FilterState =
+      searchMode === 'text'
+        ? { mode: 'any', house: null, baby: null, vibes: [], budget: 'any' }
+        : filters;
+
+    trackEvent('recommend_submit', { lang, mode: searchMode, has_query: Boolean(query.trim()) });
+    await recommend(query, activeFilters, lang);
+  }, [searchMode, fridgeInput, query, filters, lang, recommend, showToast, t]);
 
   useEffect(() => {
     if (status === 'success' && data) {
-      trackEvent('recommend_success', {
-        lang,
-        result_type: data.type,
-        fallback: Boolean(data._fallback),
-        item_count: data.items.length,
-      });
+      trackEvent('recommend_success', { lang, result_type: data.type, fallback: Boolean(data._fallback) });
     }
   }, [data, lang, status]);
 
   const handleSaveToday = () => {
     if (!data) return;
-
     const saved = saveRecommendation(data);
     if (saved) {
       trackEvent('calendar_save', { lang, result_type: data.type });
@@ -164,115 +119,182 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   };
 
   const handleDeleteEntry = (date: string) => {
-    const removed = removeEntry(date);
-    if (removed) {
-      trackEvent('calendar_delete', { lang });
-      showToast(t('calendar.deleted'), 'info');
-    }
+    if (removeEntry(date)) showToast(t('calendar.deleted'), 'info');
+  };
+  const handleUpdateEntry = (date: string, updates: { menu: string; reason: string; type: 'cook' | 'order' }) => {
+    if (updateEntry(date, updates)) showToast(t('calendar.updated'), 'success');
   };
 
-  const handleUpdateEntry = (date: string, updates: { menu: string; reason: string; type: 'cook' | 'order' }) => {
-    const updated = updateEntry(date, updates);
-    if (updated) {
-      trackEvent('calendar_update', { lang, result_type: updates.type });
-      showToast(t('calendar.updated'), 'success');
-    }
+  // 모드별 UI 텍스트
+  const modeConfig = {
+    text:  { placeholder: t('search.placeholderText'),  submit: t('search.submitText') },
+    ai:    { placeholder: t('search.placeholderAi'),    submit: t('search.submitAi') },
+    fridge:{ placeholder: t('search.placeholderFridge'), submit: t('search.submitFridge') },
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* 헤더 */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <span className="font-bold text-gray-900">오늘뭐먹지</span>
+      {/* ── 헤더 ── */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-100">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+          <span className="font-extrabold text-gray-900 text-lg">오늘뭐먹지</span>
           <LanguageSelector current={lang} />
         </div>
       </header>
 
-      {/* 메인 */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-6">
-        {/* 히어로 */}
-        <section className="grid items-center gap-5 rounded-[2rem] border border-white/80 bg-white p-6 shadow-sm lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="text-center lg:text-left">
-            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 md:text-4xl">
+      <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 space-y-6">
+
+        {/* ── 히어로 (컴팩트) ── */}
+        <section className="flex items-center gap-4 rounded-[2rem] border border-white/80 bg-white px-6 py-4 shadow-sm">
+          <div className="flex-1">
+            <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 md:text-3xl">
               {t('home.title')}
             </h1>
-            <p className="mt-3 text-sm leading-6 text-gray-500 md:text-base">{t('home.subtitle')}</p>
+            <p className="mt-1 text-sm text-gray-500">{t('home.subtitle')}</p>
           </div>
-          <div className="mx-auto w-full max-w-[280px]">
+          <div className="shrink-0 w-20 h-20 md:w-28 md:h-28">
             <Image
               src="/hero-bowl.svg"
-              alt="Food bowl illustration"
-              width={640}
-              height={480}
+              alt="Food bowl"
+              width={112}
+              height={112}
               priority
-              sizes="(max-width: 1024px) 280px, 320px"
-              className="h-auto w-full"
+              className="h-full w-full"
             />
           </div>
         </section>
 
-        <div className="relative">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            placeholder={t('home.searchPlaceholder')}
-            maxLength={200}
-            className="w-full rounded-[1.7rem] border border-gray-200 bg-white px-5 py-4 pr-24 text-base shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-orange-400"
-          />
-          {query && (
-            <button
-              onClick={handleReset}
-              className="absolute right-18 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg cursor-pointer"
-            >
-              ✕
-            </button>
-          )}
-          <button
-            onClick={handleSubmit}
-            disabled={status === 'loading'}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-2xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 cursor-pointer"
-          >
-            {status === 'loading' ? '...' : t('home.recommend')}
-          </button>
-        </div>
+        {/* ── 통합 검색 + 결과 블록 ── */}
+        <section className="rounded-[2rem] border border-gray-200 bg-white shadow-md overflow-hidden">
 
-        {/* 냉장고 파먹기 토글 + 입력 */}
-        <div className="space-y-2">
-          <button
-            onClick={() => setFridgeMode((prev) => !prev)}
-            className={`flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-medium transition-colors ${fridgeMode ? 'border-sky-300 bg-sky-50 text-sky-700' : 'border-gray-200 bg-white text-gray-600 hover:border-sky-300 hover:text-sky-600'}`}
-          >
-            {t('fridge.toggle')}
-          </button>
-          {fridgeMode && (
-            <div className="rounded-[1.7rem] border border-sky-200 bg-sky-50 p-4 space-y-3">
-              <p className="text-xs text-sky-600">{t('fridge.hint')}</p>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={fridgeQuery}
-                  onChange={(e) => setFridgeQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleFridgeSubmit()}
-                  placeholder={t('fridge.placeholder')}
-                  maxLength={150}
-                  className="w-full rounded-[1.2rem] border border-sky-200 bg-white px-4 py-3 pr-36 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-sky-400"
+          {/* 모드 탭 */}
+          <div className="flex border-b border-gray-100">
+            {(['text', 'ai', 'fridge'] as SearchMode[]).map((mode) => {
+              const labels: Record<SearchMode, string> = {
+                text: t('search.modeText'),
+                ai: t('search.modeAi'),
+                fridge: t('search.modeFridge'),
+              };
+              return (
+                <button
+                  key={mode}
+                  onClick={() => { setSearchMode(mode); reset(); }}
+                  className={`flex-1 py-3 text-sm font-semibold transition-colors ${
+                    searchMode === mode
+                      ? 'border-b-2 border-orange-500 text-orange-600 bg-orange-50'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {labels[mode]}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="p-5 space-y-4">
+            {/* 냉장고 힌트 */}
+            {searchMode === 'fridge' && (
+              <p className="text-xs text-sky-600 bg-sky-50 rounded-xl px-3 py-2">
+                {t('search.fridgeHint')}
+              </p>
+            )}
+
+            {/* 검색 입력 */}
+            <div className="relative">
+              <input
+                type="text"
+                value={searchMode === 'fridge' ? fridgeInput : query}
+                onChange={(e) =>
+                  searchMode === 'fridge'
+                    ? setFridgeInput(e.target.value)
+                    : setQuery(e.target.value)
+                }
+                onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                placeholder={modeConfig[searchMode].placeholder}
+                maxLength={searchMode === 'fridge' ? 150 : 200}
+                className={`w-full rounded-2xl border px-5 py-3.5 pr-32 text-sm shadow-sm focus:outline-none focus:ring-2 ${
+                  searchMode === 'fridge'
+                    ? 'border-sky-200 focus:ring-sky-400 focus:border-transparent'
+                    : 'border-gray-200 focus:ring-orange-400 focus:border-transparent'
+                }`}
+              />
+              {(query || fridgeInput) && (
+                <button
+                  onClick={handleReset}
+                  className="absolute right-24 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              )}
+              <button
+                onClick={handleSubmit}
+                disabled={status === 'loading'}
+                className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-xl px-4 py-2 text-xs font-bold text-white transition-colors disabled:opacity-50 ${
+                  searchMode === 'fridge'
+                    ? 'bg-sky-500 hover:bg-sky-600'
+                    : 'bg-orange-500 hover:bg-orange-600'
+                }`}
+              >
+                {status === 'loading' ? '...' : modeConfig[searchMode].submit}
+              </button>
+            </div>
+
+            {/* AI 모드 필터 (접기/펼치기) */}
+            {searchMode === 'ai' && (
+              <div>
+                <button
+                  onClick={() => setShowFilters((v) => !v)}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-orange-500 transition-colors"
+                >
+                  <span>{showFilters ? '▲' : '▼'}</span>
+                  {showFilters ? t('search.filterHide') : t('search.filterToggle')}
+                </button>
+                {showFilters && (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <FilterSection
+                      filters={filters}
+                      onModeChange={handleModeChange}
+                      onHouseChange={handleHouseChange}
+                      onVibeToggle={handleVibeToggle}
+                      onBudgetChange={handleBudgetChange}
+                      t={t}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 로딩 */}
+            {status === 'loading' && (
+              <div className="flex justify-center py-6">
+                <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
+              </div>
+            )}
+
+            {/* 결과 — 검색창 바로 아래 */}
+            {status === 'success' && data && (
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <RecommendCard
+                  data={data}
+                  lang={lang}
+                  isFallback={data._fallback}
+                  labelRecipe={t('recipe.site')}
+                  labelYoutube={t('recipe.youtube')}
+                  labelRecipeLoading={t('recipe.loading')}
+                  labelRecipeTitle={t('recipe.title')}
                 />
                 <button
-                  onClick={handleFridgeSubmit}
-                  disabled={status === 'loading'}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-sky-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-sky-600 disabled:bg-sky-300"
+                  onClick={handleSaveToday}
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:border-orange-300 hover:text-orange-600"
                 >
-                  {t('fridge.recommend')}
+                  {t('calendar.saveToday')}
                 </button>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </section>
 
-        {/* 시간대별 자동 추천 카드 */}
+        {/* ── 시간대별 자동 추천 ── */}
         <TimeSuggestCard
           messages={{
             morning: t('timeSuggest.morning'),
@@ -283,25 +305,23 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
             cta: t('timeSuggest.cta'),
           }}
           onSuggest={(suggestQuery) => {
+            setSearchMode('ai');
             setQuery(suggestQuery);
             recommend(suggestQuery, filters, lang);
           }}
         />
 
-        <section className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-100 p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-orange-600">{t('home.popularTitle')}</p>
-              <p className="mt-1 text-sm text-gray-500">{t('home.popularSubtitle')}</p>
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
+        {/* ── 인기 탐색 주제 ── */}
+        <section className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50 p-5 shadow-sm">
+          <p className="text-sm font-semibold text-orange-600">{t('home.popularTitle')}</p>
+          <p className="mt-0.5 text-xs text-gray-500">{t('home.popularSubtitle')}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
             {quickTopics.map((topic) => (
               <Link
                 key={topic.slug}
                 href={`/${lang}/eat/menu/${topic.slug}`}
                 onClick={() => trackEvent('quick_topic_click', { lang, slug: topic.slug })}
-                className="rounded-full border border-orange-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-orange-300 hover:text-orange-600"
+                className="rounded-full border border-orange-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-orange-400 hover:text-orange-600"
               >
                 {topic[lang].title}
               </Link>
@@ -309,36 +329,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </div>
         </section>
 
-        {/* 필터 섹션 */}
-        <FilterSection
-          filters={filters}
-          onModeChange={handleModeChange}
-          onHouseChange={handleHouseChange}
-          onVibeToggle={handleVibeToggle}
-          onBudgetChange={handleBudgetChange}
-          t={t}
-        />
-
-        {/* 로딩 */}
-        {status === 'loading' && (
-          <div className="flex justify-center py-8">
-            <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
-          </div>
-        )}
-
-        {/* 결과 */}
-        {status === 'success' && data && (
-          <div className="space-y-4">
-            <RecommendCard data={data} isFallback={data._fallback} />
-            <button
-              onClick={handleSaveToday}
-              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:border-orange-300 hover:text-orange-600"
-            >
-              {t('calendar.saveToday')}
-            </button>
-          </div>
-        )}
-
+        {/* ── 식단 캘린더 ── */}
         <div className="defer-render">
           <CalendarView
             entries={entries}
@@ -368,7 +359,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
         </div>
       </main>
 
-      {/* 푸터 + 광고 */}
       <SiteFooter
         lang={lang}
         copyright={t('footer.copyright')}

@@ -2,14 +2,26 @@
   "home": {
     "title": "What to eat today?",
     "subtitle": "AI recommends the perfect menu for you",
-    "searchPlaceholder": "Type what you want or select filters",
-    "recommend": "Get Recommendation",
     "popularTitle": "Popular topic paths",
     "popularSubtitle": "Jump straight into commonly searched menu situations",
     "filterRestored": "✅ Previous filters restored",
     "blockToast": "🚫 Only food-related questions are allowed",
     "errorInjection": "🚫 This input is not allowed",
     "errorTooLong": "⚠️ Input too long (max 200 chars)"
+  },
+  "search": {
+    "modeText": "🔍 Search",
+    "modeAi": "🤖 AI Pick",
+    "modeFridge": "🧊 Fridge Cook",
+    "placeholderText": "Enter food you want to eat",
+    "placeholderAi": "Enter your mood or desired menu (optional)",
+    "placeholderFridge": "Enter ingredients separated by commas (e.g. eggs, kimchi, tofu)",
+    "submitText": "Search",
+    "submitAi": "Get AI Recommendation",
+    "submitFridge": "Recommend from Ingredients",
+    "filterToggle": "Set Filters",
+    "filterHide": "Hide Filters",
+    "fridgeHint": "AI will suggest menus you can make with your fridge ingredients"
   },
   "calendar": {
     "title": "This Week's Menu Calendar",
@@ -49,6 +61,12 @@
     "under20k": "Under $20",
     "over20k": "$20+"
   },
+  "recipe": {
+    "title": "Trending Recipes",
+    "youtube": "YouTube",
+    "site": "Recipe",
+    "loading": "Loading trending recipes..."
+  },
   "timeSuggest": {
     "morning": "🌅 Good morning! What are you having for breakfast today?",
     "lunch": "☀️ It's lunchtime! What will you eat today?",
@@ -56,12 +74,6 @@
     "dinner": "🌙 Dinner time! What are you having tonight?",
     "late": "🌃 Late-night snack time! Feeling peckish?",
     "cta": "Get AI Recommendation"
-  },
-  "fridge": {
-    "toggle": "🧊 Fridge Cook",
-    "placeholder": "Enter ingredients separated by commas (e.g. eggs, kimchi, tofu)",
-    "recommend": "Recommend from Ingredients",
-    "hint": "AI will suggest menus you can make with your fridge ingredients"
   },
   "insight": {
     "title": "📊 Meal Pattern",
@@ -72,6 +84,16 @@
   },
   "footer": {
     "copyright": "© 2026 utilverse.info. All rights reserved.",
-    "description": "AI Food Recommendation Service"
+    "description": "AI Food Recommendation Service",
+    "about": "About",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "contact": "Contact"
+  },
+  "nav": {
+    "about": "About",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "contact": "Contact"
   }
 }

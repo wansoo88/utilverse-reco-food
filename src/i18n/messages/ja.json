@@ -2,14 +2,26 @@
   "home": {
     "title": "今日何食べる？",
     "subtitle": "AIがぴったりのメニューを提案します",
-    "searchPlaceholder": "食べたいものを入力またはフィルターを選択",
-    "recommend": "おすすめを見る",
     "popularTitle": "人気の探し方",
     "popularSubtitle": "よく検索される状況別メニューページへすぐ移動できます",
     "filterRestored": "✅ 前回のフィルターを復元しました",
     "blockToast": "🚫 食べ物に関する質問のみお答えできます",
     "errorInjection": "🚫 この入力は許可されていません",
     "errorTooLong": "⚠️ 入力が長すぎます（最大200文字）"
+  },
+  "search": {
+    "modeText": "🔍 検索",
+    "modeAi": "🤖 AIおすすめ",
+    "modeFridge": "🧊 冷蔵庫レシピ",
+    "placeholderText": "食べたいものを入力してください",
+    "placeholderAi": "気分や食べたいメニューを入力（任意）",
+    "placeholderFridge": "食材をカンマで入力（例：卵、キムチ、豆腐）",
+    "submitText": "検索",
+    "submitAi": "AIにおすすめを聞く",
+    "submitFridge": "食材からおすすめを見る",
+    "filterToggle": "フィルター設定",
+    "filterHide": "フィルターを隠す",
+    "fridgeHint": "冷蔵庫の食材で作れるメニューをAIが提案します"
   },
   "calendar": {
     "title": "今週のメニューカレンダー",
@@ -49,6 +61,12 @@
     "under20k": "2000円以下",
     "over20k": "2000円+"
   },
+  "recipe": {
+    "title": "トレンドレシピ",
+    "youtube": "YouTube",
+    "site": "レシピ",
+    "loading": "トレンドレシピを読み込み中..."
+  },
   "timeSuggest": {
     "morning": "🌅 おはようございます！今日の朝食は何にしますか？",
     "lunch": "☀️ お昼の時間です！今日のランチは何にしますか？",
@@ -56,12 +74,6 @@
     "dinner": "🌙 夕食の時間です！今夜は何を食べますか？",
     "late": "🌃 夜食タイム！お腹が空いていませんか？",
     "cta": "AIにおすすめを聞く"
-  },
-  "fridge": {
-    "toggle": "🧊 冷蔵庫の食材で",
-    "placeholder": "食材をカンマで入力してください（例：卵、キムチ、豆腐）",
-    "recommend": "食材からおすすめを見る",
-    "hint": "冷蔵庫の食材で作れるメニューをAIが提案します"
   },
   "insight": {
     "title": "📊 食事パターン",
@@ -72,6 +84,16 @@
   },
   "footer": {
     "copyright": "© 2026 utilverse.info. All rights reserved.",
-    "description": "AI食事レコメンドサービス"
+    "description": "AI食事レコメンドサービス",
+    "about": "サービス紹介",
+    "privacy": "プライバシーポリシー",
+    "terms": "利用規約",
+    "contact": "お問い合わせ"
+  },
+  "nav": {
+    "about": "サービス紹介",
+    "privacy": "プライバシーポリシー",
+    "terms": "利用規約",
+    "contact": "お問い合わせ"
   }
 }

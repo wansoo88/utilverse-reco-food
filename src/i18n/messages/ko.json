@@ -2,14 +2,26 @@
   "home": {
     "title": "오늘 뭐 먹지?",
     "subtitle": "AI가 딱 맞는 메뉴를 추천해드려요",
-    "searchPlaceholder": "먹고 싶은 것을 입력하거나 필터를 선택하세요",
-    "recommend": "추천받기",
     "popularTitle": "인기 탐색 주제",
     "popularSubtitle": "자주 찾는 상황별 메뉴 페이지로 바로 이동할 수 있어요",
     "filterRestored": "✅ 이전 필터 불러옴",
     "blockToast": "🚫 음식과 관련 없는 질문은 답변할 수 없어요",
     "errorInjection": "🚫 허용되지 않는 입력입니다",
     "errorTooLong": "⚠️ 입력이 너무 깁니다 (최대 200자)"
+  },
+  "search": {
+    "modeText": "🔍 일반검색",
+    "modeAi": "🤖 AI 추천",
+    "modeFridge": "🧊 냉장고 파먹기",
+    "placeholderText": "먹고 싶은 음식을 입력하세요",
+    "placeholderAi": "상황이나 원하는 메뉴를 입력하세요 (선택)",
+    "placeholderFridge": "재료를 쉼표로 입력하세요 (예: 계란, 김치, 두부)",
+    "submitText": "검색",
+    "submitAi": "AI 추천받기",
+    "submitFridge": "재료로 추천받기",
+    "filterToggle": "필터 설정",
+    "filterHide": "필터 접기",
+    "fridgeHint": "냉장고 속 재료로 만들 수 있는 메뉴를 AI가 추천해드려요"
   },
   "calendar": {
     "title": "이번 주 메뉴 캘린더",
@@ -49,6 +61,12 @@
     "under20k": "2만↓",
     "over20k": "2만+"
   },
+  "recipe": {
+    "title": "트렌드 레시피",
+    "youtube": "유튜브",
+    "site": "레시피",
+    "loading": "트렌드 레시피 불러오는 중..."
+  },
   "timeSuggest": {
     "morning": "🌅 좋은 아침이에요! 오늘 아침은 뭐 드실 건가요?",
     "lunch": "☀️ 점심 시간이에요. 오늘 점심은 뭐 드실 건가요?",
@@ -56,12 +74,6 @@
     "dinner": "🌙 저녁 시간이에요. 오늘 저녁은 뭐 드실 건가요?",
     "late": "🌃 야식 시간! 출출하지 않으세요?",
     "cta": "AI 추천받기"
-  },
-  "fridge": {
-    "toggle": "🧊 냉장고 파먹기",
-    "placeholder": "재료를 쉼표로 입력하세요 (예: 계란, 김치, 두부)",
-    "recommend": "재료로 추천받기",
-    "hint": "냉장고 속 재료로 만들 수 있는 메뉴를 AI가 추천해드려요"
   },
   "insight": {
     "title": "📊 식단 패턴",
@@ -72,6 +84,16 @@
   },
   "footer": {
     "copyright": "© 2026 utilverse.info. All rights reserved.",
-    "description": "AI 음식 추천 서비스"
+    "description": "AI 음식 추천 서비스",
+    "about": "소개",
+    "privacy": "개인정보처리방침",
+    "terms": "이용약관",
+    "contact": "문의"
+  },
+  "nav": {
+    "about": "소개",
+    "privacy": "개인정보처리방침",
+    "terms": "이용약관",
+    "contact": "문의"
   }
 }

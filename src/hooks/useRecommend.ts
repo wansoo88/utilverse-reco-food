@@ -11,14 +11,19 @@ export const useRecommend = () => {
   const [data, setData] = useState<RecommendResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const recommend = useCallback(async (query: string, filters: FilterState, lang: Locale) => {
+  const recommend = useCallback(async (
+    query: string,
+    filters: FilterState,
+    lang: Locale,
+    ingredients?: string[],
+  ) => {
     setStatus('loading');
     setError(null);
     try {
       const res = await fetch('/api/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, filters, lang }),
+        body: JSON.stringify({ query, filters, lang, ingredients }),
       });
 
       const json = await res.json() as RecommendResponse | RecommendError;

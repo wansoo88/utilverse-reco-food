@@ -2,14 +2,26 @@
   "home": {
     "title": "今天吃什么？",
     "subtitle": "AI为您推荐最合适的菜单",
-    "searchPlaceholder": "输入想吃的或选择筛选条件",
-    "recommend": "获取推荐",
     "popularTitle": "热门主题入口",
     "popularSubtitle": "可直接进入常见场景下的菜单页面",
     "filterRestored": "✅ 已恢复上次筛选条件",
     "blockToast": "🚫 只能回答与食物相关的问题",
     "errorInjection": "🚫 此输入不被允许",
     "errorTooLong": "⚠️ 输入过长（最多200字）"
+  },
+  "search": {
+    "modeText": "🔍 搜索",
+    "modeAi": "🤖 AI推荐",
+    "modeFridge": "🧊 冰箱食材",
+    "placeholderText": "输入您想吃的食物",
+    "placeholderAi": "输入您的心情或想要的菜单（可选）",
+    "placeholderFridge": "用逗号输入食材（例：鸡蛋、泡菜、豆腐）",
+    "submitText": "搜索",
+    "submitAi": "获取AI推荐",
+    "submitFridge": "根据食材推荐",
+    "filterToggle": "筛选设置",
+    "filterHide": "收起筛选",
+    "fridgeHint": "AI将根据您冰箱里的食材推荐可做的菜单"
   },
   "calendar": {
     "title": "本周菜单日历",
@@ -49,6 +61,12 @@
     "under20k": "120元以下",
     "over20k": "120元+"
   },
+  "recipe": {
+    "title": "热门食谱",
+    "youtube": "YouTube",
+    "site": "食谱",
+    "loading": "正在加载热门食谱..."
+  },
   "timeSuggest": {
     "morning": "🌅 早上好！今天早饭吃什么？",
     "lunch": "☀️ 午饭时间到了！今天中午吃什么？",
@@ -56,12 +74,6 @@
     "dinner": "🌙 晚饭时间！今晚吃什么？",
     "late": "🌃 宵夜时间！有点饿了吗？",
     "cta": "获取AI推荐"
-  },
-  "fridge": {
-    "toggle": "🧊 冰箱食材",
-    "placeholder": "用逗号输入食材（例：鸡蛋、泡菜、豆腐）",
-    "recommend": "根据食材推荐",
-    "hint": "AI将根据您冰箱里的食材推荐可做的菜单"
   },
   "insight": {
     "title": "📊 饮食规律",
@@ -72,6 +84,16 @@
   },
   "footer": {
     "copyright": "© 2026 utilverse.info. All rights reserved.",
-    "description": "AI美食推荐服务"
+    "description": "AI美食推荐服务",
+    "about": "关于我们",
+    "privacy": "隐私政策",
+    "terms": "使用条款",
+    "contact": "联系我们"
+  },
+  "nav": {
+    "about": "关于我们",
+    "privacy": "隐私政策",
+    "terms": "使用条款",
+    "contact": "联系我们"
   }
 }
