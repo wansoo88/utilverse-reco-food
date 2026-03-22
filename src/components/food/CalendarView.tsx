@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CalendarEntry } from '@/types/calendar';
 import type { Locale } from '@/config/site';
+import type { FavoriteItem } from '@/hooks/useFavorites';
+import { TasteProfile } from './TasteProfile';
 
 interface InsightMessages {
   title: string;
@@ -30,6 +32,8 @@ interface CalendarViewProps {
   insightMessages: InsightMessages;
   onDelete: (date: string) => void;
   onUpdate: (date: string, updates: Pick<CalendarEntry, 'menu' | 'reason' | 'type'>) => void;
+  favorites?: FavoriteItem[];
+  profileLabel?: string;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -72,8 +76,11 @@ export const CalendarView = ({
   insightMessages,
   onDelete,
   onUpdate,
+  favorites = [],
+  profileLabel = '취향 분석',
 }: CalendarViewProps) => {
   const [view, setView] = useState<'week' | 'month'>('week');
+  const [mainTab, setMainTab] = useState<'calendar' | 'profile'>('calendar');
   const [editingDate, setEditingDate] = useState<string | null>(null);
   const insight = useMemo(() => analyzePattern(entries, 7), [entries]);
   const [draftMenu, setDraftMenu] = useState('');
@@ -158,12 +165,31 @@ export const CalendarView = ({
   }, [insight, insightMessages]);
 
   return (
-    <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+    <section className="rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      {/* 메인 탭: 캘린더 | 취향 분석 */}
+      <div className="flex border-b border-gray-100">
+        {(['calendar', 'profile'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setMainTab(tab)}
+            className={`flex-1 py-3 text-sm font-semibold transition-colors ${
+              mainTab === tab
+                ? 'border-b-2 border-orange-500 text-orange-600 bg-orange-50'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {tab === 'calendar' ? `📅 ${title}` : `🍱 ${profileLabel}`}
+          </button>
+        ))}
+      </div>
+
+      <div className="p-5">
+      {mainTab === 'profile' ? (
+        <TasteProfile entries={entries} favorites={favorites} />
+      ) : (
+      <>
       <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-          <p className="text-sm text-gray-500">{emptyLabel}</p>
-        </div>
+        <p className="text-sm text-gray-500">{emptyLabel}</p>
         <div className="inline-flex rounded-full bg-gray-100 p-1 text-sm">
           <button
             onClick={() => setView('week')}
@@ -268,6 +294,9 @@ export const CalendarView = ({
           </article>
         );
         })}
+      </div>
+      </>
+      )}
       </div>
     </section>
   );

@@ -114,5 +114,39 @@
     "privacy": "プライバシーポリシー",
     "terms": "利用規約",
     "contact": "お問い合わせ"
+  },
+  "recommend": {
+    "retry": "🔄 別のメニューをおすすめ",
+    "notThis": "これじゃない",
+    "history": "最近のおすすめ"
+  },
+  "share": {
+    "title": "シェア",
+    "copied": "コピーしました",
+    "copy": "シェア",
+    "twitter": "X(Twitter)",
+    "copyLink": "リンクをコピー"
+  },
+  "favorites": {
+    "title": "♥ お気に入りメニュー",
+    "empty": "まだお気に入りはありません。おすすめメニューの♥を押してみてください！",
+    "max": "お気に入りがいっぱいです。古いものが自動削除されました。",
+    "recommend": "このメニューでおすすめを見る",
+    "added": "♥ お気に入りに追加しました",
+    "removed": "お気に入りから削除しました"
+  },
+  "battle": {
+    "title": "今日のメニュー対決",
+    "vs": "VS",
+    "result": "結果",
+    "sameChoice": "同じ選択"
+  },
+  "profile": {
+    "title": "好みの分析",
+    "category": "カテゴリ分布",
+    "topMenus": "よく食べるメニュー Top 5",
+    "streak": "連続記録日数",
+    "recordCount": "今月の記録",
+    "minData": "5つ以上記録すると好みを分析できます！"
   }
 }

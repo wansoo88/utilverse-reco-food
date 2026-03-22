@@ -6,6 +6,7 @@ import { SEO_KEYWORDS } from '@/data/seoKeywords';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { getSeoRecommendation } from '@/lib/seoRecommendationCache';
 import { buildYoutubeRecipeLinks } from '@/lib/youtubeRecipes';
+import { COOK_MENUS, ORDER_MENUS } from '@/data/localMenus';
 import { LOCALES, SITE_DESCRIPTION, SITE_NAME, SITE_URL, type Locale } from '@/config/site';
 import { getTranslations } from 'next-intl/server';
 
@@ -134,7 +135,10 @@ export default async function MenuSlugPage({ params }: Props) {
   const meta = keyword[locale];
   const recommendation = getSeoRecommendation(keyword);
   const primaryItem = recommendation.items[0];
-  const relatedKeywords = SEO_KEYWORDS.filter((item) => item.slug !== keyword.slug).slice(0, 4);
+  const relatedKeywords = SEO_KEYWORDS.filter((item) => item.slug !== keyword.slug).slice(0, 6);
+  // 오늘의 인기 추천 (localMenus에서 시간대별 랜덤 3개)
+  const allMenus = [...COOK_MENUS, ...ORDER_MENUS];
+  const popularMenus = allMenus.slice(0, 30).sort(() => 0.5 - Math.random()).slice(0, 3);
   const youtubeLinks = buildYoutubeRecipeLinks(recommendation.items, locale);
   const canonicalUrl = `${SITE_URL}/${locale}/eat/menu/${keyword.slug}`;
   const copy = PAGE_COPY[locale];
@@ -284,24 +288,43 @@ export default async function MenuSlugPage({ params }: Props) {
 
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-gray-900">{copy.related}</h2>
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 grid grid-cols-2 gap-2">
                 {relatedKeywords.map((item) => (
                   <Link
                     key={item.slug}
                     href={`/${locale}/eat/menu/${item.slug}`}
-                    className="block rounded-2xl border border-gray-100 px-4 py-3 text-sm text-gray-700 transition-colors hover:border-orange-300 hover:text-orange-600"
+                    className="flex flex-col gap-1 rounded-2xl border border-gray-100 bg-gray-50 px-3 py-3 text-xs text-gray-700 transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600"
                   >
-                    {item[locale].title}
+                    <span className="font-semibold leading-snug">{item[locale].title}</span>
+                    <span className="text-gray-400 line-clamp-2 leading-snug">{item[locale].description}</span>
                   </Link>
                 ))}
               </div>
             </section>
 
+            {/* 오늘의 인기 추천 */}
+            <section className="rounded-3xl border border-amber-100 bg-amber-50 p-5 shadow-sm">
+              <p className="text-sm font-semibold text-amber-700">오늘의 인기 추천</p>
+              <div className="mt-3 space-y-2">
+                {popularMenus.map((menu) => (
+                  <Link
+                    key={menu.name}
+                    href={`/${locale}?shared=${encodeURIComponent(menu.name)}`}
+                    className="flex items-center gap-2 rounded-2xl bg-white border border-amber-100 px-3 py-2 text-sm text-gray-700 transition-colors hover:border-orange-300 hover:text-orange-600"
+                  >
+                    <span>{menu.emoji ?? '🍽️'}</span>
+                    <span className="font-medium">{menu.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+
+            {/* 강화된 CTA: 프리셋 필터 전달 */}
             <Link
-              href={`/${locale}`}
+              href={`/${locale}?preset=${keyword.slug}`}
               className="block rounded-3xl bg-orange-500 px-6 py-4 text-center text-sm font-semibold text-white shadow-sm transition-colors hover:bg-orange-600"
             >
-              {copy.cta}
+              🤖 {copy.cta}
             </Link>
           </aside>
         </section>

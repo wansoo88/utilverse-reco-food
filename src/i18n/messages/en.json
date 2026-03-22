@@ -114,5 +114,39 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Use",
     "contact": "Contact"
+  },
+  "recommend": {
+    "retry": "🔄 Try Another Menu",
+    "notThis": "Not this one",
+    "history": "Recent Picks"
+  },
+  "share": {
+    "title": "Share",
+    "copied": "Copied!",
+    "copy": "Share",
+    "twitter": "X(Twitter)",
+    "copyLink": "Copy Link"
+  },
+  "favorites": {
+    "title": "♥ My Menu Book",
+    "empty": "No favorites yet. Tap ♥ on any recommended menu!",
+    "max": "Favorites full. Oldest item was auto-removed.",
+    "recommend": "Recommend this",
+    "added": "♥ Added to favorites",
+    "removed": "Removed from favorites"
+  },
+  "battle": {
+    "title": "Menu Battle",
+    "vs": "VS",
+    "result": "Result",
+    "sameChoice": "same choice"
+  },
+  "profile": {
+    "title": "Taste Profile",
+    "category": "Category Distribution",
+    "topMenus": "Top 5 Most Eaten",
+    "streak": "Day Streak",
+    "recordCount": "This Month",
+    "minData": "Record 5+ meals to see your taste profile!"
   }
 }

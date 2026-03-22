@@ -114,5 +114,39 @@
     "privacy": "개인정보처리방침",
     "terms": "이용약관",
     "contact": "문의"
+  },
+  "recommend": {
+    "retry": "🔄 다른 메뉴 추천받기",
+    "notThis": "이건 아니야",
+    "history": "최근 추천"
+  },
+  "share": {
+    "title": "공유하기",
+    "copied": "복사됨",
+    "copy": "공유",
+    "twitter": "X(Twitter)",
+    "copyLink": "링크 복사"
+  },
+  "favorites": {
+    "title": "♥ 즐겨찾기 메뉴북",
+    "empty": "아직 즐겨찾기가 없어요. 추천받은 메뉴에서 ♥를 눌러보세요!",
+    "max": "즐겨찾기가 꽉 찼어요. 오래된 항목이 자동으로 제거됐어요.",
+    "recommend": "이 메뉴로 추천받기",
+    "added": "♥ 즐겨찾기에 추가됐어요",
+    "removed": "즐겨찾기에서 제거됐어요"
+  },
+  "battle": {
+    "title": "오늘의 메뉴 대결",
+    "vs": "VS",
+    "result": "결과",
+    "sameChoice": "같은 선택"
+  },
+  "profile": {
+    "title": "취향 분석",
+    "category": "카테고리 분포",
+    "topMenus": "많이 먹은 메뉴 Top 5",
+    "streak": "연속 기록일",
+    "recordCount": "이번 달 기록",
+    "minData": "메뉴를 5개 이상 기록하면 취향 분석을 해드려요!"
   }
 }
