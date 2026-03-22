@@ -8,7 +8,7 @@ import {
   ORDER_MENUS_DIET,
 } from '@/data/localMenus';
 import type { FilterState } from '@/types/filter';
-import type { FoodItem, RecommendResponse } from '@/types/recommend';
+import type { FoodItem, RecommendResponse, DualRecommendResponse } from '@/types/recommend';
 
 // 상황어 → 키워드 매핑 (쿼리 분석용)
 const SITUATION_KEYWORDS: Record<string, string[]> = {
@@ -66,7 +66,10 @@ export const localRecommend = (
   query = '',
   ingredients: string[] = [],
 ): RecommendResponse => {
-  const isOrder = filters.mode === 'order';
+  // mode 'any'일 때: 쿼리/상황어로 판단, 기본값은 order
+  const detectedOrder = detectSituation(query).includes('late') ||
+    ['치킨', '피자', '짜장', '배달', '시켜', '주문'].some((kw) => query.includes(kw));
+  const isOrder = filters.mode === 'order' || (filters.mode === 'any' && (detectedOrder || query === ''));
   const vibes = filters.vibes ?? [];
   const detectedSituations = detectSituation(query);
   const timeOfDay = getTimeOfDay();
@@ -131,6 +134,28 @@ export const localRecommend = (
     type: isOrder ? 'order' : 'cook',
     items: selected,
     tip: '잠시 후 다시 시도하면 AI 추천을 받을 수 있어요',
+    _fallback: true,
+  };
+};
+
+// 듀얼 모드 로컬 폴백: cook + order 동시 반환
+export const localDualRecommend = (
+  filters: FilterState,
+  query = '',
+): DualRecommendResponse => {
+  const cookResult = localRecommend({ ...filters, mode: 'cook' }, query);
+  const orderResult = localRecommend({ ...filters, mode: 'order' }, query);
+
+  return {
+    dual: true,
+    cook: {
+      items: cookResult.items,
+      tip: cookResult.tip,
+    },
+    order: {
+      items: orderResult.items,
+      tip: orderResult.tip,
+    },
     _fallback: true,
   };
 };

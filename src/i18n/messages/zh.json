@@ -10,18 +10,27 @@
     "errorTooLong": "⚠️ 输入过长（最多200字）"
   },
   "search": {
-    "modeText": "🔍 搜索",
-    "modeAi": "🤖 AI推荐",
+    "modeText": "🍽️ 菜单推荐",
+    "modeAi": "🤖 AI搜索",
     "modeFridge": "🧊 冰箱食材",
-    "placeholderText": "输入您想吃的食物",
-    "placeholderAi": "输入您的心情或想要的菜单（可选）",
+    "placeholderText": "输入您的情况或想吃的菜单",
+    "placeholderAi": "输入您的情况或想吃的菜单",
     "placeholderFridge": "用逗号输入食材（例：鸡蛋、泡菜、豆腐）",
-    "submitText": "搜索",
+    "submitText": "获取推荐",
     "submitAi": "获取AI推荐",
     "submitFridge": "根据食材推荐",
     "filterToggle": "筛选设置",
     "filterHide": "收起筛选",
-    "fridgeHint": "AI将根据您冰箱里的食材推荐可做的菜单"
+    "fridgeHint": "AI将根据您冰箱里的食材推荐可做的菜单",
+    "tabCook": "🍳 自己做",
+    "tabOrder": "🛵 外卖",
+    "nearbyTitle": "附近餐厅",
+    "nearbyLoading": "正在搜索附近餐厅...",
+    "nearbyEmpty": "未找到附近餐厅",
+    "nearbyPermission": "允许位置权限以搜索附近餐厅",
+    "nearbyError": "搜索附近餐厅失败",
+    "distanceM": "{dist}m",
+    "distanceKm": "{dist}km"
   },
   "calendar": {
     "title": "本周菜单日历",

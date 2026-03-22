@@ -10,18 +10,27 @@
     "errorTooLong": "⚠️ 입력이 너무 깁니다 (최대 200자)"
   },
   "search": {
-    "modeText": "🔍 일반검색",
-    "modeAi": "🤖 AI 추천",
+    "modeText": "🍽️ 메뉴 추천",
+    "modeAi": "🤖 AI 검색",
     "modeFridge": "🧊 냉장고 파먹기",
-    "placeholderText": "먹고 싶은 음식을 입력하세요",
-    "placeholderAi": "상황이나 원하는 메뉴를 입력하세요 (선택)",
+    "placeholderText": "현재 상황이나 원하는 메뉴를 입력하세요",
+    "placeholderAi": "상황이나 원하는 메뉴를 입력하세요",
     "placeholderFridge": "재료를 쉼표로 입력하세요 (예: 계란, 김치, 두부)",
-    "submitText": "검색",
+    "submitText": "추천받기",
     "submitAi": "AI 추천받기",
     "submitFridge": "재료로 추천받기",
     "filterToggle": "필터 설정",
     "filterHide": "필터 접기",
-    "fridgeHint": "냉장고 속 재료로 만들 수 있는 메뉴를 AI가 추천해드려요"
+    "fridgeHint": "냉장고 속 재료로 만들 수 있는 메뉴를 AI가 추천해드려요",
+    "tabCook": "🍳 해먹기",
+    "tabOrder": "🛵 시켜먹기",
+    "nearbyTitle": "근처 맛집",
+    "nearbyLoading": "주변 맛집을 찾고 있어요...",
+    "nearbyEmpty": "주변에 검색된 맛집이 없어요",
+    "nearbyPermission": "위치 권한을 허용하면 근처 맛집을 찾아드려요",
+    "nearbyError": "맛집 검색에 실패했어요",
+    "distanceM": "{dist}m",
+    "distanceKm": "{dist}km"
   },
   "calendar": {
     "title": "이번 주 메뉴 캘린더",

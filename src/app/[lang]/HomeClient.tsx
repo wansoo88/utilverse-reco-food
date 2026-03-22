@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useFilters } from '@/hooks/useFilters';
-import { useRecommend } from '@/hooks/useRecommend';
+import { useRecommend, isDualResponse, isSingleResponse } from '@/hooks/useRecommend';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useToast } from '@/components/ui/ToastProvider';
 import { FilterSection } from '@/components/food/FilterSection';
@@ -26,6 +26,11 @@ interface HomeClientProps {
 const RecommendCard = dynamic(
   () => import('@/components/food/RecommendCard').then((m) => m.RecommendCard),
   { loading: () => <div className="min-h-[200px] animate-pulse rounded-2xl bg-gray-100" /> },
+);
+
+const DualResultView = dynamic(
+  () => import('@/components/food/DualResultView').then((m) => m.DualResultView),
+  { loading: () => <div className="min-h-[300px] animate-pulse rounded-2xl bg-gray-100" /> },
 );
 
 const CalendarView = dynamic(
@@ -87,7 +92,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
   // 공통 제출 로직
   const handleSubmit = useCallback(async () => {
-    // 최근 7일 식단으로 중복 추천 방지 exclude 목록 생성
     const recentMenus = getRecentMenus(7);
 
     if (searchMode === 'fridge') {
@@ -98,7 +102,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
       return;
     }
 
-    // AI 바로 추천 모드: 입력값 필수
+    // AI 모드: 입력값 필수
     if (searchMode === 'ai' && !query.trim()) {
       showToast('🤖 추천받을 내용을 입력해주세요', 'error');
       return;
@@ -112,25 +116,40 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
       return;
     }
 
-    // text / ai 모두 동일한 필터 적용 (fridge는 별도 처리)
-    const activeFilters: FilterState = filters;
-
-    trackEvent('recommend_submit', { lang, mode: searchMode, has_query: Boolean(query.trim()) });
-    await recommend(query, activeFilters, lang, undefined, recentMenus);
-  }, [searchMode, fridgeInput, query, filters, lang, recommend, showToast, t]);
+    // AI 모드: 듀얼(cook+order 동시), text 모드: 단일
+    const isDual = searchMode === 'ai';
+    trackEvent('recommend_submit', { lang, mode: searchMode, has_query: Boolean(query.trim()), dual: isDual });
+    await recommend(query, filters, lang, undefined, recentMenus, isDual);
+  }, [searchMode, fridgeInput, query, filters, lang, recommend, showToast, t, getRecentMenus]);
 
   useEffect(() => {
     if (status === 'success' && data) {
-      trackEvent('recommend_success', { lang, result_type: data.type, fallback: Boolean(data._fallback) });
+      if (isDualResponse(data)) {
+        trackEvent('recommend_success', { lang, result_type: 'dual', fallback: Boolean(data._fallback) });
+      } else if (isSingleResponse(data)) {
+        trackEvent('recommend_success', { lang, result_type: data.type, fallback: Boolean(data._fallback) });
+      }
     }
   }, [data, lang, status]);
 
   const handleSaveToday = () => {
     if (!data) return;
-    const saved = saveRecommendation(data);
-    if (saved) {
-      trackEvent('calendar_save', { lang, result_type: data.type });
-      showToast(t('calendar.saved'), 'success');
+    // 듀얼 모드에서는 cook 결과를 저장
+    if (isDualResponse(data)) {
+      const cookData = { type: 'cook' as const, items: data.cook.items, tip: data.cook.tip };
+      const saved = saveRecommendation(cookData);
+      if (saved) {
+        trackEvent('calendar_save', { lang, result_type: 'cook' });
+        showToast(t('calendar.saved'), 'success');
+      }
+      return;
+    }
+    if (isSingleResponse(data)) {
+      const saved = saveRecommendation(data);
+      if (saved) {
+        trackEvent('calendar_save', { lang, result_type: data.type });
+        showToast(t('calendar.saved'), 'success');
+      }
     }
   };
 
@@ -152,13 +171,13 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* ── 헤더 ── */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-100">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <span className="font-extrabold text-gray-900 text-lg">오늘뭐먹지</span>
           <LanguageSelector current={lang} />
         </div>
       </header>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 space-y-6">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-6">
 
         {/* ── 히어로 (컴팩트) ── */}
         <section className="flex items-center gap-4 rounded-[2rem] border border-white/80 bg-white px-6 py-4 shadow-sm">
@@ -216,6 +235,13 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               </p>
             )}
 
+            {/* AI 모드 힌트 */}
+            {searchMode === 'ai' && (
+              <p className="text-xs text-purple-600 bg-purple-50 rounded-xl px-3 py-2">
+                🤖 AI가 해먹기와 시켜먹기를 동시에 추천해드려요
+              </p>
+            )}
+
             {/* 검색 입력 */}
             <div className="relative">
               <input
@@ -256,7 +282,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               </button>
             </div>
 
-            {/* 일반검색 전용 필터 (접기/펼치기) */}
+            {/* 메뉴 추천 전용 필터 (접기/펼치기) */}
             {searchMode === 'text' && (
               <div>
                 <button
@@ -291,11 +317,20 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
             {/* 결과 — 검색창 바로 아래 */}
             {status === 'success' && data && (
               <div className="space-y-3 pt-2 border-t border-gray-100">
-                <RecommendCard
-                  data={data}
-                  lang={lang}
-                  isFallback={data._fallback}
-                />
+                {/* AI 모드: 듀얼 뷰 (좌: 해먹기, 우: 시켜먹기) */}
+                {isDualResponse(data) && (
+                  <DualResultView data={data} lang={lang} />
+                )}
+
+                {/* 메뉴 추천/냉장고 모드: 단일 카드 */}
+                {isSingleResponse(data) && (
+                  <RecommendCard
+                    data={data}
+                    lang={lang}
+                    isFallback={data._fallback}
+                  />
+                )}
+
                 <button
                   onClick={handleSaveToday}
                   className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:border-orange-300 hover:text-orange-600"
@@ -341,7 +376,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
             setSearchMode('ai');
             setQuery(`${chefName} 스타일 ${menu}`);
             trackEvent('chef_card_click', { lang, chef: chefName, menu });
-            recommend(`${chefName} 스타일 ${menu}`, { ...filters, vibes: ['chef'] }, lang, undefined, getRecentMenus(7));
+            recommend(`${chefName} 스타일 ${menu}`, { ...filters, vibes: ['chef'] }, lang, undefined, getRecentMenus(7), true);
           }}
         />
 

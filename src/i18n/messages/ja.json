@@ -10,18 +10,27 @@
     "errorTooLong": "⚠️ 入力が長すぎます（最大200文字）"
   },
   "search": {
-    "modeText": "🔍 検索",
-    "modeAi": "🤖 AIおすすめ",
+    "modeText": "🍽️ メニュー提案",
+    "modeAi": "🤖 AI検索",
     "modeFridge": "🧊 冷蔵庫レシピ",
-    "placeholderText": "食べたいものを入力してください",
-    "placeholderAi": "気分や食べたいメニューを入力（任意）",
+    "placeholderText": "状況や食べたいメニューを入力してください",
+    "placeholderAi": "状況や食べたいメニューを入力してください",
     "placeholderFridge": "食材をカンマで入力（例：卵、キムチ、豆腐）",
-    "submitText": "検索",
+    "submitText": "おすすめを見る",
     "submitAi": "AIにおすすめを聞く",
     "submitFridge": "食材からおすすめを見る",
     "filterToggle": "フィルター設定",
     "filterHide": "フィルターを隠す",
-    "fridgeHint": "冷蔵庫の食材で作れるメニューをAIが提案します"
+    "fridgeHint": "冷蔵庫の食材で作れるメニューをAIが提案します",
+    "tabCook": "🍳 自炊",
+    "tabOrder": "🛵 デリバリー",
+    "nearbyTitle": "近くのお店",
+    "nearbyLoading": "近くのお店を探しています...",
+    "nearbyEmpty": "近くにお店が見つかりませんでした",
+    "nearbyPermission": "位置情報を許可すると近くのお店を探せます",
+    "nearbyError": "お店の検索に失敗しました",
+    "distanceM": "{dist}m",
+    "distanceKm": "{dist}km"
   },
   "calendar": {
     "title": "今週のメニューカレンダー",
