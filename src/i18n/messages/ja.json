@@ -101,6 +101,14 @@
     "terms": "利用規約",
     "contact": "お問い合わせ"
   },
+  "kpop": {
+    "modeLabel": "⭐ K-popメニュー",
+    "placeholder": "アイドル名や状況を入力してください",
+    "submit": "K-popおすすめを見る",
+    "hint": "推しアイドルの好きな料理をAIがおすすめします",
+    "popularTitle": "🔥 K-popトレンド",
+    "popularSubtitle": "タップするとすぐにおすすめが見られます"
+  },
   "nav": {
     "about": "サービス紹介",
     "privacy": "プライバシーポリシー",

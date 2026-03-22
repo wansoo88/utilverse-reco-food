@@ -101,6 +101,14 @@
     "terms": "Terms of Use",
     "contact": "Contact"
   },
+  "kpop": {
+    "modeLabel": "⭐ K-pop Menu",
+    "placeholder": "Enter idol name or situation",
+    "submit": "Get K-pop Pick",
+    "hint": "AI recommends what your favorite K-pop idols love to eat",
+    "popularTitle": "🔥 K-pop Trending Topics",
+    "popularSubtitle": "Tap to get instant recommendations"
+  },
   "nav": {
     "about": "About",
     "privacy": "Privacy Policy",

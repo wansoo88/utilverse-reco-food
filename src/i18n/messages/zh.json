@@ -101,6 +101,14 @@
     "terms": "使用条款",
     "contact": "联系我们"
   },
+  "kpop": {
+    "modeLabel": "⭐ K-pop美食",
+    "placeholder": "输入偶像名字或场景",
+    "submit": "获取K-pop推荐",
+    "hint": "AI推荐你喜欢的K-pop偶像爱吃的美食",
+    "popularTitle": "🔥 K-pop热门话题",
+    "popularSubtitle": "点击即可获取推荐"
+  },
   "nav": {
     "about": "关于我们",
     "privacy": "隐私政策",

@@ -10,16 +10,20 @@ import { useRateLimit } from '@/hooks/useRateLimit';
 import { useToast } from '@/components/ui/ToastProvider';
 import { FilterSection } from '@/components/food/FilterSection';
 import { ChefCard } from '@/components/food/ChefCard';
+import { KpopCard } from '@/components/food/KpopCard';
+import { KpopIdolSearch } from '@/components/food/KpopIdolSearch';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { validateInput } from '@/lib/security';
 import { SEO_KEYWORDS } from '@/data/seoKeywords';
 import { trackEvent } from '@/lib/analytics';
 import { HOUSE_KEYWORDS, VIBE_KEYWORDS, BUDGET_KEYWORDS } from '@/data/filterKeywords';
+import { KPOP_TREND_TOPICS, type KpopIdol, type KpopGroup } from '@/data/kpopIdols';
+import { useKpopRecommend } from '@/hooks/useKpopRecommend';
 import type { Locale } from '@/config/site';
 import type { FilterState } from '@/types/filter';
 
-type SearchMode = 'text' | 'ai';
+type SearchMode = 'text' | 'ai' | 'kpop';
 
 interface HomeClientProps {
   lang: Locale;
@@ -35,6 +39,11 @@ const DualResultView = dynamic(
   { loading: () => <div className="min-h-[300px] animate-pulse rounded-2xl bg-gray-100" /> },
 );
 
+const KpopResultCard = dynamic(
+  () => import('@/components/food/KpopResultCard').then((m) => m.KpopResultCard),
+  { loading: () => <div className="min-h-[200px] animate-pulse rounded-2xl bg-gray-100" /> },
+);
+
 const CalendarView = dynamic(
   () => import('@/components/food/CalendarView').then((m) => m.CalendarView),
   { loading: () => <div className="min-h-[360px] animate-pulse rounded-3xl bg-gray-100" /> },
@@ -45,11 +54,14 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const { showToast } = useToast();
   const { filters, updateFilters, toggleVibe, resetFilters, restored } = useFilters();
   const { status, data, error, isFallback, recommend, reset } = useRecommend();
+  const { status: kpopStatus, data: kpopData, isFallback: kpopFallback, recommend: kpopRecommend, reset: kpopReset } = useKpopRecommend();
   const { entries, saveRecommendation, removeEntry, updateEntry, getRecentMenus } = useCalendar();
   const { blocked, remainingSeconds, checkAndRecord, setQuotaExhausted } = useRateLimit();
 
   const [searchMode, setSearchMode] = useState<SearchMode>('ai');
   const [query, setQuery] = useState('');
+  const [kpopQuery, setKpopQuery] = useState('');
+  const [selectedIdol, setSelectedIdol] = useState<KpopIdol | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [restoredShown, setRestoredShown] = useState(false);
 
@@ -77,14 +89,17 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
   // fallback 감지 시 rate limit 해제
   useEffect(() => {
-    if (isFallback) setQuotaExhausted(true);
-  }, [isFallback, setQuotaExhausted]);
+    if (isFallback || kpopFallback) setQuotaExhausted(true);
+  }, [isFallback, kpopFallback, setQuotaExhausted]);
 
   const handleReset = useCallback(() => {
     resetFilters();
     setQuery('');
+    setKpopQuery('');
+    setSelectedIdol(null);
     reset();
-  }, [resetFilters, reset]);
+    kpopReset();
+  }, [resetFilters, reset, kpopReset]);
 
   // 필터 키워드를 검색창에 토글
   const toggleKeyword = useCallback((keyword: string | undefined, removing: boolean) => {
@@ -148,6 +163,18 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
       return;
     }
 
+    // K-pop 모드
+    if (searchMode === 'kpop') {
+      const searchTerm = kpopQuery.trim() || selectedIdol?.name || '';
+      if (!searchTerm) {
+        showToast('아이돌 이름을 입력해주세요', 'error');
+        return;
+      }
+      trackEvent('kpop_recommend_submit', { lang, idol: searchTerm });
+      await kpopRecommend(searchTerm, lang, selectedIdol?.name, selectedIdol?.group);
+      return;
+    }
+
     if (!query.trim()) {
       showToast('검색어를 입력해주세요', 'error');
       return;
@@ -164,13 +191,34 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     const recentMenus = getRecentMenus(7);
     trackEvent('recommend_submit', { lang, mode: searchMode, has_query: true });
     await recommend(query, filters, lang, recentMenus);
-  }, [query, filters, lang, searchMode, recommend, showToast, t, getRecentMenus, checkAndRecord]);
+  }, [query, kpopQuery, selectedIdol, filters, lang, searchMode, recommend, kpopRecommend, showToast, t, getRecentMenus, checkAndRecord]);
 
   useEffect(() => {
     if (status === 'success' && data) {
       trackEvent('recommend_success', { lang, fallback: isFallback });
     }
   }, [data, lang, status, isFallback]);
+
+  const handleKpopIdolSelect = useCallback((idol: KpopIdol) => {
+    setSearchMode('kpop');
+    setSelectedIdol(idol);
+    setKpopQuery(idol.name);
+    trackEvent('kpop_idol_select', { lang, idol: idol.name });
+    kpopRecommend(idol.name, lang, idol.name, idol.group);
+  }, [lang, kpopRecommend]);
+
+  const handleKpopGroupSelect = useCallback((group: KpopGroup) => {
+    setSearchMode('kpop');
+    setKpopQuery(group.name);
+    setSelectedIdol(null);
+    trackEvent('kpop_group_select', { lang, group: group.name });
+    kpopRecommend(group.name, lang, undefined, group.name);
+  }, [lang, kpopRecommend]);
+
+  const handleRecipeSearch = useCallback((menuName: string) => {
+    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(menuName + ' 레시피')}`;
+    window.open(searchUrl, '_blank', 'noopener,noreferrer');
+  }, []);
 
   const handleSaveToday = () => {
     if (!data) return;
@@ -191,6 +239,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const modeConfig = {
     text:  { placeholder: t('search.placeholderText'),  submit: t('search.submitText') },
     ai:    { placeholder: t('search.placeholderAi'),    submit: t('search.submitAi') },
+    kpop:  { placeholder: t('kpop.placeholder'),        submit: t('kpop.submit') },
   };
 
   return (
@@ -223,15 +272,16 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
           {/* 모드 탭 */}
           <div className="flex border-b border-gray-100">
-            {(['text', 'ai'] as SearchMode[]).map((mode) => {
+            {(['text', 'ai', 'kpop'] as SearchMode[]).map((mode) => {
               const labels: Record<SearchMode, string> = {
                 text: t('search.modeText'),
                 ai: t('search.modeAi'),
+                kpop: t('kpop.modeLabel'),
               };
               return (
                 <button
                   key={mode}
-                  onClick={() => { setSearchMode(mode); reset(); }}
+                  onClick={() => { setSearchMode(mode); reset(); kpopReset(); }}
                   className={`flex-1 py-3 text-sm font-semibold transition-colors ${
                     searchMode === mode
                       ? 'border-b-2 border-orange-500 text-orange-600 bg-orange-50'
@@ -252,33 +302,63 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               </p>
             )}
 
-            {/* 검색 입력 */}
-            <div className="relative">
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-                placeholder={modeConfig[searchMode].placeholder}
-                maxLength={200}
-                className="w-full rounded-2xl border border-gray-200 px-5 py-3.5 pr-32 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
-              />
-              {query && (
+            {/* K-pop 모드 힌트 */}
+            {searchMode === 'kpop' && (
+              <p className="text-xs text-pink-600 bg-pink-50 rounded-xl px-3 py-2">
+                {t('kpop.hint')}
+              </p>
+            )}
+
+            {/* 검색 입력: K-pop 모드는 아이돌 검색 UI */}
+            {searchMode === 'kpop' ? (
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <KpopIdolSearch
+                    lang={lang}
+                    value={kpopQuery}
+                    onChange={setKpopQuery}
+                    onSelect={(idol) => {
+                      setSelectedIdol(idol);
+                      setKpopQuery(idol.name);
+                    }}
+                  />
+                </div>
                 <button
-                  onClick={handleReset}
-                  className="absolute right-24 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={handleSubmit}
+                  disabled={kpopStatus === 'loading' || blocked}
+                  className="shrink-0 rounded-xl bg-pink-500 hover:bg-pink-600 px-4 py-2 text-xs font-bold text-white transition-colors disabled:opacity-50"
                 >
-                  ✕
+                  {kpopStatus === 'loading' ? '...' : blocked ? `${remainingSeconds}s` : modeConfig.kpop.submit}
                 </button>
-              )}
-              <button
-                onClick={handleSubmit}
-                disabled={status === 'loading' || blocked}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2 text-xs font-bold text-white transition-colors disabled:opacity-50"
-              >
-                {status === 'loading' ? '...' : blocked ? `${remainingSeconds}s` : modeConfig[searchMode].submit}
-              </button>
-            </div>
+              </div>
+            ) : (
+              <div className="relative">
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                  placeholder={modeConfig[searchMode].placeholder}
+                  maxLength={200}
+                  className="w-full rounded-2xl border border-gray-200 px-5 py-3.5 pr-32 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                />
+                {query && (
+                  <button
+                    onClick={handleReset}
+                    className="absolute right-24 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                )}
+                <button
+                  onClick={handleSubmit}
+                  disabled={status === 'loading' || blocked}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2 text-xs font-bold text-white transition-colors disabled:opacity-50"
+                >
+                  {status === 'loading' ? '...' : blocked ? `${remainingSeconds}s` : modeConfig[searchMode].submit}
+                </button>
+              </div>
+            )}
 
             {/* 메뉴 추천 전용 필터 */}
             {searchMode === 'text' && (
@@ -307,21 +387,30 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
             )}
 
             {/* 로딩 */}
-            {status === 'loading' && (
+            {(status === 'loading' || kpopStatus === 'loading') && (
               <div className="flex justify-center py-6">
-                <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
+                <div className={`w-8 h-8 border-4 rounded-full animate-spin ${
+                  searchMode === 'kpop'
+                    ? 'border-pink-200 border-t-pink-500'
+                    : 'border-orange-200 border-t-orange-500'
+                }`} />
               </div>
             )}
 
-            {/* 결과 */}
-            {status === 'success' && data && (
+            {/* K-pop 결과 */}
+            {searchMode === 'kpop' && kpopStatus === 'success' && kpopData && (
               <div className="space-y-3 pt-2 border-t border-gray-100">
-                {/* AI 모드: 듀얼 뷰 (좌: 해먹기 + 레시피, 우: 시켜먹기 + 맛집) */}
+                <KpopResultCard data={kpopData} lang={lang} onRecipeSearch={handleRecipeSearch} />
+              </div>
+            )}
+
+            {/* 일반 결과 */}
+            {searchMode !== 'kpop' && status === 'success' && data && (
+              <div className="space-y-3 pt-2 border-t border-gray-100">
                 {searchMode === 'ai' && (
                   <DualResultView data={data} lang={lang} />
                 )}
 
-                {/* 메뉴 추천 모드: 필터 mode에 따라 단일 카드 */}
                 {searchMode === 'text' && (
                   <RecommendCard data={data} lang={lang} mode={filters.mode} />
                 )}
@@ -337,26 +426,50 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </div>
         </section>
 
-        {/* 인기 추천 상황 */}
-        <section className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50 p-5 shadow-sm">
-          <p className="text-sm font-semibold text-orange-600">{t('home.popularTitle')}</p>
-          <p className="mt-0.5 text-xs text-gray-500">{t('home.popularSubtitle')}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {quickTopics.map((topic) => (
-              <button
-                key={topic.slug}
-                onClick={() => {
-                  setQuery(topic[lang].title);
-                  trackEvent('quick_topic_click', { lang, slug: topic.slug });
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="rounded-full border border-orange-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-orange-400 hover:text-orange-600"
-              >
-                {topic[lang].title}
-              </button>
-            ))}
-          </div>
-        </section>
+        {/* 인기 추천 상황 — K-pop 모드일 때는 K-pop 트렌드 */}
+        {searchMode === 'kpop' ? (
+          <section className="rounded-[2rem] border border-pink-100 bg-gradient-to-br from-pink-50 via-white to-purple-50 p-5 shadow-sm">
+            <p className="text-sm font-semibold text-pink-600">{t('kpop.popularTitle')}</p>
+            <p className="mt-0.5 text-xs text-gray-500">{t('kpop.popularSubtitle')}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {KPOP_TREND_TOPICS.map((topic) => (
+                <button
+                  key={topic.id}
+                  onClick={() => {
+                    setKpopQuery(topic.keyword);
+                    setSelectedIdol(null);
+                    trackEvent('kpop_trend_click', { lang, topic: topic.id });
+                    kpopRecommend(topic.keyword, lang);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="rounded-full border border-pink-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-pink-400 hover:text-pink-600"
+                >
+                  {topic[lang]}
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <section className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50 p-5 shadow-sm">
+            <p className="text-sm font-semibold text-orange-600">{t('home.popularTitle')}</p>
+            <p className="mt-0.5 text-xs text-gray-500">{t('home.popularSubtitle')}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {quickTopics.map((topic) => (
+                <button
+                  key={topic.slug}
+                  onClick={() => {
+                    setQuery(topic[lang].title);
+                    trackEvent('quick_topic_click', { lang, slug: topic.slug });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="rounded-full border border-orange-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-orange-400 hover:text-orange-600"
+                >
+                  {topic[lang].title}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* 흑백요리사 셰프 카드 */}
         <ChefCard
@@ -367,6 +480,13 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
             trackEvent('chef_card_click', { lang, chef: chefName, menu });
             recommend(`${chefName} 스타일 ${menu}`, { ...filters, vibes: ['chef'] }, lang, getRecentMenus(7));
           }}
+        />
+
+        {/* K-pop 아이돌 추천 카드 */}
+        <KpopCard
+          lang={lang}
+          onIdolSelect={handleKpopIdolSelect}
+          onGroupSelect={handleKpopGroupSelect}
         />
 
         {/* 식단 캘린더 */}
