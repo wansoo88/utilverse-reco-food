@@ -4,6 +4,14 @@ export interface FoodItem {
   emoji?: string;
 }
 
+/** AI/로컬 공통 — 메뉴 3개 반환 (cook/order 구분 없음) */
+export interface MenuRecommendResponse {
+  items: FoodItem[];
+  tip?: string;
+  _fallback?: boolean;
+}
+
+/** 레거시 호환: 단일 모드 (메뉴 추천 탭에서 필터 사용 시) */
 export interface CookResponse {
   type: 'cook';
   items: FoodItem[];
@@ -20,21 +28,8 @@ export interface OrderResponse {
 
 export type RecommendResponse = CookResponse | OrderResponse;
 
-/** AI 검색 모드: cook + order 동시 반환 */
-export interface DualRecommendResponse {
-  dual: true;
-  cook: {
-    items: FoodItem[];
-    tip?: string;
-  };
-  order: {
-    items: FoodItem[];
-    tip?: string;
-  };
-  _fallback?: boolean;
-}
-
-export type AnyRecommendResponse = RecommendResponse | DualRecommendResponse;
+/** 통합 응답 타입 */
+export type AnyRecommendResponse = MenuRecommendResponse | RecommendResponse;
 
 export interface RecommendError {
   error: 'food_only' | 'rate_limit' | 'unknown';
@@ -47,6 +42,6 @@ export interface NearbyRestaurant {
   address: string;
   roadAddress: string;
   telephone: string;
-  distance: number; // meters
+  distance: number;
   naverMapUrl: string;
 }

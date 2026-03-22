@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import type { DualRecommendResponse, FoodItem } from '@/types/recommend';
+import type { MenuRecommendResponse, FoodItem } from '@/types/recommend';
 
 const RecipeLinks = dynamic(
   () => import('./RecipeLinks').then((m) => m.RecipeLinks),
@@ -15,15 +15,13 @@ const NearbyRestaurants = dynamic(
 );
 
 interface DualResultViewProps {
-  data: DualRecommendResponse;
+  data: MenuRecommendResponse;
   lang: string;
 }
 
 export const DualResultView = ({ data, lang }: DualResultViewProps) => {
   const [activeTab, setActiveTab] = useState<'cook' | 'order'>('cook');
-
-  const cookMenuNames = data.cook.items.map((item) => item.name);
-  const orderMenuNames = data.order.items.map((item) => item.name);
+  const menuNames = data.items.map((item) => item.name);
 
   return (
     <div className="space-y-3">
@@ -51,45 +49,32 @@ export const DualResultView = ({ data, lang }: DualResultViewProps) => {
         </button>
       </div>
 
-      {/* 데스크탑: 좌우 반반 / 모바일: 탭별 표시 */}
+      {/* 데스크탑: 좌우 반반 / 모바일: 탭별 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* 해먹기 (좌측) */}
         <div className={`${activeTab !== 'cook' ? 'hidden md:block' : ''}`}>
-          <CookSection
-            items={data.cook.items}
-            tip={data.cook.tip}
-            lang={lang}
-            isFallback={data._fallback}
-            mainMenuName={cookMenuNames[0]}
-          />
+          <CookSection items={data.items} tip={data.tip} lang={lang} />
         </div>
 
         {/* 시켜먹기 (우측) */}
         <div className={`${activeTab !== 'order' ? 'hidden md:block' : ''}`}>
-          <OrderSection
-            items={data.order.items}
-            tip={data.order.tip}
-            lang={lang}
-            menuNames={orderMenuNames}
-          />
+          <OrderSection items={data.items} tip={data.tip} lang={lang} menuNames={menuNames} />
         </div>
       </div>
     </div>
   );
 };
 
-// 해먹기 섹션: 메뉴 + 레시피 링크
-function CookSection({ items, tip, lang, isFallback, mainMenuName }: {
+// 해먹기: 메뉴 + 이유 + 레시피 링크
+function CookSection({ items, tip, lang }: {
   items: FoodItem[];
   tip?: string;
   lang: string;
-  isFallback?: boolean;
-  mainMenuName: string;
 }) {
   return (
     <div className="rounded-2xl border border-orange-200 bg-orange-50/30 p-4 space-y-3">
       <p className="text-xs font-bold tracking-wide text-orange-600 uppercase">
-        🍳 해먹기 추천
+        🍳 해먹기
       </p>
 
       <div className="space-y-2">
@@ -120,20 +105,20 @@ function CookSection({ items, tip, lang, isFallback, mainMenuName }: {
 
       {tip && <p className="text-xs text-center text-gray-400">💡 {tip}</p>}
 
-      {/* 레시피 링크 (해먹기는 항상 표시) */}
-      {mainMenuName && (
+      {/* 레시피 링크 (항상 표시) */}
+      {items[0] && (
         <div className="rounded-xl border border-orange-100 bg-white p-3">
           <p className="text-xs font-semibold text-gray-500 mb-2">
-            🔥 레시피 찾기 — {mainMenuName}
+            🔥 레시피 찾기 — {items[0].name}
           </p>
-          <RecipeLinks foodName={mainMenuName} lang={lang} />
+          <RecipeLinks foodName={items[0].name} lang={lang} />
         </div>
       )}
     </div>
   );
 }
 
-// 시켜먹기 섹션: 메뉴명 + 근처 맛집
+// 시켜먹기: 메뉴명만 + 근처 맛집
 function OrderSection({ items, tip, lang, menuNames }: {
   items: FoodItem[];
   tip?: string;
@@ -143,10 +128,9 @@ function OrderSection({ items, tip, lang, menuNames }: {
   return (
     <div className="rounded-2xl border border-blue-200 bg-blue-50/30 p-4 space-y-3">
       <p className="text-xs font-bold tracking-wide text-blue-600 uppercase">
-        🛵 시켜먹기 추천
+        🛵 시켜먹기
       </p>
 
-      {/* 시켜먹기: 메뉴명만 표시 */}
       <div className="space-y-2">
         {items.map((item, i) => (
           <div

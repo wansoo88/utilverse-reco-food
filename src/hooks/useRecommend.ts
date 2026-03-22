@@ -1,46 +1,43 @@
 'use client';
 import { useState, useCallback } from 'react';
 import type { FilterState } from '@/types/filter';
-import type { RecommendResponse, DualRecommendResponse, AnyRecommendResponse, RecommendError } from '@/types/recommend';
+import type { MenuRecommendResponse, RecommendError } from '@/types/recommend';
 import type { Locale } from '@/config/site';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 export const useRecommend = () => {
   const [status, setStatus] = useState<Status>('idle');
-  const [data, setData] = useState<AnyRecommendResponse | null>(null);
+  const [data, setData] = useState<MenuRecommendResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isFallback, setIsFallback] = useState(false);
 
   const recommend = useCallback(async (
     query: string,
     filters: FilterState,
     lang: Locale,
-    ingredients?: string[],
     exclude?: string[],
-    dual?: boolean,
   ) => {
     setStatus('loading');
     setError(null);
+    setIsFallback(false);
     try {
       const res = await fetch('/api/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, filters, lang, ingredients, exclude, dual }),
+        body: JSON.stringify({ query, filters, lang, exclude }),
       });
 
-      const json = await res.json() as AnyRecommendResponse | RecommendError;
+      const json = await res.json() as MenuRecommendResponse | RecommendError;
 
       if ('error' in json) {
-        if (json.error === 'food_only') {
-          setError('food_only');
-        } else {
-          setError('unknown');
-        }
+        setError(json.error === 'food_only' ? 'food_only' : 'unknown');
         setStatus('error');
         return;
       }
 
       setData(json);
+      setIsFallback(Boolean(json._fallback));
       setStatus('success');
     } catch {
       setError('unknown');
@@ -52,14 +49,8 @@ export const useRecommend = () => {
     setStatus('idle');
     setData(null);
     setError(null);
+    setIsFallback(false);
   }, []);
 
-  return { status, data, error, recommend, reset };
+  return { status, data, error, isFallback, recommend, reset };
 };
-
-// 타입 가드 유틸리티
-export const isDualResponse = (data: AnyRecommendResponse): data is DualRecommendResponse =>
-  'dual' in data && data.dual === true;
-
-export const isSingleResponse = (data: AnyRecommendResponse): data is RecommendResponse =>
-  'type' in data;

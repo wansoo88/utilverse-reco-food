@@ -4,8 +4,9 @@ import Image from 'next/image';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useFilters } from '@/hooks/useFilters';
-import { useRecommend, isDualResponse, isSingleResponse } from '@/hooks/useRecommend';
+import { useRecommend } from '@/hooks/useRecommend';
 import { useCalendar } from '@/hooks/useCalendar';
+import { useRateLimit } from '@/hooks/useRateLimit';
 import { useToast } from '@/components/ui/ToastProvider';
 import { FilterSection } from '@/components/food/FilterSection';
 import { ChefCard } from '@/components/food/ChefCard';
@@ -43,8 +44,9 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const t = useTranslations();
   const { showToast } = useToast();
   const { filters, updateFilters, toggleVibe, resetFilters, restored } = useFilters();
-  const { status, data, error, recommend, reset } = useRecommend();
+  const { status, data, error, isFallback, recommend, reset } = useRecommend();
   const { entries, saveRecommendation, removeEntry, updateEntry, getRecentMenus } = useCalendar();
+  const { blocked, remainingSeconds, checkAndRecord, setQuotaExhausted } = useRateLimit();
 
   const [searchMode, setSearchMode] = useState<SearchMode>('ai');
   const [query, setQuery] = useState('');
@@ -53,7 +55,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
   const quickTopics = SEO_KEYWORDS.slice(0, 8);
 
-  // 시간대별 인사 메시지
   const timeGreeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour >= 6 && hour < 10) return t('timeSuggest.morning');
@@ -74,28 +75,29 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     if (error === 'food_only') showToast(t('home.blockToast'), 'error');
   }, [error, showToast, t]);
 
+  // fallback 감지 시 rate limit 해제
+  useEffect(() => {
+    if (isFallback) setQuotaExhausted(true);
+  }, [isFallback, setQuotaExhausted]);
+
   const handleReset = useCallback(() => {
     resetFilters();
     setQuery('');
     reset();
   }, [resetFilters, reset]);
 
-  // 필터 키워드를 검색창에 토글 (추가/제거)
+  // 필터 키워드를 검색창에 토글
   const toggleKeyword = useCallback((keyword: string | undefined, removing: boolean) => {
     if (!keyword) return;
     setQuery((prev) => {
       const words = prev.split(/\s+/).filter(Boolean);
-      if (removing) {
-        return words.filter((w) => w !== keyword).join(' ');
-      }
+      if (removing) return words.filter((w) => w !== keyword).join(' ');
       if (words.includes(keyword)) return prev;
       return [...words, keyword].join(' ');
     });
   }, []);
 
-  const handleModeChange = (mode: FilterState['mode']) => {
-    updateFilters({ mode });
-  };
+  const handleModeChange = (mode: FilterState['mode']) => updateFilters({ mode });
 
   const handleHouseChange = (house: FilterState['house']) => {
     const kw = HOUSE_KEYWORDS[lang] ?? HOUSE_KEYWORDS.ko;
@@ -119,9 +121,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
   const handleBabyChange = (baby: FilterState['baby']) => {
     const kw = BABY_KEYWORDS[lang] ?? BABY_KEYWORDS.ko;
-    // 기존 baby 키워드 제거
     if (filters.baby) toggleKeyword(kw[filters.baby], true);
-    // 새 baby 키워드 추가 (null이면 제거만)
     if (baby) toggleKeyword(kw[baby], false);
     updateFilters({ baby });
   };
@@ -135,22 +135,21 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
   const handleBudgetChange = (budget: FilterState['budget']) => {
     const kw = BUDGET_KEYWORDS[lang] ?? BUDGET_KEYWORDS.ko;
-    if (filters.budget !== 'any') {
-      toggleKeyword(kw[filters.budget], true);
-    }
-    if (budget !== 'any') {
-      toggleKeyword(kw[budget], false);
-    }
+    if (filters.budget !== 'any') toggleKeyword(kw[filters.budget], true);
+    if (budget !== 'any') toggleKeyword(kw[budget], false);
     updateFilters({ budget });
   };
 
-  // 공통 제출 로직
   const handleSubmit = useCallback(async () => {
-    const recentMenus = getRecentMenus(7);
+    // Rate limit 체크
+    const { allowed, waitSeconds } = checkAndRecord();
+    if (!allowed) {
+      showToast(`⏳ ${waitSeconds}초 후에 다시 검색해주세요`, 'error');
+      return;
+    }
 
-    // AI 모드: 입력값 필수
-    if (searchMode === 'ai' && !query.trim()) {
-      showToast('🤖 추천받을 내용을 입력해주세요', 'error');
+    if (!query.trim()) {
+      showToast('검색어를 입력해주세요', 'error');
       return;
     }
 
@@ -162,39 +161,23 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
       return;
     }
 
-    // AI 모드: 듀얼(cook+order 동시), text 모드: 단일
-    const isDual = searchMode === 'ai';
-    trackEvent('recommend_submit', { lang, mode: searchMode, has_query: Boolean(query.trim()), dual: isDual });
-    await recommend(query, filters, lang, undefined, recentMenus, isDual);
-  }, [searchMode, query, filters, lang, recommend, showToast, t, getRecentMenus]);
+    const recentMenus = getRecentMenus(7);
+    trackEvent('recommend_submit', { lang, mode: searchMode, has_query: true });
+    await recommend(query, filters, lang, recentMenus);
+  }, [query, filters, lang, searchMode, recommend, showToast, t, getRecentMenus, checkAndRecord]);
 
   useEffect(() => {
     if (status === 'success' && data) {
-      if (isDualResponse(data)) {
-        trackEvent('recommend_success', { lang, result_type: 'dual', fallback: Boolean(data._fallback) });
-      } else if (isSingleResponse(data)) {
-        trackEvent('recommend_success', { lang, result_type: data.type, fallback: Boolean(data._fallback) });
-      }
+      trackEvent('recommend_success', { lang, fallback: isFallback });
     }
-  }, [data, lang, status]);
+  }, [data, lang, status, isFallback]);
 
   const handleSaveToday = () => {
     if (!data) return;
-    if (isDualResponse(data)) {
-      const cookData = { type: 'cook' as const, items: data.cook.items, tip: data.cook.tip };
-      const saved = saveRecommendation(cookData);
-      if (saved) {
-        trackEvent('calendar_save', { lang, result_type: 'cook' });
-        showToast(t('calendar.saved'), 'success');
-      }
-      return;
-    }
-    if (isSingleResponse(data)) {
-      const saved = saveRecommendation(data);
-      if (saved) {
-        trackEvent('calendar_save', { lang, result_type: data.type });
-        showToast(t('calendar.saved'), 'success');
-      }
+    const saved = saveRecommendation({ type: 'cook', items: data.items, tip: data.tip });
+    if (saved) {
+      trackEvent('calendar_save', { lang });
+      showToast(t('calendar.saved'), 'success');
     }
   };
 
@@ -205,7 +188,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     if (updateEntry(date, updates)) showToast(t('calendar.updated'), 'success');
   };
 
-  // 모드별 UI 텍스트
   const modeConfig = {
     text:  { placeholder: t('search.placeholderText'),  submit: t('search.submitText') },
     ai:    { placeholder: t('search.placeholderAi'),    submit: t('search.submitAi') },
@@ -213,7 +195,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* ── 헤더 ── */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <span className="font-extrabold text-gray-900 text-lg">오늘뭐먹지</span>
@@ -223,7 +204,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-6">
 
-        {/* ── 히어로 (컴팩트) ── */}
+        {/* 히어로 */}
         <section className="flex items-center gap-4 rounded-[2rem] border border-white/80 bg-white px-6 py-4 shadow-sm">
           <div className="flex-1">
             <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 md:text-3xl">
@@ -233,18 +214,11 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
             <p className="mt-2 text-sm font-medium text-gray-700">{timeGreeting}</p>
           </div>
           <div className="shrink-0 w-20 h-20 md:w-28 md:h-28">
-            <Image
-              src="/hero-bowl.svg"
-              alt="Food bowl"
-              width={112}
-              height={112}
-              priority
-              className="h-full w-full"
-            />
+            <Image src="/hero-bowl.svg" alt="Food bowl" width={112} height={112} priority className="h-full w-full" />
           </div>
         </section>
 
-        {/* ── 통합 검색 + 결과 블록 ── */}
+        {/* 통합 검색 + 결과 */}
         <section className="rounded-[2rem] border border-gray-200 bg-white shadow-md overflow-hidden">
 
           {/* 모드 탭 */}
@@ -299,14 +273,14 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               )}
               <button
                 onClick={handleSubmit}
-                disabled={status === 'loading'}
+                disabled={status === 'loading' || blocked}
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2 text-xs font-bold text-white transition-colors disabled:opacity-50"
               >
-                {status === 'loading' ? '...' : modeConfig[searchMode].submit}
+                {status === 'loading' ? '...' : blocked ? `${remainingSeconds}s` : modeConfig[searchMode].submit}
               </button>
             </div>
 
-            {/* 메뉴 추천 전용 필터 (접기/펼치기) */}
+            {/* 메뉴 추천 전용 필터 */}
             {searchMode === 'text' && (
               <div>
                 <button
@@ -342,16 +316,14 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
             {/* 결과 */}
             {status === 'success' && data && (
               <div className="space-y-3 pt-2 border-t border-gray-100">
-                {isDualResponse(data) && (
+                {/* AI 모드: 듀얼 뷰 (좌: 해먹기 + 레시피, 우: 시켜먹기 + 맛집) */}
+                {searchMode === 'ai' && (
                   <DualResultView data={data} lang={lang} />
                 )}
 
-                {isSingleResponse(data) && (
-                  <RecommendCard
-                    data={data}
-                    lang={lang}
-                    isFallback={data._fallback}
-                  />
+                {/* 메뉴 추천 모드: 필터 mode에 따라 단일 카드 */}
+                {searchMode === 'text' && (
+                  <RecommendCard data={data} lang={lang} mode={filters.mode} />
                 )}
 
                 <button
@@ -365,7 +337,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </div>
         </section>
 
-        {/* ── 인기 추천 상황 ── */}
+        {/* 인기 추천 상황 */}
         <section className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50 p-5 shadow-sm">
           <p className="text-sm font-semibold text-orange-600">{t('home.popularTitle')}</p>
           <p className="mt-0.5 text-xs text-gray-500">{t('home.popularSubtitle')}</p>
@@ -374,7 +346,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               <button
                 key={topic.slug}
                 onClick={() => {
-                  // 현재 탭 유지
                   setQuery(topic[lang].title);
                   trackEvent('quick_topic_click', { lang, slug: topic.slug });
                   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -387,18 +358,18 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </div>
         </section>
 
-        {/* ── 흑백요리사 셰프 카드 ── */}
+        {/* 흑백요리사 셰프 카드 */}
         <ChefCard
           lang={lang}
           onChefSelect={(chefName, menu) => {
             setSearchMode('ai');
             setQuery(`${chefName} 스타일 ${menu}`);
             trackEvent('chef_card_click', { lang, chef: chefName, menu });
-            recommend(`${chefName} 스타일 ${menu}`, { ...filters, vibes: ['chef'] }, lang, undefined, getRecentMenus(7), true);
+            recommend(`${chefName} 스타일 ${menu}`, { ...filters, vibes: ['chef'] }, lang, getRecentMenus(7));
           }}
         />
 
-        {/* ── 식단 캘린더 ── */}
+        {/* 식단 캘린더 */}
         <div className="defer-render">
           <CalendarView
             entries={entries}

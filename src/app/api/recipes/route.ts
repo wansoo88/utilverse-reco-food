@@ -156,6 +156,32 @@ async function fetchNaverBlogs(foodName: string, clientId: string, clientSecret:
   }));
 }
 
+// 네이버 동영상 검색 API (YouTube 폴백용)
+async function fetchNaverVideos(foodName: string, clientId: string, clientSecret: string): Promise<RecipeItem[]> {
+  const query = `${foodName} 레시피`;
+  const res = await fetch(
+    `https://openapi.naver.com/v1/search/video.json?query=${encodeURIComponent(query)}&display=3&sort=sim`,
+    {
+      headers: {
+        'X-Naver-Client-Id': clientId,
+        'X-Naver-Client-Secret': clientSecret,
+      },
+    },
+  );
+  if (!res.ok) throw new Error(`Naver Video API error: ${res.status}`);
+
+  const data = await res.json() as {
+    items?: Array<{ title: string; link: string; thumbnail: string; description: string }>;
+  };
+
+  return (data.items ?? []).map((item) => ({
+    title: item.title.replace(/<[^>]+>/g, ''),
+    thumbnail: item.thumbnail,
+    platform: 'youtube' as const, // UI 호환을 위해 youtube로 표시
+    url: item.link,
+  }));
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as { foodName?: string; lang?: string };
@@ -171,25 +197,53 @@ export async function POST(req: NextRequest) {
     const naverClientSecret = process.env.NAVER_CLIENT_SECRET;
 
     // 기본값: 자동 생성 검색 링크
-    let result = buildGeneratedLinks(foodName, lang);
+    const result = buildGeneratedLinks(foodName, lang);
 
-    // YouTube API 키 있으면 실제 결과로 교체
-    if (youtubeKey) {
+    // ── 동영상: 네이버 동영상 → YouTube API → 생성 링크 ──
+    let videoFetched = false;
+
+    // 1) 네이버 동영상 검색 우선 (한국어, 한도 25,000/일)
+    if (lang === 'ko' && naverClientId && naverClientSecret) {
       try {
-        const ytItems = await fetchYouTube(foodName, lang, youtubeKey);
-        if (ytItems.length > 0) result.youtube = ytItems;
-      } catch {
-        // YouTube API 실패 시 생성 링크 유지
-      }
+        const naverVideos = await fetchNaverVideos(foodName, naverClientId, naverClientSecret);
+        if (naverVideos.length > 0) {
+          result.youtube = naverVideos;
+          videoFetched = true;
+        }
+      } catch { /* 네이버 실패 → YouTube 시도 */ }
     }
 
-    // 블로그: Naver(ko) 또는 Google CSE 우선 시도
+    // 2) YouTube API 폴백
+    if (!videoFetched && youtubeKey) {
+      try {
+        const ytItems = await fetchYouTube(foodName, lang, youtubeKey);
+        if (ytItems.length > 0) {
+          result.youtube = ytItems;
+          videoFetched = true;
+        }
+      } catch { /* YouTube 실패 → 생성 링크 유지 */ }
+    }
+    // 3) 둘 다 실패 → 생성 링크 유지 (이미 result에 있음)
+
+    // ── 블로그: 네이버 블로그 → Google CSE → 생성 링크 ──
     if (lang === 'ko' && naverClientId && naverClientSecret) {
       try {
         const naverItems = await fetchNaverBlogs(foodName, naverClientId, naverClientSecret);
         if (naverItems.length > 0) result.blog = naverItems;
       } catch {
-        // Naver 실패 시 Google CSE 시도
+        if (googleCseKey && googleCseId) {
+          try {
+            const googleItems = await fetchGoogleBlogs(foodName, lang, googleCseKey, googleCseId);
+            if (googleItems.length > 0) result.blog = googleItems;
+          } catch { /* 생성 링크 유지 */ }
+        }
+      }
+    } else if (naverClientId && naverClientSecret) {
+      // 비한국어도 네이버 먼저 시도 (한도 여유)
+      try {
+        const naverItems = await fetchNaverBlogs(foodName, naverClientId, naverClientSecret);
+        if (naverItems.length > 0) result.blog = naverItems;
+      } catch {
         if (googleCseKey && googleCseId) {
           try {
             const googleItems = await fetchGoogleBlogs(foodName, lang, googleCseKey, googleCseId);
