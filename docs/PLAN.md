@@ -12,6 +12,7 @@
 ✅ **Phase 8: K-pop 아이돌 메뉴 추천 기능** (완료 — 2026-03-23)
 🔵 **Phase 5: 성능 최적화 & 배포** (진행 중)
 🔵 **Phase 7: 검증 & 수익화 준비** (진행 중)
+⬜ **Phase 9: 페이지 체류 시간 & 재방문율 향상** (대기)
 
 ## Milestones
 
@@ -172,6 +173,252 @@
 - [x] 위치 기반 검색 반경 5km 확대 + Google Maps 폴백
 - [x] ChefCard Top10 rank 1~10 엄격 적용
 
+### Phase 9: 페이지 체류 시간 & 재방문율 향상 ⬜ 대기
+
+> **목표**: 평균 세션 시간 2~3배, 세션당 페이지뷰 1.5배 향상
+> **핵심 문제**: 현재 "추천 1회 → 결과 확인 → 이탈"의 단선적 플로우
+
+#### 현재 이탈 포인트 분석
+
+| 이탈 지점 | 원인 | 심각도 |
+|-----------|------|--------|
+| 추천 결과 후 즉시 이탈 | 결과 1개 보고 다음 행동 유도 없음 | **높음** |
+| Rate Limit 대기 중 | 카운트다운만 보임, 할 것 없음 | **높음** |
+| 캘린더 빈 상태 | 신규 유저에게 빈 캘린더는 가치 없음 | 중간 |
+| 레시피/맛집 로딩 대기 | API 느리면 유저가 직접 YouTube로 이동 | 중간 |
+| SEO 페이지 → 홈 전환 끊김 | SEO 페이지에서 홈으로의 자연스러운 플로우 부재 | 중간 |
+
+#### 9-1. 재추천 루프 & 추천 히스토리 (P0, 난이도: 낮음, ROI: 최고)
+
+**문제**: 추천 1회 후 세션 종료. 비교/탐색 행동 유도 장치 없음.
+**목표**: 세션당 평균 추천 횟수 1.2회 → 3+회
+
+**구현 상세**:
+- [ ] 추천 결과 하단 "🔄 다른 메뉴 추천받기" 원클릭 버튼
+  - 위치: `RecommendCard.tsx` / `DualResultView.tsx` / `KpopResultCard.tsx` 하단
+  - 클릭 시 현재 결과의 메뉴명을 `exclude` 배열에 추가 후 동일 쿼리로 재호출
+  - Rate Limit 카운트에 포함
+- [ ] "이건 아니야 ✕" 버튼 (개별 메뉴 항목에)
+  - 해당 메뉴를 세션 내 제외 목록(`sessionStorage`)에 추가
+  - 재추천 시 자동 exclude
+- [ ] 세션 내 추천 히스토리 슬라이더 (최근 5개)
+  - 위치: 추천 결과 영역 상단에 가로 스크롤 미니 카드
+  - 각 카드: 메뉴 이모지 + 이름 (클릭 시 해당 결과로 복원)
+  - `sessionStorage` 키: `wmj_session_history`
+  - 데이터 구조: `{ id, query, result, timestamp }[]`
+- [ ] GA4 이벤트: `re_recommend_click`, `history_card_click`
+- [ ] i18n 키 추가: `recommend.retry`, `recommend.notThis`, `recommend.history` (4개 언어)
+
+**관련 파일**:
+- `src/components/food/RecommendCard.tsx` — 버튼 추가
+- `src/components/food/DualResultView.tsx` — 버튼 추가
+- `src/components/food/KpopResultCard.tsx` — 버튼 추가
+- `src/components/food/RecommendHistory.tsx` — **신규** 히스토리 슬라이더
+- `src/hooks/useRecommendHistory.ts` — **신규** sessionStorage 관리 훅
+- `src/i18n/messages/*.json` — 키 추가
+
+#### 9-2. 소셜 공유 기능 (P0, 난이도: 낮음, ROI: 최고)
+
+**문제**: 추천 결과를 외부 공유 불가 → 바이럴 성장 경로 없음.
+**목표**: 공유 버튼 클릭률 5%+, 공유 통한 신규 유입 확보
+
+**구현 상세**:
+- [ ] `ShareButton.tsx` 컴포넌트 **신규**
+  - 위치: 추천 결과 카드 우상단 (공유 아이콘)
+  - 공유 대상: 카카오톡, X(Twitter), 링크 복사
+  - Web Share API 우선 사용 (지원 시) → 폴백으로 개별 버튼
+- [ ] 공유 텍스트 생성 로직:
+  - 일반 모드: `"오늘 AI가 추천한 메뉴: {메뉴명} 🍽️ — 오늘뭐먹지"`
+  - K-pop 모드: `"{아이돌}이 좋아하는 {메뉴명}! — 오늘뭐먹지"`
+  - 셰프 모드: `"흑백요리사 {셰프명}의 {메뉴명} — 오늘뭐먹지"`
+  - URL: `{SITE_URL}/{lang}?shared={encodedMenu}` (쿼리 파라미터로 공유 추적)
+- [ ] 공유 링크 랜딩 처리:
+  - `HomeClient.tsx`에서 `?shared=` 파라미터 감지
+  - 감지 시 해당 메뉴로 자동 검색 실행 (신규 유저도 결과 즉시 확인)
+- [ ] 카카오톡 공유:
+  - Kakao JS SDK 동적 로드 (`next/script`, afterInteractive)
+  - `Kakao.Share.sendDefault()` 활용
+  - OG 이미지: 기존 동적 OG 이미지 생성기 재활용
+- [ ] GA4 이벤트: `share_click` (platform: kakao/twitter/copy)
+- [ ] i18n 키: `share.title`, `share.copied`, `share.kakao`, `share.twitter`, `share.copy` (4개 언어)
+
+**관련 파일**:
+- `src/components/ui/ShareButton.tsx` — **신규**
+- `src/components/food/RecommendCard.tsx` — ShareButton import
+- `src/components/food/DualResultView.tsx` — ShareButton import
+- `src/components/food/KpopResultCard.tsx` — ShareButton import
+- `src/app/[lang]/HomeClient.tsx` — `?shared=` 파라미터 핸들링
+- `src/i18n/messages/*.json` — 키 추가
+
+#### 9-3. Rate Limit 대기 콘텐츠 (P1, 난이도: 낮음, ROI: 높음)
+
+**문제**: Rate Limit 걸리면 카운트다운만 표시 → 이탈 최대 구간.
+**목표**: Rate Limit 대기 구간 이탈률 50%+ 감소
+
+**구현 상세**:
+- [ ] `RateLimitContent.tsx` 컴포넌트 **신규**
+  - Rate Limit 활성 시 카운트다운 아래에 표시
+  - 콘텐츠 로테이션 (5초마다 자동 전환):
+    1. **음식 상식 퀴즈**: "라면은 몇 년도에 발명되었을까?" → 탭하면 정답 공개
+    2. **오늘의 트리비아**: 랜덤 음식 팩트 20개+ (`src/data/foodTrivia.ts` **신규**)
+    3. **인기 검색어**: localMenus.ts에서 랜덤 5개 표시 (클릭 시 검색창에 자동 입력)
+    4. **셰프/아이돌 미니 퀴즈**: "이 메뉴의 주인공은?" (힌트 → 정답)
+- [ ] `src/data/foodTrivia.ts` **신규** — 음식 상식 데이터
+  - 구조: `{ question: string, answer: string, emoji: string }[]`
+  - 최소 20개 (한국어), i18n 대응은 후순위
+- [ ] Rate Limit 해제 시 자동으로 콘텐츠 숨김 + "추천 가능!" 토스트
+- [ ] GA4 이벤트: `rate_limit_content_view`, `trivia_answer_click`
+
+**관련 파일**:
+- `src/components/food/RateLimitContent.tsx` — **신규**
+- `src/data/foodTrivia.ts` — **신규** 퀴즈/트리비아 데이터
+- `src/app/[lang]/HomeClient.tsx` — Rate Limit 상태 시 RateLimitContent 렌더링
+- `src/hooks/useRateLimit.ts` — 현재 상태 노출 (isLimited, remainingSeconds)
+
+#### 9-4. 즐겨찾기 & 나만의 메뉴북 (P1, 난이도: 낮음, ROI: 높음)
+
+**문제**: 캘린더에 기록은 하지만 "좋아하는 메뉴"를 모아볼 수 없음. 재방문 이유 부족.
+**목표**: 즐겨찾기 기능으로 재방문 동기 생성
+
+**구현 상세**:
+- [ ] 추천 결과 각 메뉴 항목에 ♥ 하트 토글 버튼
+  - `localStorage` 키: `wmj_favorites`
+  - 구조: `{ menuName: string, emoji: string, category: string, savedAt: string }[]`
+  - 최대 50개 (초과 시 가장 오래된 것 자동 제거 + 토스트 알림)
+- [ ] `FavoritesSection.tsx` 컴포넌트 **신규**
+  - 위치: 캘린더 섹션 위 또는 아래 (토글 접기/펼치기)
+  - 즐겨찾기 메뉴 그리드 (이모지 + 이름 + 저장일)
+  - 카테고리 필터 (한식/중식/양식/일식/기타)
+  - "이 메뉴로 다시 추천받기" 버튼 (클릭 → 검색창에 자동 입력)
+  - 삭제 버튼 (하트 토글 해제)
+- [ ] `useFavorites.ts` 훅 **신규**
+  - `addFavorite(menu)`, `removeFavorite(menuName)`, `isFavorite(menuName)`, `favorites`
+  - localStorage 동기화
+- [ ] 빈 상태 처리: "아직 즐겨찾기가 없어요. 추천받은 메뉴에서 ♥를 눌러보세요!"
+- [ ] GA4 이벤트: `favorite_add`, `favorite_remove`, `favorite_recommend_click`
+- [ ] i18n 키: `favorites.title`, `favorites.empty`, `favorites.max`, `favorites.recommend` (4개 언어)
+
+**관련 파일**:
+- `src/components/food/FavoritesSection.tsx` — **신규**
+- `src/hooks/useFavorites.ts` — **신규**
+- `src/components/food/RecommendCard.tsx` — ♥ 버튼 추가
+- `src/components/food/DualResultView.tsx` — ♥ 버튼 추가
+- `src/components/food/KpopResultCard.tsx` — ♥ 버튼 추가
+- `src/app/[lang]/HomeClient.tsx` — FavoritesSection 배치
+- `src/i18n/messages/*.json` — 키 추가
+
+#### 9-5. 메뉴 배틀 (이거 vs 저거) (P2, 난이도: 중간, ROI: 높음)
+
+**문제**: 추천이 일방적 → 유저 참여형 인터랙션 부족.
+**목표**: 게이미피케이션으로 체류 시간 30%+ 증가
+
+**구현 상세**:
+- [ ] `MenuBattle.tsx` 컴포넌트 **신규**
+  - 위치: 인기 주제 바로가기 아래 (항시 노출)
+  - AI 추천 결과에서 2개 메뉴 자동 추출 또는 localMenus.ts에서 랜덤 2개
+  - "오늘의 메뉴 대결" 헤더 + VS 레이아웃
+  - 좌/우 카드 클릭 → 선택 애니메이션 + 결과 저장
+  - 선택 후: "당신과 같은 선택을 한 사람: XX%" (로컬 카운트 기반 의사 통계)
+- [ ] `localStorage` 키: `wmj_battles`
+  - 구조: `{ date: string, menuA: string, menuB: string, choice: 'A'|'B' }[]`
+  - 최근 30일 보관
+- [ ] 배틀 데이터 기반 "나의 취향 요약" (9-6과 연동)
+  - 한식 vs 양식 선택 비율, 해먹기 vs 시켜먹기 선호 등
+- [ ] 시간대별 자동 갱신 (아침/점심/저녁/야식 4번)
+- [ ] GA4 이벤트: `battle_choice` (menuA/menuB, choice)
+- [ ] i18n 키: `battle.title`, `battle.vs`, `battle.result`, `battle.sameChoice` (4개 언어)
+
+**관련 파일**:
+- `src/components/food/MenuBattle.tsx` — **신규**
+- `src/app/[lang]/HomeClient.tsx` — MenuBattle 배치
+- `src/data/localMenus.ts` — 배틀용 메뉴 풀 활용
+- `src/i18n/messages/*.json` — 키 추가
+
+#### 9-6. 취향 프로필 & 통계 대시보드 (P2, 난이도: 중간, ROI: 중간)
+
+**문제**: 캘린더 인사이트가 7일 해먹기/시켜먹기 비율뿐 → 더 풍부한 개인화 가능.
+**목표**: 데이터 축적이 곧 재방문 동기
+
+**구현 상세**:
+- [ ] `TasteProfile.tsx` 컴포넌트 **신규**
+  - 위치: 캘린더 섹션 내 "나의 음식 DNA" 탭 추가
+  - 데이터 소스: `wmj_calendar` + `wmj_favorites` + `wmj_battles`
+  - 표시 항목:
+    1. 카테고리 분포 (한식/중식/양식/일식) — 도넛 차트 (CSS only, 라이브러리 없음)
+    2. 해먹기 vs 시켜먹기 비율 — 가로 막대
+    3. 가장 많이 먹은 메뉴 Top 5 — 리스트
+    4. 이번 달 식사 기록 횟수 — 숫자 카드
+    5. 연속 기록일 수 (스트릭) — 동기 부여
+  - 최소 데이터 기준: 5개 이상 기록 시 표시 (미만 시 "더 기록해보세요!" CTA)
+- [ ] 월별 리포트 카드 (공유 가능 — 9-2 ShareButton 재활용)
+  - "2026년 3월 나의 식단 리포트" 이미지 카드 생성
+  - Canvas API 또는 CSS 캡처 (html2canvas는 번들 과다 → CSS 프린트 스타일 우선)
+- [ ] GA4 이벤트: `taste_profile_view`, `taste_report_share`
+- [ ] i18n 키: `profile.title`, `profile.category`, `profile.topMenus`, `profile.streak` 등 (4개 언어)
+
+**관련 파일**:
+- `src/components/food/TasteProfile.tsx` — **신규**
+- `src/components/food/CalendarView.tsx` — 탭 추가 (캘린더 | 취향 분석)
+- `src/hooks/useCalendar.ts` — 통계 계산 헬퍼 함수 추가
+- `src/i18n/messages/*.json` — 키 추가
+
+#### 9-7. SEO 페이지 내부 순환 강화 (P2, 난이도: 낮음, ROI: 중간)
+
+**문제**: SEO 랜딩 → 이탈. 홈으로의 자연스러운 전환 플로우 부재.
+**목표**: SEO 페이지 → 홈 전환율 30%+ 달성
+
+**구현 상세**:
+- [ ] SEO 페이지 하단 "실시간 AI 추천 받기" CTA 강화
+  - 현재: 단순 링크 → 개선: 검색창 프리뷰 + 필터 프리셋 전달
+  - URL: `/{lang}?preset={slug}` → 홈에서 자동 필터 적용 + 즉시 추천
+- [ ] "비슷한 상황 추천" 비주얼 카드 (현재 RelatedKeywords 텍스트 → 카드 UI)
+  - 이모지 + 제목 + 한줄 설명 카드 그리드 (3~4개)
+  - 호버/탭 시 미리보기 툴팁
+- [ ] SEO 페이지 하단 "오늘의 인기 추천" 3개 (localMenus.ts에서 시간대별 랜덤)
+- [ ] `HomeClient.tsx`에서 `?preset=` 파라미터 감지 → 필터 자동 설정 + 추천 실행
+
+**관련 파일**:
+- `src/app/[lang]/eat/menu/[slug]/page.tsx` — CTA 강화, 카드 UI
+- `src/components/seo/RelatedKeywords.tsx` — 카드 UI로 업그레이드
+- `src/app/[lang]/HomeClient.tsx` — `?preset=` 핸들링
+
+#### 9-8. 오늘의 즉시 추천 배너 (P3, 난이도: 낮음, ROI: 중간)
+
+**문제**: 재방문 시 빈 화면 → 첫 인터랙션까지 시간 소요.
+**목표**: 페이지 로드 즉시 가치 전달, 첫 화면 바운스율 감소
+
+**구현 상세**:
+- [ ] `InstantRecommend.tsx` 컴포넌트 **신규**
+  - 위치: Hero 섹션 바로 아래, 검색 영역 위
+  - 로직: API 호출 없이 `localMenus.ts`에서 시간대 + 랜덤으로 1개 추천
+  - UI: 작은 배너 카드 "지금 딱 좋은 메뉴: {이모지} {메뉴명}" + "자세히 →"
+  - 클릭 → 해당 메뉴명으로 검색 자동 실행
+  - 매 방문마다 다른 메뉴 (이전 표시 메뉴 sessionStorage 기록)
+  - 검색 결과 표시 중에는 자동 숨김
+- [ ] 재방문 유저: "지난번에 {캘린더 마지막 메뉴} 드셨죠? 오늘은 이건 어때요?"
+  - `wmj_calendar`에서 최근 메뉴 읽어서 다른 카테고리 추천
+
+**관련 파일**:
+- `src/components/food/InstantRecommend.tsx` — **신규**
+- `src/app/[lang]/HomeClient.tsx` — 배치
+- `src/data/localMenus.ts` — 시간대별 필터 활용
+
+#### 구현 우선순위 & 예상 일정
+
+| 순서 | 태스크 | 우선순위 | 난이도 | 예상 신규 파일 | 예상 수정 파일 |
+|------|--------|---------|--------|--------------|--------------|
+| 1 | 9-1 재추천 루프 & 히스토리 | P0 | 낮음 | 2개 | 4개 |
+| 2 | 9-2 소셜 공유 | P0 | 낮음 | 1개 | 4개 |
+| 3 | 9-3 Rate Limit 대기 콘텐츠 | P1 | 낮음 | 2개 | 2개 |
+| 4 | 9-4 즐겨찾기 메뉴북 | P1 | 낮음 | 2개 | 4개 |
+| 5 | 9-5 메뉴 배틀 | P2 | 중간 | 1개 | 2개 |
+| 6 | 9-6 취향 프로필 | P2 | 중간 | 1개 | 2개 |
+| 7 | 9-7 SEO 순환 강화 | P2 | 낮음 | 0개 | 3개 |
+| 8 | 9-8 즉시 추천 배너 | P3 | 낮음 | 1개 | 1개 |
+
+**권장 구현 순서**: 9-1 → 9-2 → 9-3 → 9-4 순으로 P0/P1 먼저 완료 후 P2/P3 진행.
+각 태스크 완료 후 `pnpm build` 검증 필수. i18n 키는 각 태스크 내에서 4개 언어 동시 추가.
+
 ### 운영 신뢰성 보강
 - [x] 소개 페이지 (`/[lang]/about`)
 - [x] 개인정보처리방침 (`/[lang]/privacy`)
@@ -212,6 +459,14 @@
 | ⬜ | AdSense 사이트 등록 & 승인 신청 | P1 | ADSENSE.md |
 | ⬜ | K-pop SEO 페이지 (`/[lang]/kpop/[idol]`) | P3 | SEO.md |
 | ⬜ | SEO 키워드 DB 확장 (40개 → 100개) | P3 | SEO.md |
+| ⬜ | **[Phase 9]** 재추천 루프 & 히스토리 슬라이더 | P0 | FRONTEND.md |
+| ⬜ | **[Phase 9]** 소셜 공유 (카카오/X/링크복사) | P0 | FRONTEND.md |
+| ⬜ | **[Phase 9]** Rate Limit 대기 콘텐츠 (퀴즈/트리비아) | P1 | FRONTEND.md |
+| ⬜ | **[Phase 9]** 즐겨찾기 & 나만의 메뉴북 | P1 | FRONTEND.md |
+| ⬜ | **[Phase 9]** 메뉴 배틀 (이거 vs 저거) | P2 | FRONTEND.md |
+| ⬜ | **[Phase 9]** 취향 프로필 & 통계 대시보드 | P2 | FRONTEND.md |
+| ⬜ | **[Phase 9]** SEO 페이지 내부 순환 강화 | P2 | SEO.md |
+| ⬜ | **[Phase 9]** 오늘의 즉시 추천 배너 | P3 | FRONTEND.md |
 
 **범례**: ✅ 완료 · 🔵 진행 중 · ⬜ 대기
 
@@ -242,3 +497,6 @@
 | 2026-03-23 | Local DB 업데이트 admin API 도입 | 서버 재기동 시 최신 K-pop/트렌드 데이터 갱신 가능 |
 | 2026-03-23 | next-intl v4 requestLocale 수정 | v3 → v4 API 변경으로 다국어 번역이 전부 한국어로 고정되던 버그 수정 |
 | 2026-03-23 | 레시피 검색 키워드: foodName 그대로 포함 | "백종원 {menu}" 등 불필요 접두어 제거, 검색 의도 정확히 반영 |
+| 2026-03-22 | Phase 9 페이지 체류 시간 향상 계획 수립 | "추천 1회→이탈" 단선적 플로우 해소, 재추천 루프·공유·게이미피케이션으로 세션 깊이 확보 |
+| 2026-03-22 | localStorage 중심 개인화 유지 (DB 불필요) | 즐겨찾기/배틀/취향 프로필 모두 localStorage로 구현, Vercel 무료 배포 제약 준수 |
+| 2026-03-22 | 외부 라이브러리 최소화 원칙 | 차트는 CSS only, 공유는 Web Share API 우선, html2canvas 대신 CSS 프린트 스타일 |
