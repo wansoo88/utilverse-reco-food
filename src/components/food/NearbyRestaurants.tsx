@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import type { NearbyRestaurant } from '@/types/recommend';
+import { apiUrl } from '@/lib/basePath';
 
 interface NearbyRestaurantsProps {
   menuNames: string[];
@@ -79,7 +80,7 @@ export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) =
         body.lng = lng;
       }
 
-      const res = await fetch('/api/nearby', {
+      const res = await fetch(apiUrl('/api/nearby'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

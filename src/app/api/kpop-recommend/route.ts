@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateInput, sanitizeInput } from '@/lib/security';
 import { kpopLocalRecommend } from '@/lib/kpopLocalRecommend';
+import { trackUsage, estimateTokens } from '@/lib/usageTracker';
 
 const isQuotaError = (err: unknown): boolean => {
   const e = err as Record<string, unknown>;
@@ -81,6 +82,7 @@ export async function POST(req: NextRequest) {
             });
             const result = await model.generateContent(userPrompt);
             const text = result.response.text().replace(/```json\n?|\n?```/g, '').trim();
+            trackUsage({ ts: Date.now(), provider: 'gemini', model: modelName, endpoint: 'kpop-recommend', estimatedTokens: estimateTokens(userPrompt + text) });
             return NextResponse.json(JSON.parse(text));
           } catch (err) {
             if (isQuotaError(err)) {
@@ -99,6 +101,7 @@ export async function POST(req: NextRequest) {
     if (gptKey) {
       try {
         const parsed = await callGpt(userPrompt, KPOP_SYSTEM_PROMPT, gptKey);
+        trackUsage({ ts: Date.now(), provider: 'gpt', model: 'gpt-4o-mini', endpoint: 'kpop-recommend', estimatedTokens: estimateTokens(userPrompt + JSON.stringify(parsed)) });
         return NextResponse.json(parsed);
       } catch {
         // GPT 실패 → 로컬 폴백
@@ -106,8 +109,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Step 3: 로컬 폴백
+    trackUsage({ ts: Date.now(), provider: 'local', model: 'local', endpoint: 'kpop-recommend', estimatedTokens: 0 });
     return NextResponse.json(kpopLocalRecommend(idolName ?? sanitized, lang));
   } catch {
+    trackUsage({ ts: Date.now(), provider: 'local', model: 'local', endpoint: 'kpop-recommend', estimatedTokens: 0 });
     return NextResponse.json(kpopLocalRecommend('', 'ko'));
   }
 }
