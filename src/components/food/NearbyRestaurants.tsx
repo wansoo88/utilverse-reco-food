@@ -8,76 +8,144 @@ interface NearbyRestaurantsProps {
   lang: string;
 }
 
-type GeoStatus = 'idle' | 'loading' | 'granted' | 'denied' | 'error';
+type GeoStatus = 'prompt' | 'loading' | 'granted' | 'denied' | 'error' | 'searching';
+
+const LABELS: Record<string, {
+  nearby: string;
+  permission: string;
+  allow: string;
+  skip: string;
+  denied: string;
+  retry: string;
+  searching: string;
+  empty: string;
+}> = {
+  ko: {
+    nearby: '맛집',
+    permission: '시켜먹기 맛집을 찾으려면 위치 정보가 필요해요',
+    allow: '📍 위치 허용하고 맛집 찾기',
+    skip: '위치 없이 검색',
+    denied: '위치 권한이 거부되었어요',
+    retry: '다시 시도',
+    searching: '주변 맛집을 찾고 있어요...',
+    empty: '검색된 맛집이 없어요',
+  },
+  en: {
+    nearby: 'restaurants',
+    permission: 'Location is needed to find nearby restaurants',
+    allow: '📍 Allow location & find restaurants',
+    skip: 'Search without location',
+    denied: 'Location permission denied',
+    retry: 'Retry',
+    searching: 'Finding nearby restaurants...',
+    empty: 'No restaurants found',
+  },
+  ja: {
+    nearby: 'のお店',
+    permission: '近くのお店を探すには位置情報が必要です',
+    allow: '📍 位置情報を許可してお店を探す',
+    skip: '位置情報なしで検索',
+    denied: '位置情報の許可が拒否されました',
+    retry: '再試行',
+    searching: '近くのお店を探しています...',
+    empty: 'お店が見つかりませんでした',
+  },
+  zh: {
+    nearby: '餐厅',
+    permission: '需要位置信息来查找附近餐厅',
+    allow: '📍 允许位置并查找餐厅',
+    skip: '不使用位置搜索',
+    denied: '位置权限被拒绝',
+    retry: '重试',
+    searching: '正在搜索附近餐厅...',
+    empty: '未找到餐厅',
+  },
+};
 
 export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) => {
-  const [geoStatus, setGeoStatus] = useState<GeoStatus>('idle');
+  const [geoStatus, setGeoStatus] = useState<GeoStatus>('prompt');
   const [results, setResults] = useState<Record<string, NearbyRestaurant[]>>({});
-  const [loading, setLoading] = useState(false);
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-
   const labels = LABELS[lang] ?? LABELS.ko;
 
-  // 위치 권한 요청 + 검색
-  const requestAndSearch = useCallback(async () => {
+  // 맛집 검색 (좌표 유무 상관없이)
+  const searchRestaurants = useCallback(async (lat?: number, lng?: number) => {
     if (menuNames.length === 0) return;
+    setGeoStatus('searching');
 
+    try {
+      const body: Record<string, unknown> = { menuNames };
+      if (lat !== undefined && lng !== undefined) {
+        body.lat = lat;
+        body.lng = lng;
+      }
+
+      const res = await fetch('/api/nearby', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json() as { results: Record<string, NearbyRestaurant[]> };
+      setResults(data.results ?? {});
+      setGeoStatus('granted');
+    } catch {
+      setGeoStatus('error');
+    }
+  }, [menuNames]);
+
+  // 위치 허용 후 검색
+  const handleAllowLocation = useCallback(async () => {
     setGeoStatus('loading');
-    setLoading(true);
-
     try {
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 300000, // 5분 캐시
+          maximumAge: 300000,
         });
       });
-
-      const { latitude: lat, longitude: lng } = position.coords;
-      setCoords({ lat, lng });
-      setGeoStatus('granted');
-
-      const res = await fetch('/api/nearby', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ menuNames, lat, lng }),
-      });
-
-      const data = await res.json() as { results: Record<string, NearbyRestaurant[]> };
-      setResults(data.results ?? {});
+      await searchRestaurants(position.coords.latitude, position.coords.longitude);
     } catch (err) {
       if (err instanceof GeolocationPositionError && err.code === 1) {
         setGeoStatus('denied');
-        // 위치 없이도 검색 시도
-        try {
-          const res = await fetch('/api/nearby', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ menuNames }),
-          });
-          const data = await res.json() as { results: Record<string, NearbyRestaurant[]> };
-          setResults(data.results ?? {});
-        } catch {
-          setGeoStatus('error');
-        }
       } else {
-        setGeoStatus('error');
+        // timeout 등 → 위치 없이 검색
+        await searchRestaurants();
       }
-    } finally {
-      setLoading(false);
     }
-  }, [menuNames]);
+  }, [searchRestaurants]);
 
-  useEffect(() => {
-    if (menuNames.length > 0) {
-      requestAndSearch();
-    }
-  }, [menuNames, requestAndSearch]);
+  // 위치 없이 검색
+  const handleSkipLocation = useCallback(() => {
+    searchRestaurants();
+  }, [searchRestaurants]);
 
-  if (loading) {
+  // ── 위치 동의 프롬프트 ──
+  if (geoStatus === 'prompt') {
     return (
-      <div className="space-y-3">
+      <div className="text-center space-y-3 py-4">
+        <p className="text-sm text-gray-600">{labels.permission}</p>
+        <button
+          onClick={handleAllowLocation}
+          className="w-full rounded-xl bg-blue-500 hover:bg-blue-600 text-white py-2.5 text-sm font-semibold transition-colors"
+        >
+          {labels.allow}
+        </button>
+        <button
+          onClick={handleSkipLocation}
+          className="text-xs text-gray-400 hover:text-gray-600 underline"
+        >
+          {labels.skip}
+        </button>
+      </div>
+    );
+  }
+
+  // ── 로딩 ──
+  if (geoStatus === 'loading' || geoStatus === 'searching') {
+    return (
+      <div className="space-y-3 py-2">
+        <p className="text-xs text-center text-gray-400">{labels.searching}</p>
         {menuNames.map((name) => (
           <div key={name} className="animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-32 mb-2" />
@@ -92,15 +160,28 @@ export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) =
     );
   }
 
-  const hasResults = Object.values(results).some((arr) => arr.length > 0);
+  // ── 위치 거부됨 ──
+  if (geoStatus === 'denied') {
+    return (
+      <div className="text-center py-4 space-y-2">
+        <p className="text-xs text-gray-400">{labels.denied}</p>
+        <button
+          onClick={handleSkipLocation}
+          className="text-xs text-blue-500 hover:text-blue-600 font-medium"
+        >
+          {labels.skip}
+        </button>
+      </div>
+    );
+  }
 
-  if (!hasResults && geoStatus === 'denied') {
+  // ── 에러 ──
+  if (geoStatus === 'error') {
     return (
       <div className="text-center py-4">
-        <p className="text-xs text-gray-400">{labels.permission}</p>
         <button
-          onClick={requestAndSearch}
-          className="mt-2 text-xs text-orange-500 hover:text-orange-600 font-medium"
+          onClick={handleAllowLocation}
+          className="text-xs text-blue-500 hover:text-blue-600 font-medium"
         >
           {labels.retry}
         </button>
@@ -108,7 +189,12 @@ export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) =
     );
   }
 
-  if (!hasResults) return null;
+  // ── 결과 ──
+  const hasResults = Object.values(results).some((arr) => arr.length > 0);
+
+  if (!hasResults) {
+    return <p className="text-xs text-center text-gray-400 py-3">{labels.empty}</p>;
+  }
 
   return (
     <div className="space-y-4">
@@ -156,11 +242,4 @@ export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) =
       })}
     </div>
   );
-};
-
-const LABELS: Record<string, { nearby: string; permission: string; retry: string }> = {
-  ko: { nearby: '맛집', permission: '위치 권한을 허용하면 근처 맛집을 찾아드려요', retry: '위치 허용하기' },
-  en: { nearby: 'restaurants', permission: 'Allow location to find nearby restaurants', retry: 'Allow location' },
-  ja: { nearby: 'のお店', permission: '位置情報を許可すると近くのお店を探せます', retry: '位置情報を許可' },
-  zh: { nearby: '餐厅', permission: '允许位置权限以搜索附近餐厅', retry: '允许位置' },
 };

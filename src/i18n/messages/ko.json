@@ -58,6 +58,8 @@
     "solo": "1인",
     "couple": "2인",
     "family": "가족",
+    "withKids": "아이 있음",
+    "noKids": "아이 없음",
     "vibe": "상황",
     "chef": "흑백요리사",
     "sweet": "단짠단짠",

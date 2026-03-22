@@ -21,10 +21,16 @@ export const buildUserPrompt = (
     parts.push('M:자유(쿼리/상황에 맞게 cook또는order 선택)');
   }
 
-  // 가구 유형
+  // 가구 유형 + 아이 유무
   if (filters.house) {
     const houseMap: Record<string, string> = { solo: '1인', couple: '2인', family: '가족' };
-    parts.push(`인원:${houseMap[filters.house] ?? filters.house}`);
+    let houseLabel = houseMap[filters.house] ?? filters.house;
+    if (filters.house === 'family' && filters.baby === 'withKids') {
+      houseLabel += '(아이있음)';
+    } else if (filters.house === 'family' && filters.baby === 'noKids') {
+      houseLabel += '(성인만)';
+    }
+    parts.push(`인원:${houseLabel}`);
   }
 
   // 상황 바이브

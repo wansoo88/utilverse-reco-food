@@ -18,7 +18,7 @@ import { HOUSE_KEYWORDS, VIBE_KEYWORDS, BUDGET_KEYWORDS } from '@/data/filterKey
 import type { Locale } from '@/config/site';
 import type { FilterState } from '@/types/filter';
 
-type SearchMode = 'text' | 'ai' | 'fridge';
+type SearchMode = 'text' | 'ai';
 
 interface HomeClientProps {
   lang: Locale;
@@ -48,13 +48,12 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
   const [searchMode, setSearchMode] = useState<SearchMode>('ai');
   const [query, setQuery] = useState('');
-  const [fridgeInput, setFridgeInput] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [restoredShown, setRestoredShown] = useState(false);
 
   const quickTopics = SEO_KEYWORDS.slice(0, 8);
 
-  // 시간대별 인사 메시지 (히어로 섹션 표시용)
+  // 시간대별 인사 메시지
   const timeGreeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour >= 6 && hour < 10) return t('timeSuggest.morning');
@@ -64,7 +63,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     return t('timeSuggest.late');
   }, [t]);
 
-  // 필터 복원 토스트
   useEffect(() => {
     if (restored && !restoredShown) {
       showToast(t('home.filterRestored'), 'success');
@@ -72,7 +70,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     }
   }, [restored, restoredShown, showToast, t]);
 
-  // 에러 토스트
   useEffect(() => {
     if (error === 'food_only') showToast(t('home.blockToast'), 'error');
   }, [error, showToast, t]);
@@ -80,7 +77,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const handleReset = useCallback(() => {
     resetFilters();
     setQuery('');
-    setFridgeInput('');
     reset();
   }, [resetFilters, reset]);
 
@@ -98,7 +94,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   }, []);
 
   const handleModeChange = (mode: FilterState['mode']) => {
-    // mode는 키워드 어펜드 불필요 (cook/order는 API 필터로 전달)
     updateFilters({ mode });
   };
 
@@ -107,13 +102,28 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     const isDeselect = filters.house === house;
     if (isDeselect && house) {
       toggleKeyword(kw[house], true);
-      updateFilters({ house: null });
+      updateFilters({ house: null, baby: null });
     } else if (house) {
-      // 기존 house 키워드 제거 후 새 키워드 추가
       if (filters.house) toggleKeyword(kw[filters.house], true);
       toggleKeyword(kw[house], false);
-      updateFilters({ house });
+      updateFilters({ house, baby: null });
     }
+  };
+
+  const BABY_KEYWORDS: Record<string, Record<string, string>> = {
+    ko: { withKids: '아이있음', noKids: '아이없음' },
+    en: { withKids: 'with kids', noKids: 'no kids' },
+    ja: { withKids: '子供あり', noKids: '子供なし' },
+    zh: { withKids: '有孩子', noKids: '无孩子' },
+  };
+
+  const handleBabyChange = (baby: FilterState['baby']) => {
+    const kw = BABY_KEYWORDS[lang] ?? BABY_KEYWORDS.ko;
+    // 기존 baby 키워드 제거
+    if (filters.baby) toggleKeyword(kw[filters.baby], true);
+    // 새 baby 키워드 추가 (null이면 제거만)
+    if (baby) toggleKeyword(kw[baby], false);
+    updateFilters({ baby });
   };
 
   const handleVibeToggle = (vibe: FilterState['vibes'][number]) => {
@@ -125,11 +135,9 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
   const handleBudgetChange = (budget: FilterState['budget']) => {
     const kw = BUDGET_KEYWORDS[lang] ?? BUDGET_KEYWORDS.ko;
-    // 기존 budget 키워드 제거
     if (filters.budget !== 'any') {
       toggleKeyword(kw[filters.budget], true);
     }
-    // 새 budget 키워드 추가 (any는 제외)
     if (budget !== 'any') {
       toggleKeyword(kw[budget], false);
     }
@@ -139,14 +147,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   // 공통 제출 로직
   const handleSubmit = useCallback(async () => {
     const recentMenus = getRecentMenus(7);
-
-    if (searchMode === 'fridge') {
-      if (!fridgeInput.trim()) return;
-      const ingredients = fridgeInput.split(',').map((s) => s.trim()).filter(Boolean);
-      trackEvent('fridge_submit', { lang, count: ingredients.length });
-      await recommend('', { ...filters, mode: 'cook' }, lang, ingredients, recentMenus);
-      return;
-    }
 
     // AI 모드: 입력값 필수
     if (searchMode === 'ai' && !query.trim()) {
@@ -166,7 +166,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     const isDual = searchMode === 'ai';
     trackEvent('recommend_submit', { lang, mode: searchMode, has_query: Boolean(query.trim()), dual: isDual });
     await recommend(query, filters, lang, undefined, recentMenus, isDual);
-  }, [searchMode, fridgeInput, query, filters, lang, recommend, showToast, t, getRecentMenus]);
+  }, [searchMode, query, filters, lang, recommend, showToast, t, getRecentMenus]);
 
   useEffect(() => {
     if (status === 'success' && data) {
@@ -180,7 +180,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
   const handleSaveToday = () => {
     if (!data) return;
-    // 듀얼 모드에서는 cook 결과를 저장
     if (isDualResponse(data)) {
       const cookData = { type: 'cook' as const, items: data.cook.items, tip: data.cook.tip };
       const saved = saveRecommendation(cookData);
@@ -210,7 +209,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const modeConfig = {
     text:  { placeholder: t('search.placeholderText'),  submit: t('search.submitText') },
     ai:    { placeholder: t('search.placeholderAi'),    submit: t('search.submitAi') },
-    fridge:{ placeholder: t('search.placeholderFridge'), submit: t('search.submitFridge') },
   };
 
   return (
@@ -251,11 +249,10 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
 
           {/* 모드 탭 */}
           <div className="flex border-b border-gray-100">
-            {(['text', 'ai', 'fridge'] as SearchMode[]).map((mode) => {
+            {(['text', 'ai'] as SearchMode[]).map((mode) => {
               const labels: Record<SearchMode, string> = {
                 text: t('search.modeText'),
                 ai: t('search.modeAi'),
-                fridge: t('search.modeFridge'),
               };
               return (
                 <button
@@ -274,13 +271,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </div>
 
           <div className="p-5 space-y-4">
-            {/* 냉장고 힌트 */}
-            {searchMode === 'fridge' && (
-              <p className="text-xs text-sky-600 bg-sky-50 rounded-xl px-3 py-2">
-                {t('search.fridgeHint')}
-              </p>
-            )}
-
             {/* AI 모드 힌트 */}
             {searchMode === 'ai' && (
               <p className="text-xs text-purple-600 bg-purple-50 rounded-xl px-3 py-2">
@@ -292,22 +282,14 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
             <div className="relative">
               <input
                 type="text"
-                value={searchMode === 'fridge' ? fridgeInput : query}
-                onChange={(e) =>
-                  searchMode === 'fridge'
-                    ? setFridgeInput(e.target.value)
-                    : setQuery(e.target.value)
-                }
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                 placeholder={modeConfig[searchMode].placeholder}
-                maxLength={searchMode === 'fridge' ? 150 : 200}
-                className={`w-full rounded-2xl border px-5 py-3.5 pr-32 text-sm shadow-sm focus:outline-none focus:ring-2 ${
-                  searchMode === 'fridge'
-                    ? 'border-sky-200 focus:ring-sky-400 focus:border-transparent'
-                    : 'border-gray-200 focus:ring-orange-400 focus:border-transparent'
-                }`}
+                maxLength={200}
+                className="w-full rounded-2xl border border-gray-200 px-5 py-3.5 pr-32 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
               />
-              {(query || fridgeInput) && (
+              {query && (
                 <button
                   onClick={handleReset}
                   className="absolute right-24 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
@@ -318,11 +300,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               <button
                 onClick={handleSubmit}
                 disabled={status === 'loading'}
-                className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-xl px-4 py-2 text-xs font-bold text-white transition-colors disabled:opacity-50 ${
-                  searchMode === 'fridge'
-                    ? 'bg-sky-500 hover:bg-sky-600'
-                    : 'bg-orange-500 hover:bg-orange-600'
-                }`}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2 text-xs font-bold text-white transition-colors disabled:opacity-50"
               >
                 {status === 'loading' ? '...' : modeConfig[searchMode].submit}
               </button>
@@ -344,6 +322,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
                       filters={filters}
                       onModeChange={handleModeChange}
                       onHouseChange={handleHouseChange}
+                      onBabyChange={handleBabyChange}
                       onVibeToggle={handleVibeToggle}
                       onBudgetChange={handleBudgetChange}
                       t={t}
@@ -360,15 +339,13 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               </div>
             )}
 
-            {/* 결과 — 검색창 바로 아래 */}
+            {/* 결과 */}
             {status === 'success' && data && (
               <div className="space-y-3 pt-2 border-t border-gray-100">
-                {/* AI 모드: 듀얼 뷰 (좌: 해먹기, 우: 시켜먹기) */}
                 {isDualResponse(data) && (
                   <DualResultView data={data} lang={lang} />
                 )}
 
-                {/* 메뉴 추천/냉장고 모드: 단일 카드 */}
                 {isSingleResponse(data) && (
                   <RecommendCard
                     data={data}
@@ -388,8 +365,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </div>
         </section>
 
-
-        {/* ── 인기 탐색 주제 ── */}
+        {/* ── 인기 추천 상황 ── */}
         <section className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50 p-5 shadow-sm">
           <p className="text-sm font-semibold text-orange-600">{t('home.popularTitle')}</p>
           <p className="mt-0.5 text-xs text-gray-500">{t('home.popularSubtitle')}</p>
@@ -398,12 +374,8 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               <button
                 key={topic.slug}
                 onClick={() => {
-                  if (searchMode === 'fridge') {
-                    setFridgeInput(topic[lang].title);
-                  } else {
-                    // 현재 탭(text/ai) 유지
-                    setQuery(topic[lang].title);
-                  }
+                  // 현재 탭 유지
+                  setQuery(topic[lang].title);
                   trackEvent('quick_topic_click', { lang, slug: topic.slug });
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}

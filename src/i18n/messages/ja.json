@@ -58,6 +58,8 @@
     "solo": "一人",
     "couple": "二人",
     "family": "家族",
+    "withKids": "子供あり",
+    "noKids": "子供なし",
     "vibe": "シーン",
     "chef": "シェフ推薦",
     "sweet": "甘辛",

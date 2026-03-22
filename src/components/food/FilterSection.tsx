@@ -7,6 +7,7 @@ interface FilterSectionProps {
   filters: FilterState;
   onModeChange: (mode: FilterState['mode']) => void;
   onHouseChange: (house: FilterState['house']) => void;
+  onBabyChange?: (baby: FilterState['baby']) => void;
   onVibeToggle: (vibe: FilterState['vibes'][number]) => void;
   onBudgetChange: (budget: FilterState['budget']) => void;
   t: (key: string) => string;
@@ -16,6 +17,7 @@ export const FilterSection = ({
   filters,
   onModeChange,
   onHouseChange,
+  onBabyChange,
   onVibeToggle,
   onBudgetChange,
   t,
@@ -84,6 +86,22 @@ export const FilterSection = ({
           ))}
         </div>
       </div>
+
+      {/* 가족 → 아이 유무 서브옵션 */}
+      {filters.house === 'family' && onBabyChange && (
+        <div className="ml-4 flex gap-2">
+          <FilterChip
+            label={t('filter.withKids')}
+            selected={filters.baby === 'withKids'}
+            onClick={() => onBabyChange(filters.baby === 'withKids' ? null : 'withKids')}
+          />
+          <FilterChip
+            label={t('filter.noKids')}
+            selected={filters.baby === 'noKids'}
+            onClick={() => onBabyChange(filters.baby === 'noKids' ? null : 'noKids')}
+          />
+        </div>
+      )}
 
       {/* 상황 */}
       <div>
