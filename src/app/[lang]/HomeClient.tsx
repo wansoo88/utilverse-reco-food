@@ -14,6 +14,7 @@ import { SiteFooter } from '@/components/ui/SiteFooter';
 import { validateInput } from '@/lib/security';
 import { SEO_KEYWORDS } from '@/data/seoKeywords';
 import { trackEvent } from '@/lib/analytics';
+import { HOUSE_KEYWORDS, VIBE_KEYWORDS, BUDGET_KEYWORDS } from '@/data/filterKeywords';
 import type { Locale } from '@/config/site';
 import type { FilterState } from '@/types/filter';
 
@@ -83,12 +84,57 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     reset();
   }, [resetFilters, reset]);
 
-  const handleModeChange = (mode: FilterState['mode']) => updateFilters({ mode });
-  const handleHouseChange = (house: FilterState['house']) => {
-    updateFilters({ house: filters.house === house ? null : house });
+  // 필터 키워드를 검색창에 토글 (추가/제거)
+  const toggleKeyword = useCallback((keyword: string | undefined, removing: boolean) => {
+    if (!keyword) return;
+    setQuery((prev) => {
+      const words = prev.split(/\s+/).filter(Boolean);
+      if (removing) {
+        return words.filter((w) => w !== keyword).join(' ');
+      }
+      if (words.includes(keyword)) return prev;
+      return [...words, keyword].join(' ');
+    });
+  }, []);
+
+  const handleModeChange = (mode: FilterState['mode']) => {
+    // mode는 키워드 어펜드 불필요 (cook/order는 API 필터로 전달)
+    updateFilters({ mode });
   };
-  const handleVibeToggle = (vibe: FilterState['vibes'][number]) => toggleVibe(vibe);
-  const handleBudgetChange = (budget: FilterState['budget']) => updateFilters({ budget });
+
+  const handleHouseChange = (house: FilterState['house']) => {
+    const kw = HOUSE_KEYWORDS[lang] ?? HOUSE_KEYWORDS.ko;
+    const isDeselect = filters.house === house;
+    if (isDeselect && house) {
+      toggleKeyword(kw[house], true);
+      updateFilters({ house: null });
+    } else if (house) {
+      // 기존 house 키워드 제거 후 새 키워드 추가
+      if (filters.house) toggleKeyword(kw[filters.house], true);
+      toggleKeyword(kw[house], false);
+      updateFilters({ house });
+    }
+  };
+
+  const handleVibeToggle = (vibe: FilterState['vibes'][number]) => {
+    const kw = VIBE_KEYWORDS[lang] ?? VIBE_KEYWORDS.ko;
+    const isActive = filters.vibes.includes(vibe);
+    toggleKeyword(kw[vibe], isActive);
+    toggleVibe(vibe);
+  };
+
+  const handleBudgetChange = (budget: FilterState['budget']) => {
+    const kw = BUDGET_KEYWORDS[lang] ?? BUDGET_KEYWORDS.ko;
+    // 기존 budget 키워드 제거
+    if (filters.budget !== 'any') {
+      toggleKeyword(kw[filters.budget], true);
+    }
+    // 새 budget 키워드 추가 (any는 제외)
+    if (budget !== 'any') {
+      toggleKeyword(kw[budget], false);
+    }
+    updateFilters({ budget });
+  };
 
   // 공통 제출 로직
   const handleSubmit = useCallback(async () => {
