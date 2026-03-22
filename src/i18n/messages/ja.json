@@ -2,8 +2,8 @@
   "home": {
     "title": "今日何食べる？",
     "subtitle": "AIがぴったりのメニューを提案します",
-    "popularTitle": "人気の探し方",
-    "popularSubtitle": "よく検索される状況別メニューページへすぐ移動できます",
+    "popularTitle": "人気の状況",
+    "popularSubtitle": "タップするとすぐにおすすめが見られます",
     "filterRestored": "✅ 前回のフィルターを復元しました",
     "blockToast": "🚫 食べ物に関する質問のみお答えできます",
     "errorInjection": "🚫 この入力は許可されていません",

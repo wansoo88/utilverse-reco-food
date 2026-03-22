@@ -2,8 +2,8 @@
   "home": {
     "title": "What to eat today?",
     "subtitle": "AI recommends the perfect menu for you",
-    "popularTitle": "Popular topic paths",
-    "popularSubtitle": "Jump straight into commonly searched menu situations",
+    "popularTitle": "Popular Situations",
+    "popularSubtitle": "Tap a situation to get instant recommendations",
     "filterRestored": "✅ Previous filters restored",
     "blockToast": "🚫 Only food-related questions are allowed",
     "errorInjection": "🚫 This input is not allowed",

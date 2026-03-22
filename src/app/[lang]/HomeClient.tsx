@@ -355,7 +355,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
                   if (searchMode === 'fridge') {
                     setFridgeInput(topic[lang].title);
                   } else {
-                    setSearchMode('ai');
+                    // 현재 탭(text/ai) 유지
                     setQuery(topic[lang].title);
                   }
                   trackEvent('quick_topic_click', { lang, slug: topic.slug });

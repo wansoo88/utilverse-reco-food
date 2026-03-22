@@ -2,8 +2,8 @@
   "home": {
     "title": "今天吃什么？",
     "subtitle": "AI为您推荐最合适的菜单",
-    "popularTitle": "热门主题入口",
-    "popularSubtitle": "可直接进入常见场景下的菜单页面",
+    "popularTitle": "热门推荐场景",
+    "popularSubtitle": "点击场景即可获取推荐",
     "filterRestored": "✅ 已恢复上次筛选条件",
     "blockToast": "🚫 只能回答与食物相关的问题",
     "errorInjection": "🚫 此输入不被允许",

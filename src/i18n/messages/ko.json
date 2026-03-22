@@ -2,8 +2,8 @@
   "home": {
     "title": "오늘 뭐 먹지?",
     "subtitle": "AI가 딱 맞는 메뉴를 추천해드려요",
-    "popularTitle": "인기 탐색 주제",
-    "popularSubtitle": "자주 찾는 상황별 메뉴 페이지로 바로 이동할 수 있어요",
+    "popularTitle": "인기 추천 상황",
+    "popularSubtitle": "자주 찾는 상황을 클릭하면 바로 추천받을 수 있어요",
     "filterRestored": "✅ 이전 필터 불러옴",
     "blockToast": "🚫 음식과 관련 없는 질문은 답변할 수 없어요",
     "errorInjection": "🚫 허용되지 않는 입력입니다",
