@@ -91,8 +91,21 @@ export async function POST(req: NextRequest) {
     const clientId = process.env.NAVER_CLIENT_ID;
     const clientSecret = process.env.NAVER_CLIENT_SECRET;
 
+    // Naver credentials 없을 때 Google Maps 검색 링크로 폴백
     if (!clientId || !clientSecret) {
-      return NextResponse.json({ results: {} });
+      const fallbackResults: Record<string, NearbyRestaurant[]> = {};
+      for (const name of menuNames) {
+        fallbackResults[name] = [{
+          name: `${name} 맛집 검색`,
+          category: '',
+          address: '',
+          roadAddress: '',
+          telephone: '',
+          distance: 0,
+          naverMapUrl: `https://www.google.com/maps/search/${encodeURIComponent(name + ' 맛집')}`,
+        }];
+      }
+      return NextResponse.json({ results: fallbackResults });
     }
 
     const results: Record<string, NearbyRestaurant[]> = {};
@@ -123,8 +136,8 @@ export async function POST(req: NextRequest) {
               naverMapUrl: item.link || naverMapUrl,
             };
           })
-          // 위치 정보가 있으면 1km 이내만, 없으면 전체
-          .filter((r) => !userLat || r.distance <= 1000)
+          // 위치 정보가 있으면 5km 이내만, 없으면 전체
+          .filter((r) => !userLat || r.distance <= 5000)
           .slice(0, 5);
         } catch {
           results[menuName] = [];

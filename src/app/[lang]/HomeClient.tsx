@@ -471,16 +471,18 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </section>
         )}
 
-        {/* 흑백요리사 셰프 카드 */}
-        <ChefCard
-          lang={lang}
-          onChefSelect={(chefName, menu) => {
-            setSearchMode('ai');
-            setQuery(`${chefName} 스타일 ${menu}`);
-            trackEvent('chef_card_click', { lang, chef: chefName, menu });
-            recommend(`${chefName} 스타일 ${menu}`, { ...filters, vibes: ['chef'] }, lang, getRecentMenus(7));
-          }}
-        />
+        {/* 흑백요리사 셰프 카드 — K-pop 탭일 때 숨김 */}
+        {searchMode !== 'kpop' && (
+          <ChefCard
+            lang={lang}
+            onChefSelect={(chefName, menu) => {
+              setSearchMode('ai');
+              setQuery(`${chefName} 스타일 ${menu}`);
+              trackEvent('chef_card_click', { lang, chef: chefName, menu });
+              recommend(`${chefName} 스타일 ${menu}`, { ...filters, vibes: ['chef'] }, lang, getRecentMenus(7));
+            }}
+          />
+        )}
 
         {/* K-pop 아이돌 추천 카드 */}
         <KpopCard

@@ -274,12 +274,14 @@ export interface KpopTrendTopic {
 }
 
 export const KPOP_TREND_TOPICS: KpopTrendTopic[] = [
-  { id: 'mukbang', ko: '🍜 아이돌 먹방 인기 메뉴', en: '🍜 Idol Mukbang Favorites', ja: '🍜 アイドル食べ放題人気メニュー', zh: '🍜 偶像吃播人气菜单', keyword: '아이돌 먹방 인기 메뉴' },
-  { id: 'diet', ko: '🥗 아이돌 다이어트 식단', en: '🥗 Idol Diet Meals', ja: '🥗 アイドルダイエット食', zh: '🥗 偶像减肥餐', keyword: '아이돌 다이어트 식단' },
-  { id: 'comfort', ko: '🍲 연습 후 위로 음식', en: '🍲 After-Practice Comfort Food', ja: '🍲 練習後の癒やしフード', zh: '🍲 练习后慰藉美食', keyword: '연습 후 위로 음식' },
-  { id: 'vlive', ko: '📱 브이로그 속 맛집', en: '📱 Vlog Restaurant Picks', ja: '📱 Vlog人気グルメ', zh: '📱 Vlog中的美食店', keyword: '아이돌 브이로그 맛집 메뉴' },
-  { id: 'debut', ko: '🎉 데뷔 축하 음식', en: '🎉 Debut Celebration Food', ja: '🎉 デビュー祝い料理', zh: '🎉 出道庆祝美食', keyword: '데뷔 축하 음식' },
-  { id: 'latenight', ko: '🌙 야식 먹방 BEST', en: '🌙 Late Night Snack BEST', ja: '🌙 夜食BEST', zh: '🌙 深夜美食BEST', keyword: '아이돌 야식 먹방' },
-  { id: 'korean', ko: '🇰🇷 외국 멤버가 반한 한식', en: '🇰🇷 Korean Food Foreign Idols Love', ja: '🇰🇷 外国メンバーが惚れた韓食', zh: '🇰🇷 外国成员爱上的韩食', keyword: '외국 멤버가 좋아하는 한식' },
-  { id: 'homecook', ko: '🍳 아이돌 자취 요리', en: '🍳 Idol Home Cooking', ja: '🍳 アイドル自炊レシピ', zh: '🍳 偶像自己做饭', keyword: '아이돌 자취 요리' },
+  { id: 'bts-favorite', ko: '💜 BTS 좋아하는 메뉴', en: '💜 BTS Favorites', ja: '💜 BTSの好きなメニュー', zh: '💜 BTS最爱美食', keyword: 'BTS 좋아하는 음식 메뉴 추천' },
+  { id: 'blackpink-favorite', ko: '🖤 블랙핑크 최애 음식', en: '🖤 BLACKPINK Favorites', ja: '🖤 BLACKPINKの好きな食べ物', zh: '🖤 BLACKPINK最爱食物', keyword: 'BLACKPINK 좋아하는 음식 메뉴' },
+  { id: 'idol-diet', ko: '🥗 아이돌 다이어트 식단', en: '🥗 Idol Diet Menu', ja: '🥗 アイドルダイエット食', zh: '🥗 偶像减肥食谱', keyword: '아이돌 다이어트 식단 메뉴' },
+  { id: 'idol-mukbang', ko: '🍜 아이돌 먹방 메뉴 BEST', en: '🍜 Idol Mukbang BEST', ja: '🍜 アイドル大食い人気メニュー', zh: '🍜 偶像吃播人气菜单', keyword: '아이돌 먹방 인기 메뉴' },
+  { id: 'kpop-korean', ko: '🇰🇷 외국 아이돌이 반한 한식', en: '🇰🇷 Korean Food Loved by Foreign Idols', ja: '🇰🇷 外国アイドルが惚れた韓国料理', zh: '🇰🇷 外国偶像爱上的韩食', keyword: '외국 아이돌이 좋아하는 한식 메뉴' },
+  { id: 'idol-latenight', ko: '🌙 아이돌 야식 메뉴', en: '🌙 Idol Late Night Snacks', ja: '🌙 アイドル夜食メニュー', zh: '🌙 偶像深夜零食', keyword: '아이돌 야식 메뉴 추천' },
+  { id: 'idol-cheatday', ko: '🍔 아이돌 치팅데이 음식', en: '🍔 Idol Cheat Day Food', ja: '🍔 アイドルチートデイ', zh: '🍔 偶像作弊日美食', keyword: '아이돌 치팅데이 먹방 음식' },
+  { id: 'newjeans-picks', ko: '👖 NewJeans 스타일 메뉴', en: '👖 NewJeans Style Picks', ja: '👖 NewJeansスタイルメニュー', zh: '👖 NewJeans风格美食', keyword: 'NewJeans 좋아하는 음식 메뉴' },
+  { id: 'idol-comfort', ko: '🍲 데뷔 전 연습생 최애 메뉴', en: '🍲 Trainee Comfort Food', ja: '🍲 練習生の思い出メニュー', zh: '🍲 练习生最爱的美食', keyword: '아이돌 연습생 시절 좋아하는 음식' },
+  { id: 'ive-picks', ko: '💫 IVE 멤버 즐겨먹는 메뉴', en: '💫 IVE Member Favorites', ja: '💫 IVEメンバーのお気に入り', zh: '💫 IVE成员最爱美食', keyword: 'IVE 아이돌 좋아하는 음식 메뉴' },
 ];

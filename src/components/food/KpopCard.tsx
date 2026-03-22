@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { getGroupsByPopularity, getIdolsByPopularity, getIdolName, getGroupName, type KpopIdol, type KpopGroup } from '@/data/kpopIdols';
+import { KpopIdolSearch } from './KpopIdolSearch';
 
 interface KpopCardProps {
   lang: string;
@@ -11,12 +12,12 @@ interface KpopCardProps {
 
 const LABELS: Record<string, {
   title: string; subtitle: string; tabIdol: string; tabGroup: string;
-  shuffle: string; favoriteLabel: string;
+  shuffle: string; favoriteLabel: string; searchPlaceholder: string;
 }> = {
-  ko: { title: '⭐ K-pop 아이돌 추천 메뉴', subtitle: '좋아하는 아이돌이 즐겨먹는 메뉴를 추천받으세요', tabIdol: '인기 아이돌', tabGroup: '인기 그룹', shuffle: '🔀 셔플', favoriteLabel: '좋아하는 메뉴' },
-  en: { title: '⭐ K-pop Idol Food Picks', subtitle: 'Discover what your favorite idols love to eat', tabIdol: 'Popular Idols', tabGroup: 'Popular Groups', shuffle: '🔀 Shuffle', favoriteLabel: 'Favorites' },
-  ja: { title: '⭐ K-popアイドルおすすめメニュー', subtitle: '推しアイドルの好きな料理をチェック', tabIdol: '人気アイドル', tabGroup: '人気グループ', shuffle: '🔀 シャッフル', favoriteLabel: 'お気に入り' },
-  zh: { title: '⭐ K-pop偶像推荐美食', subtitle: '看看你喜欢的偶像爱吃什么', tabIdol: '人气偶像', tabGroup: '人气组合', shuffle: '🔀 随机', favoriteLabel: '最爱美食' },
+  ko: { title: '⭐ K-pop 아이돌 추천 메뉴', subtitle: '좋아하는 아이돌이 즐겨먹는 메뉴를 추천받으세요', tabIdol: '인기 아이돌', tabGroup: '인기 그룹', shuffle: '🔀 셔플', favoriteLabel: '좋아하는 메뉴', searchPlaceholder: '아이돌 이름으로 바로 검색' },
+  en: { title: '⭐ K-pop Idol Food Picks', subtitle: 'Discover what your favorite idols love to eat', tabIdol: 'Popular Idols', tabGroup: 'Popular Groups', shuffle: '🔀 Shuffle', favoriteLabel: 'Favorites', searchPlaceholder: 'Search idol name directly' },
+  ja: { title: '⭐ K-popアイドルおすすめメニュー', subtitle: '推しアイドルの好きな料理をチェック', tabIdol: '人気アイドル', tabGroup: '人気グループ', shuffle: '🔀 シャッフル', favoriteLabel: 'お気に入り', searchPlaceholder: 'アイドル名で直接検索' },
+  zh: { title: '⭐ K-pop偶像推荐美食', subtitle: '看看你喜欢的偶像爱吃什么', tabIdol: '人气偶像', tabGroup: '人气组合', shuffle: '🔀 随机', favoriteLabel: '最爱美食', searchPlaceholder: '直接搜索偶像名字' },
 };
 
 type CardTab = 'idol' | 'group';
@@ -36,6 +37,11 @@ export const KpopCard = ({ lang, onIdolSelect, onGroupSelect }: KpopCardProps) =
   const [shuffleKey, setShuffleKey] = useState(0);
   const labels = LABELS[lang] ?? LABELS.ko;
   const locale = (lang as 'ko' | 'en' | 'ja' | 'zh') || 'ko';
+
+  // 카드 내부 검색 핸들러
+  const handleInternalSearch = (idol: KpopIdol) => {
+    onIdolSelect?.(idol);
+  };
 
   const topIdols = useMemo(
     () => {
@@ -59,6 +65,15 @@ export const KpopCard = ({ lang, onIdolSelect, onGroupSelect }: KpopCardProps) =
           <p className="text-sm font-semibold text-pink-700">{labels.title}</p>
           <p className="mt-0.5 text-xs text-gray-500">{labels.subtitle}</p>
         </div>
+      </div>
+
+      {/* 카드 내부 아이돌 검색창 */}
+      <div className="mb-3">
+        <KpopIdolSearch
+          lang={lang}
+          placeholder={labels.searchPlaceholder}
+          onSelect={handleInternalSearch}
+        />
       </div>
 
       {/* 탭 + 셔플 */}

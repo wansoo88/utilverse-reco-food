@@ -15,62 +15,47 @@ interface RecipesResponse {
   blog: RecipeItem[];
 }
 
-// 언어별 검색 쿼리 템플릿
-const QUERY_TEMPLATES: Record<string, { youtube: string[]; blog: string[] }> = {
-  ko: {
-    youtube: ['{menu} 레시피', '백종원 {menu}', '{menu} 황금레시피 만들기'],
-    blog: ['{menu} 레시피 블로그', '{menu} 만들기 요리법', '{menu} 맛있게 만드는 법'],
-  },
-  en: {
-    youtube: ['{menu} recipe', 'easy {menu} recipe', 'homemade {menu} tutorial'],
-    blog: ['{menu} recipe blog', 'best {menu} recipe', 'how to make {menu}'],
-  },
-  ja: {
-    youtube: ['{menu} レシピ', '{menu} 作り方', '{menu} 簡単レシピ'],
-    blog: ['{menu} レシピ ブログ', '{menu} 美味しい作り方', '{menu} 人気レシピ'],
-  },
-  zh: {
-    youtube: ['{menu} 食谱', '{menu} 做法', '简单 {menu} 食谱'],
-    blog: ['{menu} 食谱 博客', '{menu} 家常做法', '{menu} 好吃的做法'],
-  },
+// 언어별 검색 접미어 (foodName은 그대로 포함)
+const SEARCH_SUFFIX: Record<string, { youtube: string; blog: string }> = {
+  ko: { youtube: ' 레시피', blog: ' 레시피' },
+  en: { youtube: ' recipe', blog: ' recipe' },
+  ja: { youtube: ' レシピ', blog: ' レシピ' },
+  zh: { youtube: ' 食谱', blog: ' 食谱' },
 };
 
-// 검색 URL 자동 생성 (API 키 없는 경우)
+// 검색 URL 자동 생성 — foodName 키워드를 그대로 포함
 function buildGeneratedLinks(foodName: string, lang: string): RecipesResponse {
-  const templates = QUERY_TEMPLATES[lang] ?? QUERY_TEMPLATES.ko;
+  const suffix = SEARCH_SUFFIX[lang] ?? SEARCH_SUFFIX.ko;
+  const ytQuery = foodName + suffix.youtube;
+  const blogQuery = foodName + suffix.blog;
 
-  const youtube: RecipeItem[] = templates.youtube.map((tpl) => {
-    const query = tpl.replace('{menu}', foodName);
-    return {
-      title: query,
+  const youtube: RecipeItem[] = [
+    {
+      title: ytQuery,
       platform: 'youtube',
-      url: `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
+      url: `https://www.youtube.com/results?search_query=${encodeURIComponent(ytQuery)}`,
       isGenerated: true,
-    };
-  });
+    },
+  ];
 
-  const blog: RecipeItem[] = templates.blog.map((tpl) => {
-    const query = tpl.replace('{menu}', foodName);
-    // 한국어는 네이버, 나머지는 Google
-    const url =
-      lang === 'ko'
-        ? `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(query)}`
-        : `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-    return {
-      title: query,
+  const blog: RecipeItem[] = [
+    {
+      title: blogQuery,
       platform: 'blog',
-      url,
+      url: lang === 'ko'
+        ? `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(blogQuery)}`
+        : `https://www.google.com/search?q=${encodeURIComponent(blogQuery)}`,
       isGenerated: true,
-    };
-  });
+    },
+  ];
 
   return { youtube, blog };
 }
 
 // YouTube Data API v3 호출
 async function fetchYouTube(foodName: string, lang: string, apiKey: string): Promise<RecipeItem[]> {
-  const templates = QUERY_TEMPLATES[lang] ?? QUERY_TEMPLATES.ko;
-  const query = templates.youtube[0].replace('{menu}', foodName);
+  const suffix = SEARCH_SUFFIX[lang] ?? SEARCH_SUFFIX.ko;
+  const query = foodName + suffix.youtube;
 
   const params = new URLSearchParams({
     part: 'snippet',
@@ -103,8 +88,8 @@ async function fetchYouTube(foodName: string, lang: string, apiKey: string): Pro
 
 // Google Custom Search API 호출 (블로그)
 async function fetchGoogleBlogs(foodName: string, lang: string, apiKey: string, cseId: string): Promise<RecipeItem[]> {
-  const templates = QUERY_TEMPLATES[lang] ?? QUERY_TEMPLATES.ko;
-  const query = templates.blog[0].replace('{menu}', foodName);
+  const suffix = SEARCH_SUFFIX[lang] ?? SEARCH_SUFFIX.ko;
+  const query = foodName + suffix.blog;
 
   const params = new URLSearchParams({
     key: apiKey,
@@ -131,7 +116,8 @@ async function fetchGoogleBlogs(foodName: string, lang: string, apiKey: string, 
 
 // Naver 블로그 검색 API 호출
 async function fetchNaverBlogs(foodName: string, clientId: string, clientSecret: string): Promise<RecipeItem[]> {
-  const query = `${foodName} 레시피`;
+  // foodName 그대로 + 레시피 접미어
+  const query = foodName.includes('레시피') ? foodName : `${foodName} 레시피`;
   const res = await fetch(
     `https://openapi.naver.com/v1/search/blog.json?query=${encodeURIComponent(query)}&display=3&sort=sim`,
     {
@@ -158,7 +144,7 @@ async function fetchNaverBlogs(foodName: string, clientId: string, clientSecret:
 
 // 네이버 동영상 검색 API (YouTube 폴백용)
 async function fetchNaverVideos(foodName: string, clientId: string, clientSecret: string): Promise<RecipeItem[]> {
-  const query = `${foodName} 레시피`;
+  const query = foodName.includes('레시피') ? foodName : `${foodName} 레시피`;
   const res = await fetch(
     `https://openapi.naver.com/v1/search/video.json?query=${encodeURIComponent(query)}&display=3&sort=sim`,
     {

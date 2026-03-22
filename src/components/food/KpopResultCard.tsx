@@ -11,12 +11,12 @@ interface KpopResultCardProps {
 }
 
 const LABELS: Record<string, {
-  idolPick: string; recipeBtn: string; tip: string; fallback: string;
+  idolPick: string; recipeBtn: string; tip: string;
 }> = {
-  ko: { idolPick: '이(가) 좋아하는 메뉴', recipeBtn: '🔍 레시피 찾기', tip: '💡 팁', fallback: '(로컬 추천)' },
-  en: { idolPick: "'s Favorite Menu", recipeBtn: '🔍 Find Recipe', tip: '💡 Tip', fallback: '(Local pick)' },
-  ja: { idolPick: 'のお気に入りメニュー', recipeBtn: '🔍 レシピ検索', tip: '💡 ヒント', fallback: '(ローカル)' },
-  zh: { idolPick: '最爱的菜单', recipeBtn: '🔍 找食谱', tip: '💡 提示', fallback: '(本地推荐)' },
+  ko: { idolPick: '이(가) 좋아하는 메뉴', recipeBtn: '🔍 레시피 찾기', tip: '💡 팁' },
+  en: { idolPick: "'s Favorite Menu", recipeBtn: '🔍 Find Recipe', tip: '💡 Tip' },
+  ja: { idolPick: 'のお気に入りメニュー', recipeBtn: '🔍 レシピ検索', tip: '💡 ヒント' },
+  zh: { idolPick: '最爱的菜单', recipeBtn: '🔍 找食谱', tip: '💡 提示' },
 };
 
 export const KpopResultCard = ({ data, lang, onRecipeSearch }: KpopResultCardProps) => {
@@ -39,9 +39,6 @@ export const KpopResultCard = ({ data, lang, onRecipeSearch }: KpopResultCardPro
           </p>
           <p className="text-xs text-gray-500">{data.group}</p>
         </div>
-        {data._fallback && (
-          <span className="ml-auto text-[10px] text-gray-400">{labels.fallback}</span>
-        )}
       </div>
 
       {/* 메뉴 카드 (해먹기/시켜먹기 듀얼) */}

@@ -37,7 +37,7 @@ export const ChefCard = ({ lang, onChefSelect }: ChefCardProps) => {
   const labels = LABELS[lang] ?? LABELS.ko;
 
   const seasonChefs = CHEFS.filter((c) => c.season === selectedSeason);
-  const topChefs = seasonChefs.filter((c) => c.rank <= 10).sort((a, b) => a.rank - b.rank);
+  const topChefs = seasonChefs.filter((c) => c.rank >= 1 && c.rank <= 10).sort((a, b) => a.rank - b.rank).slice(0, 10);
   const otherChefs = seasonChefs.filter((c) => c.rank > 10);
 
   // 출연자 랜덤 10명 (셔플 키 변경 시 리셔플)
