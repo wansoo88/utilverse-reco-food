@@ -3,8 +3,8 @@
 import dynamic from 'next/dynamic';
 import type { RecommendResponse } from '@/types/recommend';
 
-const RecipeSuggestions = dynamic(
-  () => import('./RecipeSuggestions').then((m) => m.RecipeSuggestions),
+const RecipeLinks = dynamic(
+  () => import('./RecipeLinks').then((m) => m.RecipeLinks),
   { loading: () => <div className="mt-4 h-24 animate-pulse rounded-xl bg-gray-100" /> },
 );
 
@@ -12,30 +12,13 @@ interface RecommendCardProps {
   data: RecommendResponse;
   lang: string;
   isFallback?: boolean;
-  labelRecipe: string;
-  labelYoutube: string;
-  labelRecipeLoading: string;
-  labelRecipeTitle: string;
 }
 
-export const RecommendCard = ({
-  data,
-  lang,
-  isFallback,
-  labelRecipe,
-  labelYoutube,
-  labelRecipeLoading,
-  labelRecipeTitle,
-}: RecommendCardProps) => {
+export const RecommendCard = ({ data, lang, isFallback }: RecommendCardProps) => {
   const mainItem = data.items[0];
 
   return (
     <div className="space-y-3">
-      {isFallback && (
-        <p className="text-xs text-center text-gray-400">
-          ⚡ AI 서버가 바쁩니다. 잠시 후 다시 시도해보세요.
-        </p>
-      )}
 
       {/* 추천 유형 레이블 */}
       <p className="text-xs font-bold tracking-wide text-gray-400 uppercase">
@@ -54,7 +37,7 @@ export const RecommendCard = ({
             }`}
           >
             <span className="text-2xl shrink-0">{item.emoji ?? '🍽️'}</span>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className={`font-bold text-gray-900 ${i === 0 ? 'text-base' : 'text-sm'}`}>
                 {item.name}
               </p>
@@ -73,19 +56,13 @@ export const RecommendCard = ({
         <p className="text-xs text-center text-gray-400">💡 {data.tip}</p>
       )}
 
-      {/* Gemini 트렌드 레시피 (해먹기 또는 시켜먹기 공통으로 첫 메뉴 기준) */}
-      {mainItem && (
+      {/* 유튜브 + 블로그 레시피 링크 (첫 번째 메뉴 기준) */}
+      {mainItem && !isFallback && (
         <div className="rounded-2xl border border-gray-100 bg-white p-4">
           <p className="text-xs font-semibold text-gray-500 mb-3">
-            🔥 {labelRecipeTitle} — {mainItem.name}
+            🔥 레시피 찾기 — {mainItem.name}
           </p>
-          <RecipeSuggestions
-            foodName={mainItem.name}
-            lang={lang}
-            labelRecipe={labelRecipe}
-            labelYoutube={labelYoutube}
-            labelLoading={labelRecipeLoading}
-          />
+          <RecipeLinks foodName={mainItem.name} lang={lang} />
         </div>
       )}
     </div>

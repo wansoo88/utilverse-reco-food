@@ -1,8 +1,7 @@
 'use client';
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useFilters } from '@/hooks/useFilters';
 import { useRecommend } from '@/hooks/useRecommend';
@@ -10,7 +9,6 @@ import { useCalendar } from '@/hooks/useCalendar';
 import { useToast } from '@/components/ui/ToastProvider';
 import { FilterSection } from '@/components/food/FilterSection';
 import { ChefCard } from '@/components/food/ChefCard';
-import { TimeSuggestCard } from '@/components/food/TimeSuggestCard';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { validateInput } from '@/lib/security';
@@ -49,6 +47,16 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const [restoredShown, setRestoredShown] = useState(false);
 
   const quickTopics = SEO_KEYWORDS.slice(0, 8);
+
+  // 시간대별 인사 메시지 (히어로 섹션 표시용)
+  const timeGreeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 10) return t('timeSuggest.morning');
+    if (hour >= 10 && hour < 15) return t('timeSuggest.lunch');
+    if (hour >= 15 && hour < 18) return t('timeSuggest.afternoon');
+    if (hour >= 18 && hour < 22) return t('timeSuggest.dinner');
+    return t('timeSuggest.late');
+  }, [t]);
 
   // 필터 복원 토스트
   useEffect(() => {
@@ -90,6 +98,12 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
       return;
     }
 
+    // AI 바로 추천 모드: 입력값 필수
+    if (searchMode === 'ai' && !query.trim()) {
+      showToast('🤖 추천받을 내용을 입력해주세요', 'error');
+      return;
+    }
+
     const validation = validateInput(query);
     if (!validation.valid) {
       if (validation.reason === 'injection') showToast(t('home.errorInjection'), 'error');
@@ -98,10 +112,8 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
       return;
     }
 
-    const activeFilters: FilterState =
-      searchMode === 'text'
-        ? { mode: 'any', house: null, baby: null, vibes: [], budget: 'any' }
-        : filters;
+    // text / ai 모두 동일한 필터 적용 (fridge는 별도 처리)
+    const activeFilters: FilterState = filters;
 
     trackEvent('recommend_submit', { lang, mode: searchMode, has_query: Boolean(query.trim()) });
     await recommend(query, activeFilters, lang, undefined, recentMenus);
@@ -155,6 +167,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               {t('home.title')}
             </h1>
             <p className="mt-1 text-sm text-gray-500">{t('home.subtitle')}</p>
+            <p className="mt-2 text-sm font-medium text-gray-700">{timeGreeting}</p>
           </div>
           <div className="shrink-0 w-20 h-20 md:w-28 md:h-28">
             <Image
@@ -243,8 +256,8 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               </button>
             </div>
 
-            {/* AI 모드 필터 (접기/펼치기) */}
-            {searchMode === 'ai' && (
+            {/* 일반검색 전용 필터 (접기/펼치기) */}
+            {searchMode === 'text' && (
               <div>
                 <button
                   onClick={() => setShowFilters((v) => !v)}
@@ -282,10 +295,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
                   data={data}
                   lang={lang}
                   isFallback={data._fallback}
-                  labelRecipe={t('recipe.site')}
-                  labelYoutube={t('recipe.youtube')}
-                  labelRecipeLoading={t('recipe.loading')}
-                  labelRecipeTitle={t('recipe.title')}
                 />
                 <button
                   onClick={handleSaveToday}
@@ -298,22 +307,6 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </div>
         </section>
 
-        {/* ── 시간대별 자동 추천 ── */}
-        <TimeSuggestCard
-          messages={{
-            morning: t('timeSuggest.morning'),
-            lunch: t('timeSuggest.lunch'),
-            afternoon: t('timeSuggest.afternoon'),
-            dinner: t('timeSuggest.dinner'),
-            late: t('timeSuggest.late'),
-            cta: t('timeSuggest.cta'),
-          }}
-          onSuggest={(suggestQuery) => {
-            setSearchMode('ai');
-            setQuery(suggestQuery);
-            recommend(suggestQuery, filters, lang, undefined, getRecentMenus(7));
-          }}
-        />
 
         {/* ── 인기 탐색 주제 ── */}
         <section className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50 p-5 shadow-sm">
@@ -321,14 +314,22 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           <p className="mt-0.5 text-xs text-gray-500">{t('home.popularSubtitle')}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {quickTopics.map((topic) => (
-              <Link
+              <button
                 key={topic.slug}
-                href={`/${lang}/eat/menu/${topic.slug}`}
-                onClick={() => trackEvent('quick_topic_click', { lang, slug: topic.slug })}
+                onClick={() => {
+                  if (searchMode === 'fridge') {
+                    setFridgeInput(topic[lang].title);
+                  } else {
+                    setSearchMode('ai');
+                    setQuery(topic[lang].title);
+                  }
+                  trackEvent('quick_topic_click', { lang, slug: topic.slug });
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 className="rounded-full border border-orange-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-orange-400 hover:text-orange-600"
               >
                 {topic[lang].title}
-              </Link>
+              </button>
             ))}
           </div>
         </section>
