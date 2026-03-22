@@ -14,7 +14,7 @@
     "modeAi": "🤖 AI搜索",
     "modeFridge": "🧊 冰箱食材",
     "placeholderText": "输入您的情况或想吃的菜单",
-    "placeholderAi": "输入您的情况或想吃的菜单",
+    "placeholderAi": "输入您的情况或想吃的菜单（必填）",
     "placeholderFridge": "用逗号输入食材（例：鸡蛋、泡菜、豆腐）",
     "submitText": "获取推荐",
     "submitAi": "获取AI推荐",

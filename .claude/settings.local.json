@@ -4,7 +4,8 @@
       "Dangerously skip all permissions",
       "Bash(npm install:*)",
       "Bash(grep -r \"rounded\\\\|shadow\\\\|px-\\\\|py-\\\\|gap-\" /c/Users/kimws/cashflow_pjt/pjt3-reco-food/src/app/[lang]/HomeClient.tsx)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(claude:*)"
     ]
   }
 }

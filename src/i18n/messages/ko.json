@@ -14,7 +14,7 @@
     "modeAi": "🤖 AI 검색",
     "modeFridge": "🧊 냉장고 파먹기",
     "placeholderText": "현재 상황이나 원하는 메뉴를 입력하세요",
-    "placeholderAi": "상황이나 원하는 메뉴를 입력하세요",
+    "placeholderAi": "상황이나 원하는 메뉴를 입력하세요 (필수)",
     "placeholderFridge": "재료를 쉼표로 입력하세요 (예: 계란, 김치, 두부)",
     "submitText": "추천받기",
     "submitAi": "AI 추천받기",

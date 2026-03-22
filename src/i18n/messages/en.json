@@ -14,7 +14,7 @@
     "modeAi": "🤖 AI Search",
     "modeFridge": "🧊 Fridge Cook",
     "placeholderText": "Enter your situation or desired menu",
-    "placeholderAi": "Enter your mood or desired menu",
+    "placeholderAi": "Enter your mood or desired menu (required)",
     "placeholderFridge": "Enter ingredients separated by commas (e.g. eggs, kimchi, tofu)",
     "submitText": "Recommend",
     "submitAi": "Get AI Recommendation",

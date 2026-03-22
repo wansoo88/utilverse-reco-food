@@ -14,7 +14,7 @@
     "modeAi": "🤖 AI検索",
     "modeFridge": "🧊 冷蔵庫レシピ",
     "placeholderText": "状況や食べたいメニューを入力してください",
-    "placeholderAi": "状況や食べたいメニューを入力してください",
+    "placeholderAi": "状況や食べたいメニューを入力してください（必須）",
     "placeholderFridge": "食材をカンマで入力（例：卵、キムチ、豆腐）",
     "submitText": "おすすめを見る",
     "submitAi": "AIにおすすめを聞く",
