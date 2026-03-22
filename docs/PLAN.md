@@ -9,6 +9,7 @@
 ✅ **Phase 3: 캘린더 & 프로그래매틱 SEO 확장** (완료 — 2026-03-20)
 ✅ **Phase 4: 프로그래매틱 SEO** (완료 — 2026-03-20)
 ✅ **Phase 6: UX 고도화** (완료 — 2026-03-21)
+✅ **Phase 8: K-pop 아이돌 메뉴 추천 기능** (완료 — 2026-03-23)
 🔵 **Phase 5: 성능 최적화 & 배포** (진행 중)
 🔵 **Phase 7: 검증 & 수익화 준비** (진행 중)
 
@@ -73,18 +74,23 @@
 - [ ] AdSense 사이트 등록 & 승인 신청
 
 ### Phase 6: UX 고도화 (경쟁사 비교 기반) ✅ 완료
-- [x] 통합 검색 블록 (3모드 탭: 일반검색 / AI추천 / 냉장고 파먹기)
+- [x] 통합 검색 블록 (탭: 메뉴추천 / AI검색)
 - [x] 검색 결과 검색창 바로 아래 인라인 표시
-- [x] AI 추천 모드 필터 접기/펼치기 (비간섭 배치)
-- [x] 냉장고 파먹기 모드 (재료 입력 → cook 모드 Gemini 추천)
-- [x] /api/recipes — Gemini 트렌드 레시피 5개 API 신설
-- [x] RecipeSuggestions 컴포넌트 (유튜브 3개 + 레시피 사이트 2개 링크)
-- [x] RecommendCard 심플화 + 레시피 통합
+- [x] AI 검색 듀얼 모드 (해먹기 좌 / 시켜먹기 우, 모바일 탭)
+- [x] 네이버 맛집 API 연동 + 위치 동의 UI
+- [x] 레시피 링크 (YouTube + 블로그)
 - [x] 시간대별 자동 추천 카드 (아침/점심/저녁/야식)
 - [x] 식단 캘린더 인사이트 (7일 패턴 분석 + 넛지)
-- [x] promptBuilder v5 (ingredients, 파이프 구조)
-- [x] 4개 언어 i18n 전체 확장 (search.* / recipe.* / nav.* 키 신규)
-- [x] docs/PROMPT.md v5 업데이트
+- [x] 세션 기반 Rate Limit (10s/2, 1min/5, 5min/10, 30min 세션)
+- [x] AI 쿼터 소진 시 Rate Limit 자동 해제
+- [x] 가족 필터 아이유무 서브옵션 (아이있음 / 아이없음)
+- [x] 필터 클릭 시 검색 input 키워드 자동 어펜드
+- [x] 냉장고 파먹기 모드 제거 (불필요 기능 정리)
+- [x] 흑백요리사 시즌별 Top10/출연자 탭 + 셔플 기능
+- [x] chefs.ts 44명 확장 (시즌별 Top10 + 출연자 12명)
+- [x] localMenus.ts 해먹기 80+ / 시켜먹기 60+ (2024-2026 트렌드)
+- [x] AI 검색 placeholder (선택) → (필수) 변경
+- [x] 4개 언어 i18n 전체 확장
 
 ### Phase 7: 검증 & 수익화 준비 🔵 진행 중
 
@@ -92,15 +98,16 @@
 - [ ] `test_ai.md` 기반 크롬 수동 테스트 63개 케이스 실행
   - TC-01 기본 UI 렌더링
   - TC-02 시간대별 자동 추천 카드
-  - TC-03 냉장고 파먹기 모드
-  - TC-04 AI 추천 결과 + 레시피 링크
-  - TC-05 식단 캘린더 인사이트
-  - TC-06 필터 & 기본 추천
-  - TC-07 다국어 전환 (EN/JA/ZH 전체 UI 번역 확인)
-  - TC-08 반응형 모바일 레이아웃
-  - TC-09 성능 & 접근성
+  - TC-03 AI 추천 결과 + 레시피 링크
+  - TC-04 식단 캘린더 인사이트
+  - TC-05 필터 & 기본 추천
+  - TC-06 다국어 전환 (EN/JA/ZH 전체 UI 번역 확인)
+  - TC-07 반응형 모바일 레이아웃
+  - TC-08 성능 & 접근성
+  - TC-09 K-pop 아이돌 추천 흐름 전체
 
 #### 7-2. 번역 완결 (단기)
+- [x] next-intl v4 requestLocale API 수정 → 영/일/중 번역 정상화
 - [ ] `SiteFooter.tsx` — FOOTER_COPY(하드코딩) → i18n `footer.*` 키로 통일
 - [ ] About / Privacy / Terms / Contact 페이지 — i18n 키 연동 또는 legalContent.ts 언어별 완결 확인
 - [ ] LanguageSelector 전환 시 전체 텍스트 실시간 변경 E2E 검증
@@ -115,29 +122,55 @@
 
 #### 7-4. 보안 강화 (단기)
 - [ ] 전각/유니코드 정규화 (NFKC) — `src/lib/security.ts` 추가
-- [ ] Rate Limiting per IP (10 req/min) — Vercel Edge Middleware 또는 API 레벨
+- [x] Rate Limiting per IP (10 req/min) — Edge Middleware 구현
 
 #### 7-5. Vercel 배포 (배포 전)
 - [ ] Vercel 프로젝트 연결 & 환경변수 설정
-  - `GEMINI_API_KEY`
+  - `GEMINI_API_KEY` / `GEMINI_API_KEY_2~4`
+  - `GPT_API_KEY`
+  - `NAVER_CLIENT_ID` / `NAVER_CLIENT_SECRET`
+  - `YOUTUBE_API_KEY`
+  - `ADMIN_SECRET`
   - `NEXT_PUBLIC_ADSENSE_PUB_ID`
   - `NEXT_PUBLIC_GA_ID`
-  - `NEXT_PUBLIC_SITE_URL=https://utilverse.net`
+  - `NEXT_PUBLIC_SITE_URL=https://utilverse.info`
 - [ ] 프로덕션 빌드 검증 (`pnpm build` 에러 없음 확인)
-- [ ] 커스텀 도메인 연결 (utilverse.net 또는 서브도메인)
+- [ ] 커스텀 도메인 연결 (utilverse.info)
 
 #### 7-6. 수익화 (배포 후)
 - [ ] Google Search Console 등록 & sitemap 제출
 - [ ] Google AdSense 사이트 등록 & 승인 신청
   - 승인 전: footer 광고 슬롯 플레이스홀더 유지
   - 승인 후: `NEXT_PUBLIC_ADSENSE_PUB_ID` 환경변수 입력 → 자동 활성화
-- [ ] GA4 이벤트 수신 확인 (recommend_submit, fridge_submit, calendar_save 등)
+- [ ] GA4 이벤트 수신 확인 (recommend_submit, kpop_recommend_submit, calendar_save 등)
 
 #### 7-7. 중기 개선 (배포 이후)
 - [ ] 캘린더 최근 7일 식단 → `exclude` 파라미터로 Gemini 중복 추천 방지
-- [ ] 위치 기반 시켜먹기 (Geolocation API — 선택적 동의)
-- [ ] 흑백요리사 셰프 추천 콘텐츠 카드 (chefs.ts 데이터 홈 활용)
 - [ ] SEO 키워드 DB 확장 (현재 40개 → 100개 목표)
+- [ ] K-pop 아이돌 SEO 페이지 (프로그래매틱 `/[lang]/kpop/[idol]`)
+
+### Phase 8: K-pop 아이돌 메뉴 추천 기능 ✅ 완료 (2026-03-23)
+- [x] K-pop 아이돌 DB (`src/data/kpopIdols.ts`) — 27개 그룹, 80+ 멤버, 국가별 인기 랭킹
+- [x] 아이돌별 확인된 좋아하는 메뉴 데이터 (방송/인터뷰 출처)
+- [x] 부족한 아이돌은 localMenus 풀에서 랜덤 보충 (전략 D)
+- [x] K-pop 전용 AI 프롬프트 (`src/lib/kpopPromptBuilder.ts`)
+- [x] K-pop 전용 로컬 추천 (`src/lib/kpopLocalRecommend.ts`)
+- [x] K-pop API 라우트 (`/api/kpop-recommend`) — Gemini → GPT → 로컬 폴백
+- [x] 검색 탭 3번째 모드 `⭐ K-pop 메뉴` 추가
+- [x] KpopIdolSearch — 아이돌 이름 자동완성 검색 컴포넌트
+- [x] KpopCard — 홈 섹션 카드 (인기 아이돌/그룹 탭 + 셔플 + 내부 검색창)
+- [x] KpopResultCard — 아이돌 프로필 헤더 + 메뉴 + 레시피 찾기 버튼
+- [x] K-pop 탭 선택 시 흑백요리사 카드 자동 숨김
+- [x] K-pop 전용 트렌드 상황 10개 (BTS/BLACKPINK/IVE 등 구체적 키워드)
+- [x] 인기 추천 상황 — K-pop 탭 선택 시 K-pop 트렌드로 전환
+- [x] `useKpopRecommend` hook
+- [x] Local DB 업데이트 admin API (`/api/admin/update-db`, ADMIN_SECRET 인증)
+- [x] 서버 시작 시 최신 데이터 확인 스크립트 (`pnpm update-db`)
+- [x] 4개 언어 i18n 완료 (ko/en/ja/zh `kpop.*` 키)
+- [x] next-intl v4 requestLocale 버그 수정 → 다국어 번역 정상화
+- [x] 레시피 검색 키워드 개선 (foodName 그대로 포함)
+- [x] 위치 기반 검색 반경 5km 확대 + Google Maps 폴백
+- [x] ChefCard Top10 rank 1~10 엄격 적용
 
 ### 운영 신뢰성 보강
 - [x] 소개 페이지 (`/[lang]/about`)
@@ -163,18 +196,21 @@
 | ✅ | 추천 UI & Gemini 연동 | P1 | FRONTEND.md, BACKEND.md |
 | ✅ | 프로그래매틱 SEO 페이지 확장 | P1 | SEO.md |
 | ✅ | 캘린더 기능 | P2 | FRONTEND.md |
-| ✅ | UX 고도화 (통합 검색, 레시피 API, 인사이트, 냉장고 모드) | P1 | FRONTEND.md |
+| ✅ | UX 고도화 (통합 검색, 레시피 API, 인사이트, 듀얼 모드) | P1 | FRONTEND.md |
 | ✅ | 운영 신뢰성/승인 대응 보강 | P2 | HANDOFF.md |
-| 🔵 | 크롬 수동 테스트 63케이스 실행 (test_ai.md) | P0 | docs/test_ai.md |
-| 🔵 | 번역 완결 검증 (EN/JA/ZH 전체 UI) | P1 | FRONTEND.md |
+| ✅ | K-pop 아이돌 메뉴 추천 기능 전체 구현 | P1 | FRONTEND.md, BACKEND.md |
+| ✅ | next-intl v4 번역 버그 수정 (requestLocale) | P0 | ARCHITECTURE.md |
+| ✅ | 위치 기반 검색 개선 (반경 확대 + Google Maps 폴백) | P1 | BACKEND.md |
+| ✅ | 레시피 검색 키워드 개선 (foodName 그대로) | P1 | BACKEND.md |
+| ✅ | Local DB 업데이트 admin API + 서버 시작 스크립트 | P2 | BACKEND.md |
+| 🔵 | 크롬 수동 테스트 (K-pop 포함 전체 흐름) | P0 | docs/test_ai.md |
 | 🔵 | SiteFooter i18n 통일 (FOOTER_COPY → footer.* 키) | P1 | FRONTEND.md |
-| ⬜ | 보안 강화 (유니코드 정규화, Rate Limiting) | P1 | BACKEND.md |
+| ⬜ | 보안 강화 (유니코드 정규화) | P1 | BACKEND.md |
 | ⬜ | Core Web Vitals 측정 & 최적화 | P2 | PERFORMANCE.md |
 | ⬜ | Vercel 프로덕션 배포 + 환경변수 설정 | P0 | HANDOFF.md |
 | ⬜ | Search Console 등록 & sitemap 제출 | P1 | SEO.md |
 | ⬜ | AdSense 사이트 등록 & 승인 신청 | P1 | ADSENSE.md |
-| ⬜ | 캘린더 exclude 파라미터 Gemini 연동 | P2 | BACKEND.md |
-| ⬜ | 흑백요리사 셰프 콘텐츠 카드 홈 노출 | P3 | FRONTEND.md |
+| ⬜ | K-pop SEO 페이지 (`/[lang]/kpop/[idol]`) | P3 | SEO.md |
 | ⬜ | SEO 키워드 DB 확장 (40개 → 100개) | P3 | SEO.md |
 
 **범례**: ✅ 완료 · 🔵 진행 중 · ⬜ 대기
@@ -193,12 +229,16 @@
 | 2026-03-20 | 캘린더는 localStorage 주간 뷰부터 구현 | 서버 없이 빠르게 저장/복원 가능한 UX 우선 |
 | 2026-03-20 | SEO 상세 페이지는 ISR + Article JSON-LD 우선 적용 | 정적 색인성과 구현 복잡도 균형 |
 | 2026-03-20 | 신뢰 페이지를 다국어 정적 페이지로 제공 | 승인 심사와 사용자 신뢰 확보 목적 |
-| 2026-03-20 | 기본 웹폰트는 `next/font`로 로컬 최적화 | 초기 렌더 안정성과 CLS 완화 목적 |
 | 2026-03-21 | 추천 결과에 배달앱/레시피 딥링크 추가 | 경쟁사(배민/Yummly) 대비 행동 완결 UX 강화 |
 | 2026-03-21 | 시간대별 자동 추천 카드 도입 | 식신·카카오 AI메이트의 자동 제안 패턴 벤치마킹 |
 | 2026-03-21 | 캘린더 인사이트 (7일 패턴 분석) | 다이닝코드 패턴 학습 기능 경량화 도입 |
-| 2026-03-21 | 냉장고 파먹기 모드 | Whisk/Yummly 재료 기반 추천 포지션 공략, 검색 수요 높음 |
-| 2026-03-21 | 3모드 통합 검색 블록 도입 | 분산된 검색/필터/냉장고 UI를 단일 블록으로 통합, 결과 인라인 표시 |
-| 2026-03-21 | /api/recipes Gemini 레시피 API 신설 | 정적 딥링크 → AI 생성 트렌드 레시피 5개로 대체, 콘텐츠 가치 향상 |
-| 2026-03-21 | i18n 전체 확장 (search/recipe/nav 키) | 언어 전환 시 모든 UI 텍스트가 즉시 변환되도록 완결 |
-| 2026-03-21 | promptBuilder v5 (파이프 구조 + ingredients) | 토큰 효율 + 재료 기반 추천 지원, docs/PROMPT.md에 v5 아키텍처 기록 |
+| 2026-03-21 | 냉장고 파먹기 모드 제거 | 사용 빈도 낮고 AI 쿼터 소모 과다 |
+| 2026-03-21 | 세션 기반 Rate Limit (30분 세션) | 서버 비용 절감 + 어뷰저 방지, AI 쿼터 소진 시 자동 해제 |
+| 2026-03-22 | AI 검색 듀얼 모드 (해먹기/시켜먹기 동시 표시) | 단일 AI 호출로 두 결과 제공, 사용자 선택지 확대 |
+| 2026-03-22 | 흑백요리사 시즌별 Top10/출연자 탭 + 셔플 | 콘텐츠 다양성 + 재방문 유도 |
+| 2026-03-23 | K-pop 아이돌 메뉴 추천 기능 신설 | 한류 팬 대상 글로벌 트래픽 확보, 4개 언어 SEO 강화 |
+| 2026-03-23 | K-pop 아이돌 데이터 전략: 확인된 메뉴 우선 + 로컬 폴백 | AI 토큰 없을 때도 의미있는 추천 제공 |
+| 2026-03-23 | K-pop 탭 선택 시 흑백요리사 카드 숨김 | 모드별 콘텐츠 집중도 향상 |
+| 2026-03-23 | Local DB 업데이트 admin API 도입 | 서버 재기동 시 최신 K-pop/트렌드 데이터 갱신 가능 |
+| 2026-03-23 | next-intl v4 requestLocale 수정 | v3 → v4 API 변경으로 다국어 번역이 전부 한국어로 고정되던 버그 수정 |
+| 2026-03-23 | 레시피 검색 키워드: foodName 그대로 포함 | "백종원 {menu}" 등 불필요 접두어 제거, 검색 의도 정확히 반영 |
