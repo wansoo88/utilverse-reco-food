@@ -8,18 +8,26 @@ import { useRecommend } from '@/hooks/useRecommend';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useRateLimit } from '@/hooks/useRateLimit';
 import { useToast } from '@/components/ui/ToastProvider';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useRecommendHistory } from '@/hooks/useRecommendHistory';
 import { FilterSection } from '@/components/food/FilterSection';
 import { ChefCard } from '@/components/food/ChefCard';
 import { KpopCard } from '@/components/food/KpopCard';
 import { KpopIdolSearch } from '@/components/food/KpopIdolSearch';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { SiteFooter } from '@/components/ui/SiteFooter';
+import { RecommendHistory } from '@/components/food/RecommendHistory';
+import { FavoritesSection } from '@/components/food/FavoritesSection';
+import { MenuBattle } from '@/components/food/MenuBattle';
+import { RateLimitContent } from '@/components/food/RateLimitContent';
+import { InstantRecommend } from '@/components/food/InstantRecommend';
 import { validateInput } from '@/lib/security';
 import { SEO_KEYWORDS } from '@/data/seoKeywords';
 import { trackEvent } from '@/lib/analytics';
 import { HOUSE_KEYWORDS, VIBE_KEYWORDS, BUDGET_KEYWORDS } from '@/data/filterKeywords';
 import { KPOP_TREND_TOPICS, type KpopIdol, type KpopGroup } from '@/data/kpopIdols';
 import { useKpopRecommend } from '@/hooks/useKpopRecommend';
+import { SITE_URL } from '@/config/site';
 import type { Locale } from '@/config/site';
 import type { FilterState } from '@/types/filter';
 
@@ -27,6 +35,8 @@ type SearchMode = 'text' | 'ai' | 'kpop';
 
 interface HomeClientProps {
   lang: Locale;
+  preset?: string;  // SEO 페이지에서 ?preset=slug 로 필터 자동 적용
+  shared?: string;  // 공유 링크에서 ?shared=menuName 으로 자동 검색
 }
 
 const RecommendCard = dynamic(
@@ -49,7 +59,7 @@ const CalendarView = dynamic(
   { loading: () => <div className="min-h-[360px] animate-pulse rounded-3xl bg-gray-100" /> },
 );
 
-export const HomeClient = ({ lang }: HomeClientProps) => {
+export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
   const t = useTranslations();
   const { showToast } = useToast();
   const { filters, updateFilters, toggleVibe, resetFilters, restored } = useFilters();
@@ -57,6 +67,8 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const { status: kpopStatus, data: kpopData, isFallback: kpopFallback, recommend: kpopRecommend, reset: kpopReset } = useKpopRecommend();
   const { entries, saveRecommendation, removeEntry, updateEntry, getRecentMenus } = useCalendar();
   const { blocked, remainingSeconds, checkAndRecord, setQuotaExhausted } = useRateLimit();
+  const { favorites, toggleFavorite, removeFavorite, isFavorite } = useFavorites();
+  const { history, addHistory, excludedMenus, excludeMenu } = useRecommendHistory();
 
   const [searchMode, setSearchMode] = useState<SearchMode>('ai');
   const [query, setQuery] = useState('');
@@ -64,6 +76,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
   const [selectedIdol, setSelectedIdol] = useState<KpopIdol | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [restoredShown, setRestoredShown] = useState(false);
+  const [hasResult, setHasResult] = useState(false);
 
   const quickTopics = SEO_KEYWORDS.slice(0, 8);
 
@@ -75,6 +88,32 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     if (hour >= 18 && hour < 22) return t('timeSuggest.dinner');
     return t('timeSuggest.late');
   }, [t]);
+
+  // 최근 캘린더 마지막 메뉴
+  const lastCalendarMenu = useMemo(() => {
+    if (entries.length === 0) return undefined;
+    const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date));
+    return sorted[0]?.menu;
+  }, [entries]);
+
+  // ?preset= 파라미터 처리 — SEO 페이지 CTA에서 필터 자동 적용 + 추천 실행
+  useEffect(() => {
+    if (!preset) return;
+    const keyword = SEO_KEYWORDS.find((k) => k.slug === preset);
+    if (!keyword) return;
+    setSearchMode('ai');
+    const title = keyword[lang]?.title ?? keyword.ko.title;
+    setQuery(title);
+    recommend(title, filters, lang, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ?shared= 파라미터 처리 — 공유 링크에서 메뉴 자동 검색
+  useEffect(() => {
+    if (!shared) return;
+    setSearchMode('ai');
+    setQuery(shared);
+    recommend(shared, filters, lang, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (restored && !restoredShown) {
@@ -92,6 +131,21 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     if (isFallback || kpopFallback) setQuotaExhausted(true);
   }, [isFallback, kpopFallback, setQuotaExhausted]);
 
+  // 추천 성공 시 히스토리 추가
+  useEffect(() => {
+    if (status === 'success' && data) {
+      trackEvent('recommend_success', { lang, fallback: isFallback });
+      addHistory({ query, result: data, mode: searchMode });
+      setHasResult(true);
+    }
+  }, [data, status]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (kpopStatus === 'success' && kpopData) {
+      setHasResult(true);
+    }
+  }, [kpopStatus, kpopData]);
+
   const handleReset = useCallback(() => {
     resetFilters();
     setQuery('');
@@ -99,6 +153,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     setSelectedIdol(null);
     reset();
     kpopReset();
+    setHasResult(false);
   }, [resetFilters, reset, kpopReset]);
 
   // 필터 키워드를 검색창에 토글
@@ -155,7 +210,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     updateFilters({ budget });
   };
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(async (overrideQuery?: string, overrideExcludes?: string[]) => {
     // Rate limit 체크
     const { allowed, waitSeconds } = checkAndRecord();
     if (!allowed) {
@@ -175,12 +230,13 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
       return;
     }
 
-    if (!query.trim()) {
+    const q = overrideQuery ?? query;
+    if (!q.trim()) {
       showToast('검색어를 입력해주세요', 'error');
       return;
     }
 
-    const validation = validateInput(query);
+    const validation = validateInput(q);
     if (!validation.valid) {
       if (validation.reason === 'injection') showToast(t('home.errorInjection'), 'error');
       else if (validation.reason === 'too_long') showToast(t('home.errorTooLong'), 'error');
@@ -189,15 +245,42 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     }
 
     const recentMenus = getRecentMenus(7);
+    const excludes = overrideExcludes ?? excludedMenus;
+    const allExcludes = [...recentMenus, ...excludes];
     trackEvent('recommend_submit', { lang, mode: searchMode, has_query: true });
-    await recommend(query, filters, lang, recentMenus);
-  }, [query, kpopQuery, selectedIdol, filters, lang, searchMode, recommend, kpopRecommend, showToast, t, getRecentMenus, checkAndRecord]);
+    await recommend(q, filters, lang, allExcludes);
+  }, [query, kpopQuery, selectedIdol, filters, lang, searchMode, recommend, kpopRecommend, showToast, t, getRecentMenus, checkAndRecord, excludedMenus]);
 
-  useEffect(() => {
-    if (status === 'success' && data) {
-      trackEvent('recommend_success', { lang, fallback: isFallback });
+  // 재추천: 현재 결과의 모든 메뉴를 exclude에 추가
+  const handleRetry = useCallback(() => {
+    const currentExcludes = data ? data.items.map((i) => i.name) : [];
+    const allExcludes = [...excludedMenus, ...currentExcludes];
+    handleSubmit(query, allExcludes);
+  }, [data, excludedMenus, handleSubmit, query]);
+
+  const handleKpopRetry = useCallback(() => {
+    const searchTerm = kpopQuery.trim() || selectedIdol?.name || '';
+    if (!searchTerm) return;
+    kpopRecommend(searchTerm, lang, selectedIdol?.name, selectedIdol?.group);
+  }, [kpopQuery, selectedIdol, lang, kpopRecommend]);
+
+  const handleExclude = useCallback((menuName: string) => {
+    excludeMenu(menuName);
+    handleSubmit(query, [...excludedMenus, menuName]);
+  }, [excludeMenu, excludedMenus, handleSubmit, query]);
+
+  const handleToggleFavorite = useCallback((menuName: string, emoji: string) => {
+    const result = toggleFavorite({ menuName, emoji, category: '기타' });
+    if (result === 'added') {
+      showToast(t('favorites.added'), 'success');
+      trackEvent('favorite_add', { lang, menu: menuName });
+    } else if (result === 'removed') {
+      showToast(t('favorites.removed'), 'info');
+      trackEvent('favorite_remove', { lang, menu: menuName });
+    } else if (result === 'overflow') {
+      showToast(t('favorites.max'), 'info');
     }
-  }, [data, lang, status, isFallback]);
+  }, [toggleFavorite, showToast, t, lang]);
 
   const handleKpopIdolSelect = useCallback((idol: KpopIdol) => {
     setSearchMode('kpop');
@@ -236,10 +319,24 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
     if (updateEntry(date, updates)) showToast(t('calendar.updated'), 'success');
   };
 
+  // 공유 URL 생성
+  const shareUrl = useMemo(() => {
+    const mainItem = data?.items[0] ?? kpopData?.items[0];
+    if (!mainItem) return undefined;
+    return `${SITE_URL}/${lang}?shared=${encodeURIComponent(mainItem.name)}`;
+  }, [data, kpopData, lang]);
+
   const modeConfig = {
     text:  { placeholder: t('search.placeholderText'),  submit: t('search.submitText') },
     ai:    { placeholder: t('search.placeholderAi'),    submit: t('search.submitAi') },
     kpop:  { placeholder: t('kpop.placeholder'),        submit: t('kpop.submit') },
+  };
+
+  const resultLabels = {
+    retry: t('recommend.retry'),
+    notThis: t('recommend.notThis'),
+    shareCopied: t('share.copied'),
+    shareCopy: t('share.copy'),
   };
 
   return (
@@ -267,6 +364,18 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </div>
         </section>
 
+        {/* 즉시 추천 배너 (결과 없을 때만) */}
+        {!hasResult && (
+          <InstantRecommend
+            onSearch={(menuName) => {
+              setSearchMode('ai');
+              setQuery(menuName);
+              recommend(menuName, filters, lang, getRecentMenus(7));
+            }}
+            lastMenu={lastCalendarMenu}
+          />
+        )}
+
         {/* 통합 검색 + 결과 */}
         <section className="rounded-[2rem] border border-gray-200 bg-white shadow-md overflow-hidden">
 
@@ -281,7 +390,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               return (
                 <button
                   key={mode}
-                  onClick={() => { setSearchMode(mode); reset(); kpopReset(); }}
+                  onClick={() => { setSearchMode(mode); reset(); kpopReset(); setHasResult(false); }}
                   className={`flex-1 py-3 text-sm font-semibold transition-colors ${
                     searchMode === mode
                       ? 'border-b-2 border-orange-500 text-orange-600 bg-orange-50'
@@ -324,7 +433,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
                   />
                 </div>
                 <button
-                  onClick={handleSubmit}
+                  onClick={() => handleSubmit()}
                   disabled={kpopStatus === 'loading' || blocked}
                   className="shrink-0 rounded-xl bg-pink-500 hover:bg-pink-600 px-4 py-2 text-xs font-bold text-white transition-colors disabled:opacity-50"
                 >
@@ -351,7 +460,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
                   </button>
                 )}
                 <button
-                  onClick={handleSubmit}
+                  onClick={() => handleSubmit()}
                   disabled={status === 'loading' || blocked}
                   className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2 text-xs font-bold text-white transition-colors disabled:opacity-50"
                 >
@@ -386,6 +495,16 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               </div>
             )}
 
+            {/* Rate Limit 대기 콘텐츠 */}
+            {blocked && (
+              <RateLimitContent
+                onMenuClick={(menuName) => {
+                  setQuery(menuName);
+                }}
+                lang={lang}
+              />
+            )}
+
             {/* 로딩 */}
             {(status === 'loading' || kpopStatus === 'loading') && (
               <div className="flex justify-center py-6">
@@ -397,10 +516,32 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
               </div>
             )}
 
+            {/* 추천 히스토리 슬라이더 */}
+            {history.length > 0 && (status === 'success' || kpopStatus === 'success') && (
+              <RecommendHistory
+                history={history}
+                label={t('recommend.history')}
+                onRestore={(entry) => {
+                  setSearchMode(entry.mode);
+                  setQuery(entry.query);
+                  trackEvent('history_card_click', { lang });
+                }}
+              />
+            )}
+
             {/* K-pop 결과 */}
             {searchMode === 'kpop' && kpopStatus === 'success' && kpopData && (
               <div className="space-y-3 pt-2 border-t border-gray-100">
-                <KpopResultCard data={kpopData} lang={lang} onRecipeSearch={handleRecipeSearch} />
+                <KpopResultCard
+                  data={kpopData}
+                  lang={lang}
+                  onRecipeSearch={handleRecipeSearch}
+                  onRetry={handleKpopRetry}
+                  onToggleFavorite={handleToggleFavorite}
+                  isFavorite={isFavorite}
+                  shareUrl={shareUrl}
+                  labels={resultLabels}
+                />
               </div>
             )}
 
@@ -408,11 +549,30 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
             {searchMode !== 'kpop' && status === 'success' && data && (
               <div className="space-y-3 pt-2 border-t border-gray-100">
                 {searchMode === 'ai' && (
-                  <DualResultView data={data} lang={lang} />
+                  <DualResultView
+                    data={data}
+                    lang={lang}
+                    onRetry={handleRetry}
+                    onExclude={handleExclude}
+                    onToggleFavorite={handleToggleFavorite}
+                    isFavorite={isFavorite}
+                    shareUrl={shareUrl}
+                    labels={resultLabels}
+                  />
                 )}
 
                 {searchMode === 'text' && (
-                  <RecommendCard data={data} lang={lang} mode={filters.mode} />
+                  <RecommendCard
+                    data={data}
+                    lang={lang}
+                    mode={filters.mode}
+                    onRetry={handleRetry}
+                    onExclude={handleExclude}
+                    onToggleFavorite={handleToggleFavorite}
+                    isFavorite={isFavorite}
+                    shareUrl={shareUrl}
+                    labels={resultLabels}
+                  />
                 )}
 
                 <button
@@ -471,6 +631,34 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           </section>
         )}
 
+        {/* 메뉴 배틀 */}
+        <MenuBattle
+          lang={lang}
+          labels={{
+            title: t('battle.title'),
+            vs: t('battle.vs'),
+            sameChoice: t('battle.sameChoice'),
+          }}
+        />
+
+        {/* 즐겨찾기 섹션 */}
+        <FavoritesSection
+          favorites={favorites}
+          onRemove={removeFavorite}
+          onRecommend={(menuName) => {
+            setSearchMode('ai');
+            setQuery(menuName);
+            recommend(menuName, filters, lang, getRecentMenus(7));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          labels={{
+            title: t('favorites.title'),
+            empty: t('favorites.empty'),
+            recommend: t('favorites.recommend'),
+          }}
+          lang={lang}
+        />
+
         {/* 흑백요리사 셰프 카드 — K-pop 탭일 때 숨김 */}
         {searchMode !== 'kpop' && (
           <ChefCard
@@ -491,7 +679,7 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
           onGroupSelect={handleKpopGroupSelect}
         />
 
-        {/* 식단 캘린더 */}
+        {/* 식단 캘린더 + 취향 분석 */}
         <div className="defer-render">
           <CalendarView
             entries={entries}
@@ -517,6 +705,8 @@ export const HomeClient = ({ lang }: HomeClientProps) => {
             }}
             onDelete={handleDeleteEntry}
             onUpdate={handleUpdateEntry}
+            favorites={favorites}
+            profileLabel={t('profile.title')}
           />
         </div>
       </main>

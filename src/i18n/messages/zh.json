@@ -114,5 +114,39 @@
     "privacy": "隐私政策",
     "terms": "使用条款",
     "contact": "联系我们"
+  },
+  "recommend": {
+    "retry": "🔄 换个菜单推荐",
+    "notThis": "不是这个",
+    "history": "最近推荐"
+  },
+  "share": {
+    "title": "分享",
+    "copied": "已复制",
+    "copy": "分享",
+    "twitter": "X(Twitter)",
+    "copyLink": "复制链接"
+  },
+  "favorites": {
+    "title": "♥ 我的菜单本",
+    "empty": "还没有收藏。在推荐菜单上点击♥吧！",
+    "max": "收藏已满，自动删除了最旧的记录。",
+    "recommend": "用这道菜获取推荐",
+    "added": "♥ 已添加到收藏",
+    "removed": "已从收藏中删除"
+  },
+  "battle": {
+    "title": "今日菜单对决",
+    "vs": "VS",
+    "result": "结果",
+    "sameChoice": "相同选择"
+  },
+  "profile": {
+    "title": "口味分析",
+    "category": "类别分布",
+    "topMenus": "常吃菜单 Top 5",
+    "streak": "连续记录天数",
+    "recordCount": "本月记录",
+    "minData": "记录5道以上菜单后即可分析您的口味！"
   }
 }

@@ -2,6 +2,8 @@
 
 import dynamic from 'next/dynamic';
 import type { MenuRecommendResponse } from '@/types/recommend';
+import { ShareButton } from '@/components/ui/ShareButton';
+import { trackEvent } from '@/lib/analytics';
 
 const RecipeLinks = dynamic(
   () => import('./RecipeLinks').then((m) => m.RecipeLinks),
@@ -17,12 +19,40 @@ interface RecommendCardProps {
   data: MenuRecommendResponse;
   lang: string;
   mode: 'cook' | 'order' | 'any';
+  onRetry?: () => void;
+  onExclude?: (menuName: string) => void;
+  onToggleFavorite?: (menuName: string, emoji: string) => void;
+  isFavorite?: (menuName: string) => boolean;
+  shareUrl?: string;
+  labels?: {
+    retry?: string;
+    notThis?: string;
+    shareCopied?: string;
+    shareCopy?: string;
+  };
 }
 
-export const RecommendCard = ({ data, lang, mode }: RecommendCardProps) => {
+export const RecommendCard = ({
+  data,
+  lang,
+  mode,
+  onRetry,
+  onExclude,
+  onToggleFavorite,
+  isFavorite,
+  shareUrl,
+  labels,
+}: RecommendCardProps) => {
   const mainItem = data.items[0];
   const isCook = mode === 'cook' || mode === 'any';
   const isOrder = mode === 'order' || mode === 'any';
+
+  const retryLabel = labels?.retry ?? '🔄 다른 메뉴 추천받기';
+  const notThisLabel = labels?.notThis ?? '이건 아니야';
+
+  const shareText = mainItem
+    ? `오늘 AI가 추천한 메뉴: ${mainItem.name} 🍽️ — 오늘뭐먹지`
+    : '오늘뭐먹지';
 
   return (
     <div className="space-y-3">
@@ -44,11 +74,34 @@ export const RecommendCard = ({ data, lang, mode }: RecommendCardProps) => {
               </p>
               <p className="text-xs text-gray-500 mt-0.5 leading-5">{item.reason}</p>
             </div>
-            {i === 0 && (
-              <span className="ml-auto shrink-0 rounded-full bg-orange-500 px-2 py-0.5 text-xs font-semibold text-white">
-                TOP
-              </span>
-            )}
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              {i === 0 && (
+                <span className="rounded-full bg-orange-500 px-2 py-0.5 text-xs font-semibold text-white">
+                  TOP
+                </span>
+              )}
+              {onToggleFavorite && (
+                <button
+                  onClick={() => {
+                    onToggleFavorite(item.name, item.emoji ?? '🍽️');
+                    trackEvent('favorite_toggle', { lang, menu: item.name });
+                  }}
+                  className="text-lg leading-none hover:scale-110 transition-transform"
+                  title="즐겨찾기"
+                >
+                  {isFavorite?.(item.name) ? '❤️' : '🤍'}
+                </button>
+              )}
+              {onExclude && (
+                <button
+                  onClick={() => onExclude(item.name)}
+                  className="text-[10px] text-gray-400 hover:text-red-500 transition-colors whitespace-nowrap"
+                  title={notThisLabel}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -56,6 +109,29 @@ export const RecommendCard = ({ data, lang, mode }: RecommendCardProps) => {
       {data.tip && (
         <p className="text-xs text-center text-gray-400">💡 {data.tip}</p>
       )}
+
+      {/* 액션 버튼 행 */}
+      <div className="flex items-center gap-2">
+        {onRetry && (
+          <button
+            onClick={() => {
+              trackEvent('re_recommend_click', { lang });
+              onRetry();
+            }}
+            className="flex-1 rounded-2xl border border-orange-200 bg-orange-50 py-2.5 text-sm font-semibold text-orange-600 hover:bg-orange-100 transition-colors"
+          >
+            {retryLabel}
+          </button>
+        )}
+        {shareUrl && mainItem && (
+          <ShareButton
+            text={shareText}
+            url={shareUrl}
+            lang={lang}
+            labels={{ copied: labels?.shareCopied, copy: labels?.shareCopy ?? '공유' }}
+          />
+        )}
+      </div>
 
       {/* 해먹기: 레시피 링크 */}
       {isCook && mainItem && (

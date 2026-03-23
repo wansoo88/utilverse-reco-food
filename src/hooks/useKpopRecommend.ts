@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import type { FoodItem, RecommendError } from '@/types/recommend';
 import type { Locale } from '@/config/site';
+import { apiUrl } from '@/lib/basePath';
 
 export interface KpopRecommendData {
   idol: string;
@@ -29,7 +30,7 @@ export const useKpopRecommend = () => {
     setError(null);
     setIsFallback(false);
     try {
-      const res = await fetch('/api/kpop-recommend', {
+      const res = await fetch(apiUrl('/api/kpop-recommend'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, lang, idolName, groupName }),

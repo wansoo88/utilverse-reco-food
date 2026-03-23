@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import type { FilterState } from '@/types/filter';
 import type { MenuRecommendResponse, RecommendError } from '@/types/recommend';
 import type { Locale } from '@/config/site';
+import { apiUrl } from '@/lib/basePath';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
@@ -22,7 +23,7 @@ export const useRecommend = () => {
     setError(null);
     setIsFallback(false);
     try {
-      const res = await fetch('/api/recommend', {
+      const res = await fetch(apiUrl('/api/recommend'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, filters, lang, exclude }),

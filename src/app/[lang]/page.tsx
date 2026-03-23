@@ -4,6 +4,7 @@ import { HomeClient } from './HomeClient';
 
 interface Props {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -33,7 +34,10 @@ export function generateStaticParams() {
   return LOCALES.map((lang) => ({ lang }));
 }
 
-export default async function HomePage({ params }: Props) {
+export default async function HomePage({ params, searchParams }: Props) {
   const { lang } = await params;
-  return <HomeClient lang={lang as Locale} />;
+  const sp = await searchParams;
+  const preset = typeof sp.preset === 'string' ? sp.preset : undefined;
+  const shared = typeof sp.shared === 'string' ? sp.shared : undefined;
+  return <HomeClient lang={lang as Locale} preset={preset} shared={shared} />;
 }

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { MenuRecommendResponse, FoodItem } from '@/types/recommend';
+import { ShareButton } from '@/components/ui/ShareButton';
+import { trackEvent } from '@/lib/analytics';
 
 const RecipeLinks = dynamic(
   () => import('./RecipeLinks').then((m) => m.RecipeLinks),
@@ -17,11 +19,36 @@ const NearbyRestaurants = dynamic(
 interface DualResultViewProps {
   data: MenuRecommendResponse;
   lang: string;
+  onRetry?: () => void;
+  onExclude?: (menuName: string) => void;
+  onToggleFavorite?: (menuName: string, emoji: string) => void;
+  isFavorite?: (menuName: string) => boolean;
+  shareUrl?: string;
+  labels?: {
+    retry?: string;
+    notThis?: string;
+    shareCopied?: string;
+    shareCopy?: string;
+  };
 }
 
-export const DualResultView = ({ data, lang }: DualResultViewProps) => {
+export const DualResultView = ({
+  data,
+  lang,
+  onRetry,
+  onExclude,
+  onToggleFavorite,
+  isFavorite,
+  shareUrl,
+  labels,
+}: DualResultViewProps) => {
   const [activeTab, setActiveTab] = useState<'cook' | 'order'>('cook');
   const menuNames = data.items.map((item) => item.name);
+  const mainItem = data.items[0];
+
+  const shareText = mainItem
+    ? `오늘 AI가 추천한 메뉴: ${mainItem.name} 🍽️ — 오늘뭐먹지`
+    : '오늘뭐먹지';
 
   return (
     <div className="space-y-3">
@@ -53,23 +80,64 @@ export const DualResultView = ({ data, lang }: DualResultViewProps) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* 해먹기 (좌측) */}
         <div className={`${activeTab !== 'cook' ? 'hidden md:block' : ''}`}>
-          <CookSection items={data.items} tip={data.tip} lang={lang} />
+          <CookSection
+            items={data.items}
+            tip={data.tip}
+            lang={lang}
+            onExclude={onExclude}
+            onToggleFavorite={onToggleFavorite}
+            isFavorite={isFavorite}
+          />
         </div>
 
         {/* 시켜먹기 (우측) */}
         <div className={`${activeTab !== 'order' ? 'hidden md:block' : ''}`}>
-          <OrderSection items={data.items} tip={data.tip} lang={lang} menuNames={menuNames} />
+          <OrderSection
+            items={data.items}
+            tip={data.tip}
+            lang={lang}
+            menuNames={menuNames}
+            onExclude={onExclude}
+            onToggleFavorite={onToggleFavorite}
+            isFavorite={isFavorite}
+          />
         </div>
+      </div>
+
+      {/* 액션 버튼 행 */}
+      <div className="flex items-center gap-2">
+        {onRetry && (
+          <button
+            onClick={() => {
+              trackEvent('re_recommend_click', { lang });
+              onRetry();
+            }}
+            className="flex-1 rounded-2xl border border-orange-200 bg-orange-50 py-2.5 text-sm font-semibold text-orange-600 hover:bg-orange-100 transition-colors"
+          >
+            {labels?.retry ?? '🔄 다른 메뉴 추천받기'}
+          </button>
+        )}
+        {shareUrl && mainItem && (
+          <ShareButton
+            text={shareText}
+            url={shareUrl}
+            lang={lang}
+            labels={{ copied: labels?.shareCopied, copy: labels?.shareCopy ?? '공유' }}
+          />
+        )}
       </div>
     </div>
   );
 };
 
 // 해먹기: 메뉴 + 이유 + 레시피 링크
-function CookSection({ items, tip, lang }: {
+function CookSection({ items, tip, lang, onExclude, onToggleFavorite, isFavorite }: {
   items: FoodItem[];
   tip?: string;
   lang: string;
+  onExclude?: (menuName: string) => void;
+  onToggleFavorite?: (menuName: string, emoji: string) => void;
+  isFavorite?: (menuName: string) => boolean;
 }) {
   return (
     <div className="rounded-2xl border border-orange-200 bg-orange-50/30 p-4 space-y-3">
@@ -94,11 +162,29 @@ function CookSection({ items, tip, lang }: {
               </p>
               <p className="text-xs text-gray-500 mt-0.5 leading-5">{item.reason}</p>
             </div>
-            {i === 0 && (
-              <span className="ml-auto shrink-0 rounded-full bg-orange-500 px-2 py-0.5 text-xs font-semibold text-white">
-                TOP
-              </span>
-            )}
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              {i === 0 && (
+                <span className="rounded-full bg-orange-500 px-2 py-0.5 text-xs font-semibold text-white">
+                  TOP
+                </span>
+              )}
+              {onToggleFavorite && (
+                <button
+                  onClick={() => onToggleFavorite(item.name, item.emoji ?? '🍽️')}
+                  className="text-base leading-none hover:scale-110 transition-transform"
+                >
+                  {isFavorite?.(item.name) ? '❤️' : '🤍'}
+                </button>
+              )}
+              {onExclude && (
+                <button
+                  onClick={() => onExclude(item.name)}
+                  className="text-[10px] text-gray-400 hover:text-red-500 transition-colors"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -119,11 +205,14 @@ function CookSection({ items, tip, lang }: {
 }
 
 // 시켜먹기: 메뉴명만 + 근처 맛집
-function OrderSection({ items, tip, lang, menuNames }: {
+function OrderSection({ items, tip, lang, menuNames, onExclude, onToggleFavorite, isFavorite }: {
   items: FoodItem[];
   tip?: string;
   lang: string;
   menuNames: string[];
+  onExclude?: (menuName: string) => void;
+  onToggleFavorite?: (menuName: string, emoji: string) => void;
+  isFavorite?: (menuName: string) => boolean;
 }) {
   return (
     <div className="rounded-2xl border border-blue-200 bg-blue-50/30 p-4 space-y-3">
@@ -145,11 +234,29 @@ function OrderSection({ items, tip, lang, menuNames }: {
             <p className={`font-bold text-gray-900 flex-1 ${i === 0 ? 'text-sm' : 'text-xs'}`}>
               {item.name}
             </p>
-            {i === 0 && (
-              <span className="ml-auto shrink-0 rounded-full bg-blue-500 px-2 py-0.5 text-xs font-semibold text-white">
-                TOP
-              </span>
-            )}
+            <div className="flex items-center gap-1 shrink-0">
+              {i === 0 && (
+                <span className="rounded-full bg-blue-500 px-2 py-0.5 text-xs font-semibold text-white">
+                  TOP
+                </span>
+              )}
+              {onToggleFavorite && (
+                <button
+                  onClick={() => onToggleFavorite(item.name, item.emoji ?? '🍽️')}
+                  className="text-base leading-none hover:scale-110 transition-transform"
+                >
+                  {isFavorite?.(item.name) ? '❤️' : '🤍'}
+                </button>
+              )}
+              {onExclude && (
+                <button
+                  onClick={() => onExclude(item.name)}
+                  className="text-[10px] text-gray-400 hover:text-red-500 transition-colors"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>

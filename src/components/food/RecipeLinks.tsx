@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { RecipeItem } from '@/app/api/recipes/route';
+import { apiUrl } from '@/lib/basePath';
 
 interface RecipeLinksProps {
   foodName: string;
@@ -95,7 +96,7 @@ export const RecipeLinks = ({ foodName, lang }: RecipeLinksProps) => {
     setLoading(true);
     setData(null);
 
-    fetch('/api/recipes', {
+    fetch(apiUrl('/api/recipes'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ foodName, lang }),
