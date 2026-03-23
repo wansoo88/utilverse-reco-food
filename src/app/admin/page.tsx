@@ -73,7 +73,8 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
-  const [secretInput, setSecretInput] = useState('');
+  const [loginId, setLoginId] = useState('');
+  const [loginPw, setLoginPw] = useState('');
   const [loginError, setLoginError] = useState('');
   const [activeTab, setActiveTab] = useState<'usage' | 'db' | 'trends'>('usage');
 
@@ -99,14 +100,15 @@ export default function AdminPage() {
     const res = await fetch('/menu-ai/api/admin/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ secret: secretInput }),
+      body: JSON.stringify({ id: loginId, pw: loginPw }),
       credentials: 'include',
     });
     if (res.ok) {
       setAuthed(true);
       setLoginError('');
     } else {
-      setLoginError('비밀번호가 틀렸습니다.');
+      const data = await res.json() as { error?: string };
+      setLoginError(data.error ?? '로그인 실패');
     }
   }
 
@@ -206,15 +208,40 @@ export default function AdminPage() {
           onSubmit={handleLogin}
           className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm flex flex-col gap-4"
         >
-          <h1 className="text-xl font-bold text-gray-800 text-center">🔐 Admin 로그인</h1>
-          <input
-            type="password"
-            value={secretInput}
-            onChange={(e) => setSecretInput(e.target.value)}
-            placeholder="ADMIN_SECRET 입력"
-            className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
-          />
-          {loginError && <p className="text-red-500 text-xs text-center">{loginError}</p>}
+          <div className="text-center mb-2">
+            <span className="text-4xl">🍽️</span>
+            <h1 className="text-xl font-bold text-gray-800 mt-2">오늘뭐먹지 Admin</h1>
+            <p className="text-xs text-gray-400 mt-1">관리자만 접근 가능합니다</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-gray-600">아이디</label>
+              <input
+                type="text"
+                value={loginId}
+                onChange={(e) => setLoginId(e.target.value)}
+                placeholder="아이디 입력"
+                autoComplete="username"
+                className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-gray-600">비밀번호</label>
+              <input
+                type="password"
+                value={loginPw}
+                onChange={(e) => setLoginPw(e.target.value)}
+                placeholder="비밀번호 입력"
+                autoComplete="current-password"
+                className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+            </div>
+          </div>
+          {loginError && (
+            <p className="text-red-500 text-xs text-center bg-red-50 py-2 px-3 rounded-lg">
+              {loginError}
+            </p>
+          )}
           <button
             type="submit"
             className="bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg py-2 transition-colors"

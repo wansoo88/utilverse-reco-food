@@ -4,17 +4,10 @@ import { COOK_MENUS, ORDER_MENUS } from '@/data/localMenus';
 import { CHEFS } from '@/data/chefs';
 import { FOOD_TRIVIA } from '@/data/foodTrivia';
 import { SEO_KEYWORDS } from '@/data/seoKeywords';
-
-function isAuthorized(req: NextRequest): boolean {
-  const secret = process.env.ADMIN_SECRET;
-  if (!secret) return false;
-  const cookie = req.cookies.get('admin_session')?.value;
-  const header = req.headers.get('x-admin-secret');
-  return cookie === secret || header === secret;
-}
+import { isAdminAuthorized } from '@/lib/adminAuth';
 
 export async function GET(req: NextRequest) {
-  if (!isAuthorized(req)) {
+  if (!isAdminAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

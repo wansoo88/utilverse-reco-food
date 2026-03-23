@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFileSync, writeFileSync } from 'fs';
 import path from 'path';
+import { isAdminAuthorized } from '@/lib/adminAuth';
 
 const TRENDS_FILE = path.join('/tmp', 'wmj_trends.json');
-
-function isAuthorized(req: NextRequest): boolean {
-  const secret = process.env.ADMIN_SECRET;
-  if (!secret) return false;
-  const cookie = req.cookies.get('admin_session')?.value;
-  const header = req.headers.get('x-admin-secret');
-  return cookie === secret || header === secret;
-}
 
 export interface TrendEntry {
   id: string;
@@ -36,14 +29,14 @@ function saveTrends(trends: TrendEntry[]) {
 }
 
 export async function GET(req: NextRequest) {
-  if (!isAuthorized(req)) {
+  if (!isAdminAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   return NextResponse.json({ trends: loadTrends() });
 }
 
 export async function POST(req: NextRequest) {
-  if (!isAuthorized(req)) {
+  if (!isAdminAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
