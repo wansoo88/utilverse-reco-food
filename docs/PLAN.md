@@ -10,9 +10,9 @@
 ✅ **Phase 4: 프로그래매틱 SEO** (완료 — 2026-03-20)
 ✅ **Phase 6: UX 고도화** (완료 — 2026-03-21)
 ✅ **Phase 8: K-pop 아이돌 메뉴 추천 기능** (완료 — 2026-03-23)
+🔵 **Phase 9: 페이지 체류 시간 & 재방문율 향상** (진행 중 — 2026-03-24)
 🔵 **Phase 5: 성능 최적화 & 배포** (진행 중)
 🔵 **Phase 7: 검증 & 수익화 준비** (진행 중)
-⬜ **Phase 9: 페이지 체류 시간 & 재방문율 향상** (대기)
 
 ## Milestones
 
@@ -188,20 +188,20 @@
 | 레시피/맛집 로딩 대기 | API 느리면 유저가 직접 YouTube로 이동 | 중간 |
 | SEO 페이지 → 홈 전환 끊김 | SEO 페이지에서 홈으로의 자연스러운 플로우 부재 | 중간 |
 
-#### 9-1. 재추천 루프 & 추천 히스토리 (P0, 난이도: 낮음, ROI: 최고)
+#### 9-1. 재추천 루프 & 추천 히스토리 ✅ 완료 (P0, git pull 2026-03-24)
 
 **문제**: 추천 1회 후 세션 종료. 비교/탐색 행동 유도 장치 없음.
 **목표**: 세션당 평균 추천 횟수 1.2회 → 3+회
 
 **구현 상세**:
-- [ ] 추천 결과 하단 "🔄 다른 메뉴 추천받기" 원클릭 버튼
+- [x] 추천 결과 하단 "🔄 다른 메뉴 추천받기" 원클릭 버튼
   - 위치: `RecommendCard.tsx` / `DualResultView.tsx` / `KpopResultCard.tsx` 하단
   - 클릭 시 현재 결과의 메뉴명을 `exclude` 배열에 추가 후 동일 쿼리로 재호출
   - Rate Limit 카운트에 포함
-- [ ] "이건 아니야 ✕" 버튼 (개별 메뉴 항목에)
+- [x] "이건 아니야 ✕" 버튼 (개별 메뉴 항목에)
   - 해당 메뉴를 세션 내 제외 목록(`sessionStorage`)에 추가
   - 재추천 시 자동 exclude
-- [ ] 세션 내 추천 히스토리 슬라이더 (최근 5개)
+- [x] 세션 내 추천 히스토리 슬라이더 (최근 5개)
   - 위치: 추천 결과 영역 상단에 가로 스크롤 미니 카드
   - 각 카드: 메뉴 이모지 + 이름 (클릭 시 해당 결과로 복원)
   - `sessionStorage` 키: `wmj_session_history`
@@ -217,7 +217,7 @@
 - `src/hooks/useRecommendHistory.ts` — **신규** sessionStorage 관리 훅
 - `src/i18n/messages/*.json` — 키 추가
 
-#### 9-2. 소셜 공유 기능 (P0, 난이도: 낮음, ROI: 최고)
+#### 9-2. 소셜 공유 기능 ✅ 완료 (P0, git pull 2026-03-24)
 
 **문제**: 추천 결과를 외부 공유 불가 → 바이럴 성장 경로 없음.
 **목표**: 공유 버튼 클릭률 5%+, 공유 통한 신규 유입 확보
@@ -250,7 +250,7 @@
 - `src/app/[lang]/HomeClient.tsx` — `?shared=` 파라미터 핸들링
 - `src/i18n/messages/*.json` — 키 추가
 
-#### 9-3. Rate Limit 대기 콘텐츠 (P1, 난이도: 낮음, ROI: 높음)
+#### 9-3. Rate Limit 대기 콘텐츠 ✅ 완료 (P1, git pull 2026-03-24)
 
 **문제**: Rate Limit 걸리면 카운트다운만 표시 → 이탈 최대 구간.
 **목표**: Rate Limit 대기 구간 이탈률 50%+ 감소
@@ -275,7 +275,7 @@
 - `src/app/[lang]/HomeClient.tsx` — Rate Limit 상태 시 RateLimitContent 렌더링
 - `src/hooks/useRateLimit.ts` — 현재 상태 노출 (isLimited, remainingSeconds)
 
-#### 9-4. 즐겨찾기 & 나만의 메뉴북 (P1, 난이도: 낮음, ROI: 높음)
+#### 9-4. 즐겨찾기 & 나만의 메뉴북 ✅ 완료 (P1, git pull 2026-03-24)
 
 **문제**: 캘린더에 기록은 하지만 "좋아하는 메뉴"를 모아볼 수 없음. 재방문 이유 부족.
 **목표**: 즐겨찾기 기능으로 재방문 동기 생성
@@ -307,7 +307,7 @@
 - `src/app/[lang]/HomeClient.tsx` — FavoritesSection 배치
 - `src/i18n/messages/*.json` — 키 추가
 
-#### 9-5. 메뉴 배틀 (이거 vs 저거) (P2, 난이도: 중간, ROI: 높음)
+#### 9-5. 메뉴 배틀 (이거 vs 저거) ✅ 완료 (P2, git pull 2026-03-24)
 
 **문제**: 추천이 일방적 → 유저 참여형 인터랙션 부족.
 **목표**: 게이미피케이션으로 체류 시간 30%+ 증가
@@ -334,7 +334,7 @@
 - `src/data/localMenus.ts` — 배틀용 메뉴 풀 활용
 - `src/i18n/messages/*.json` — 키 추가
 
-#### 9-6. 취향 프로필 & 통계 대시보드 (P2, 난이도: 중간, ROI: 중간)
+#### 9-6. 취향 프로필 & 통계 대시보드 ✅ 완료 (P2, git pull 2026-03-24)
 
 **문제**: 캘린더 인사이트가 7일 해먹기/시켜먹기 비율뿐 → 더 풍부한 개인화 가능.
 **목표**: 데이터 축적이 곧 재방문 동기
@@ -382,7 +382,7 @@
 - `src/components/seo/RelatedKeywords.tsx` — 카드 UI로 업그레이드
 - `src/app/[lang]/HomeClient.tsx` — `?preset=` 핸들링
 
-#### 9-8. 오늘의 즉시 추천 배너 (P3, 난이도: 낮음, ROI: 중간)
+#### 9-8. 오늘의 즉시 추천 배너 ✅ 완료 (P3, git pull 2026-03-24)
 
 **문제**: 재방문 시 빈 화면 → 첫 인터랙션까지 시간 소요.
 **목표**: 페이지 로드 즉시 가치 전달, 첫 화면 바운스율 감소
@@ -459,14 +459,14 @@
 | ⬜ | AdSense 사이트 등록 & 승인 신청 | P1 | ADSENSE.md |
 | ⬜ | K-pop SEO 페이지 (`/[lang]/kpop/[idol]`) | P3 | SEO.md |
 | ⬜ | SEO 키워드 DB 확장 (40개 → 100개) | P3 | SEO.md |
-| ⬜ | **[Phase 9]** 재추천 루프 & 히스토리 슬라이더 | P0 | FRONTEND.md |
-| ⬜ | **[Phase 9]** 소셜 공유 (카카오/X/링크복사) | P0 | FRONTEND.md |
-| ⬜ | **[Phase 9]** Rate Limit 대기 콘텐츠 (퀴즈/트리비아) | P1 | FRONTEND.md |
-| ⬜ | **[Phase 9]** 즐겨찾기 & 나만의 메뉴북 | P1 | FRONTEND.md |
-| ⬜ | **[Phase 9]** 메뉴 배틀 (이거 vs 저거) | P2 | FRONTEND.md |
-| ⬜ | **[Phase 9]** 취향 프로필 & 통계 대시보드 | P2 | FRONTEND.md |
+| ✅ | **[Phase 9]** 재추천 루프 & 히스토리 슬라이더 (RecommendHistory, useRecommendHistory) | P0 | FRONTEND.md |
+| ✅ | **[Phase 9]** 소셜 공유 (X/링크복사, ShareButton) | P0 | FRONTEND.md |
+| ✅ | **[Phase 9]** Rate Limit 대기 콘텐츠 (RateLimitContent, foodTrivia.ts) | P1 | FRONTEND.md |
+| ✅ | **[Phase 9]** 즐겨찾기 & 나만의 메뉴북 (FavoritesSection, useFavorites) | P1 | FRONTEND.md |
+| ✅ | **[Phase 9]** 메뉴 배틀 (MenuBattle) | P2 | FRONTEND.md |
+| ✅ | **[Phase 9]** 취향 프로필 & 통계 대시보드 (TasteProfile) | P2 | FRONTEND.md |
+| ✅ | **[Phase 9]** 오늘의 즉시 추천 배너 (InstantRecommend) | P3 | FRONTEND.md |
 | ⬜ | **[Phase 9]** SEO 페이지 내부 순환 강화 | P2 | SEO.md |
-| ⬜ | **[Phase 9]** 오늘의 즉시 추천 배너 | P3 | FRONTEND.md |
 
 **범례**: ✅ 완료 · 🔵 진행 중 · ⬜ 대기
 
@@ -500,3 +500,5 @@
 | 2026-03-22 | Phase 9 페이지 체류 시간 향상 계획 수립 | "추천 1회→이탈" 단선적 플로우 해소, 재추천 루프·공유·게이미피케이션으로 세션 깊이 확보 |
 | 2026-03-22 | localStorage 중심 개인화 유지 (DB 불필요) | 즐겨찾기/배틀/취향 프로필 모두 localStorage로 구현, Vercel 무료 배포 제약 준수 |
 | 2026-03-22 | 외부 라이브러리 최소화 원칙 | 차트는 CSS only, 공유는 Web Share API 우선, html2canvas 대신 CSS 프린트 스타일 |
+| 2026-03-24 | git pull origin main — Phase 9 기능 원격 병합 | 원격에서 Phase 9 전체(FavoritesSection, MenuBattle, InstantRecommend, RateLimitContent, RecommendHistory, TasteProfile, ShareButton, useFavorites, useRecommendHistory, usageTracker, admin 페이지 등) 구현 완료 상태로 pull |
+| 2026-03-24 | admin 대시보드 페이지 (/admin) 추가 | AI 사용량 모니터링, K-pop/트렌드 DB 업데이트, 시스템 상태 확인 통합 UI |

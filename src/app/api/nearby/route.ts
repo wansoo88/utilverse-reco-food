@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { NearbyRestaurant } from '@/types/recommend';
 
+const NEARBY_RADIUS_M = 1000; // 1km 이내
+
 // Haversine 거리 계산 (미터)
 function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371000;
@@ -11,6 +13,22 @@ function haversine(lat1: number, lng1: number, lat2: number, lng2: number): numb
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
     Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Nominatim 역지오코딩으로 행정구역명 추출 (무료, 키 불필요)
+async function reverseGeocode(lat: number, lng: number): Promise<string> {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ko`,
+      { headers: { 'User-Agent': 'pjt3-reco-food/1.0' }, signal: AbortSignal.timeout(3000) },
+    );
+    if (!res.ok) return '';
+    const data = await res.json() as { address?: { suburb?: string; neighbourhood?: string; city_district?: string; quarter?: string } };
+    // 동/구 단위 반환 (suburb → neighbourhood → city_district 순)
+    return data.address?.suburb ?? data.address?.neighbourhood ?? data.address?.city_district ?? data.address?.quarter ?? '';
+  } catch {
+    return '';
+  }
 }
 
 // Naver 지역 검색 API 호출
@@ -95,6 +113,7 @@ export async function POST(req: NextRequest) {
     if (!clientId || !clientSecret) {
       const fallbackResults: Record<string, NearbyRestaurant[]> = {};
       for (const name of menuNames) {
+        const locationQuery = userLat && userLng ? `${name} 맛집 근처` : `${name} 맛집`;
         fallbackResults[name] = [{
           name: `${name} 맛집 검색`,
           category: '',
@@ -102,11 +121,14 @@ export async function POST(req: NextRequest) {
           roadAddress: '',
           telephone: '',
           distance: 0,
-          naverMapUrl: `https://www.google.com/maps/search/${encodeURIComponent(name + ' 맛집')}`,
+          naverMapUrl: `https://www.google.com/maps/search/${encodeURIComponent(locationQuery)}`,
         }];
       }
       return NextResponse.json({ results: fallbackResults });
     }
+
+    // 현재 위치의 행정구역명 추출 (쿼리에 포함해 근처 결과 유도)
+    const districtName = userLat && userLng ? await reverseGeocode(userLat, userLng) : '';
 
     const results: Record<string, NearbyRestaurant[]> = {};
 
@@ -114,7 +136,8 @@ export async function POST(req: NextRequest) {
     await Promise.all(
       menuNames.map(async (menuName) => {
         try {
-          const query = `${menuName} 맛집`;
+          // 지역명 포함 쿼리로 근처 결과 유도
+          const query = districtName ? `${districtName} ${menuName} 맛집` : `${menuName} 맛집`;
           const items = await searchNaverLocal(query, clientId, clientSecret);
 
           results[menuName] = items.map((item) => {
@@ -136,8 +159,9 @@ export async function POST(req: NextRequest) {
               naverMapUrl: item.link || naverMapUrl,
             };
           })
-          // 위치 정보가 있으면 5km 이내만, 없으면 전체
-          .filter((r) => !userLat || r.distance <= 5000)
+          // 위치 정보 있으면 1km 이내 필터 후 거리순, 없으면 그대로
+          .filter((r) => !userLat || r.distance <= NEARBY_RADIUS_M)
+          .sort((a, b) => userLat ? a.distance - b.distance : 0)
           .slice(0, 5);
         } catch {
           results[menuName] = [];

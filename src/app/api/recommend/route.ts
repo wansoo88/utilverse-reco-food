@@ -69,35 +69,26 @@ export async function POST(req: NextRequest) {
     const { buildUserPrompt, SYSTEM_PROMPT } = await import('@/lib/promptBuilder');
     const userPrompt = buildUserPrompt(sanitized, filters, lang, exclude);
 
-    // Step 1: Gemini 시도 (키 순환, 각 키에서 lite → full)
+    // Step 1: Gemini 시도 (키 순환, flash-lite 단일 모델 — 쿼터 절약)
     if (geminiKeys.length > 0) {
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
-      const GEMINI_MODELS = ['gemini-2.0-flash-lite', 'gemini-2.0-flash'] as const;
+      const GEMINI_MODEL = 'gemini-2.0-flash-lite';
 
       for (const apiKey of geminiKeys) {
         const genAI = new GoogleGenerativeAI(apiKey);
-        let keyExhausted = false;
-
-        for (const modelName of GEMINI_MODELS) {
-          try {
-            const model = genAI.getGenerativeModel({
-              model: modelName,
-              systemInstruction: SYSTEM_PROMPT,
-            });
-            const result = await model.generateContent(userPrompt);
-            const text = result.response.text().replace(/```json\n?|\n?```/g, '').trim();
-            trackUsage({ ts: Date.now(), provider: 'gemini', model: modelName, endpoint: 'recommend', estimatedTokens: estimateTokens(userPrompt + text) });
-            return NextResponse.json(JSON.parse(text));
-          } catch (err) {
-            if (isQuotaError(err)) {
-              keyExhausted = true;
-            } else {
-              break;
-            }
-          }
+        try {
+          const model = genAI.getGenerativeModel({
+            model: GEMINI_MODEL,
+            systemInstruction: SYSTEM_PROMPT,
+          });
+          const result = await model.generateContent(userPrompt);
+          const text = result.response.text().replace(/```json\n?|\n?```/g, '').trim();
+          trackUsage({ ts: Date.now(), provider: 'gemini', model: GEMINI_MODEL, endpoint: 'recommend', estimatedTokens: estimateTokens(userPrompt + text) });
+          return NextResponse.json(JSON.parse(text));
+        } catch (err) {
+          // 쿼터 초과면 다음 키 시도, 그 외 에러는 즉시 폴백
+          if (!isQuotaError(err)) break;
         }
-
-        if (!keyExhausted) break;
       }
     }
 
