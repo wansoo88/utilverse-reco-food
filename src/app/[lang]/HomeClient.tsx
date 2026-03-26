@@ -1,7 +1,7 @@
 'use client';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { useFilters } from '@/hooks/useFilters';
 import { useRecommend } from '@/hooks/useRecommend';
@@ -30,6 +30,41 @@ import { useKpopRecommend } from '@/hooks/useKpopRecommend';
 import { SITE_URL } from '@/config/site';
 import type { Locale } from '@/config/site';
 import type { FilterState } from '@/types/filter';
+
+// 스크롤스파이 섹션 정의
+const NAV_SECTIONS = [
+  { id: 'sec-recommend', label: '추천' },
+  { id: 'sec-explore',   label: '탐색' },
+  { id: 'sec-battle',    label: '배틀' },
+  { id: 'sec-favorites', label: '즐겨찾기' },
+  { id: 'sec-chef',      label: '셰프' },
+  { id: 'sec-calendar',  label: '캘린더' },
+] as const;
+
+// IntersectionObserver 기반 스크롤스파이 훅
+function useScrollSpy(sectionIds: readonly string[]): string {
+  const [activeId, setActiveId] = useState<string>(sectionIds[0]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // 가장 상단에 있는 visible 섹션을 active로
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length > 0) setActiveId(visible[0].target.id);
+      },
+      { rootMargin: '-10% 0px -60% 0px', threshold: 0 },
+    );
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, [sectionIds]);
+
+  return activeId;
+}
 
 type SearchMode = 'text' | 'ai' | 'kpop';
 
@@ -77,6 +112,10 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
   const [showFilters, setShowFilters] = useState(false);
   const [restoredShown, setRestoredShown] = useState(false);
   const [hasResult, setHasResult] = useState(false);
+
+  const navSectionIds = NAV_SECTIONS.map((s) => s.id) as readonly string[];
+  const activeSection = useScrollSpy(navSectionIds);
+  const navRef = useRef<HTMLDivElement>(null);
 
   const quickTopics = SEO_KEYWORDS.slice(0, 8);
 
@@ -346,12 +385,34 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
           <span className="font-extrabold text-gray-900 text-lg">오늘뭐먹지</span>
           <LanguageSelector current={lang} />
         </div>
+
+        {/* 스티키 스크롤스파이 네비 */}
+        <div ref={navRef} className="border-t border-gray-100 overflow-x-auto scrollbar-hide">
+          <div className="max-w-5xl mx-auto px-4 flex gap-1.5 py-2">
+            {NAV_SECTIONS.map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => {
+                  const el = document.getElementById(id);
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                className={`shrink-0 rounded-full px-3.5 py-1 text-xs font-semibold transition-all ${
+                  activeSection === id
+                    ? 'bg-orange-500 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-6">
 
-        {/* 히어로 */}
-        <section className="flex items-center gap-4 rounded-[2rem] border border-white/80 bg-white px-6 py-4 shadow-sm">
+        {/* 히어로 + 추천 */}
+        <section id="sec-recommend" className="flex items-center gap-4 rounded-[2rem] border border-white/80 bg-white px-6 py-4 shadow-sm">
           <div className="flex-1">
             <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 md:text-3xl">
               {t('home.title')}
@@ -377,7 +438,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
         )}
 
         {/* 통합 검색 + 결과 */}
-        <section className="rounded-[2rem] border border-gray-200 bg-white shadow-md overflow-hidden">
+        <section id="sec-search" className="rounded-[2rem] border border-gray-200 bg-white shadow-md overflow-hidden">
 
           {/* 모드 탭 */}
           <div className="flex border-b border-gray-100">
@@ -588,7 +649,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
 
         {/* 인기 추천 상황 — K-pop 모드일 때는 K-pop 트렌드 */}
         {searchMode === 'kpop' ? (
-          <section className="rounded-[2rem] border border-pink-100 bg-gradient-to-br from-pink-50 via-white to-purple-50 p-5 shadow-sm">
+          <section id="sec-explore" className="rounded-[2rem] border border-pink-100 bg-gradient-to-br from-pink-50 via-white to-purple-50 p-5 shadow-sm">
             <p className="text-sm font-semibold text-pink-600">{t('kpop.popularTitle')}</p>
             <p className="mt-0.5 text-xs text-gray-500">{t('kpop.popularSubtitle')}</p>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -610,7 +671,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
             </div>
           </section>
         ) : (
-          <section className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50 p-5 shadow-sm">
+          <section id="sec-explore" className="rounded-[2rem] border border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50 p-5 shadow-sm">
             <p className="text-sm font-semibold text-orange-600">{t('home.popularTitle')}</p>
             <p className="mt-0.5 text-xs text-gray-500">{t('home.popularSubtitle')}</p>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -632,6 +693,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
         )}
 
         {/* 메뉴 배틀 */}
+        <div id="sec-battle">
         <MenuBattle
           lang={lang}
           labels={{
@@ -640,8 +702,10 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
             sameChoice: t('battle.sameChoice'),
           }}
         />
+        </div>
 
         {/* 즐겨찾기 섹션 */}
+        <div id="sec-favorites">
         <FavoritesSection
           favorites={favorites}
           onRemove={removeFavorite}
@@ -658,8 +722,10 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
           }}
           lang={lang}
         />
+        </div>
 
         {/* 흑백요리사 셰프 카드 — K-pop 탭일 때 숨김 */}
+        <div id="sec-chef">
         {searchMode !== 'kpop' && (
           <ChefCard
             lang={lang}
@@ -678,9 +744,10 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
           onIdolSelect={handleKpopIdolSelect}
           onGroupSelect={handleKpopGroupSelect}
         />
+        </div>
 
         {/* 식단 캘린더 + 취향 분석 */}
-        <div className="defer-render">
+        <div id="sec-calendar" className="defer-render">
           <CalendarView
             entries={entries}
             lang={lang}
