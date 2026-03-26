@@ -27,7 +27,7 @@ import { trackEvent } from '@/lib/analytics';
 import { HOUSE_KEYWORDS, VIBE_KEYWORDS, BUDGET_KEYWORDS } from '@/data/filterKeywords';
 import { KPOP_TREND_TOPICS, type KpopIdol, type KpopGroup } from '@/data/kpopIdols';
 import { useKpopRecommend } from '@/hooks/useKpopRecommend';
-import { SITE_URL } from '@/config/site';
+import { SITE_URL, BASE_PATH } from '@/config/site';
 import type { Locale } from '@/config/site';
 import type { FilterState } from '@/types/filter';
 
@@ -36,9 +36,10 @@ const NAV_SECTIONS = [
   { id: 'sec-recommend', label: '추천' },
   { id: 'sec-explore',   label: '탐색' },
   { id: 'sec-battle',    label: '배틀' },
-  { id: 'sec-favorites', label: '즐겨찾기' },
   { id: 'sec-chef',      label: '셰프' },
+  { id: 'sec-kpop',      label: 'K-pop' },
   { id: 'sec-calendar',  label: '캘린더' },
+  { id: 'sec-favorites', label: '즐겨찾기' },
 ] as const;
 
 // IntersectionObserver 기반 스크롤스파이 훅
@@ -421,7 +422,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
             <p className="mt-2 text-sm font-medium text-gray-700">{timeGreeting}</p>
           </div>
           <div className="shrink-0 w-20 h-20 md:w-28 md:h-28">
-            <Image src="/hero-bowl.svg" alt="Food bowl" width={112} height={112} priority className="h-full w-full" />
+            <Image src={`${BASE_PATH}/hero-bowl.svg`} alt="Food bowl" width={112} height={112} priority className="h-full w-full" />
           </div>
         </section>
 
@@ -704,46 +705,28 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
         />
         </div>
 
-        {/* 즐겨찾기 섹션 */}
-        <div id="sec-favorites">
-        <FavoritesSection
-          favorites={favorites}
-          onRemove={removeFavorite}
-          onRecommend={(menuName) => {
-            setSearchMode('ai');
-            setQuery(menuName);
-            recommend(menuName, filters, lang, getRecentMenus(7));
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          labels={{
-            title: t('favorites.title'),
-            empty: t('favorites.empty'),
-            recommend: t('favorites.recommend'),
-          }}
-          lang={lang}
-        />
-        </div>
-
         {/* 흑백요리사 셰프 카드 — K-pop 탭일 때 숨김 */}
         <div id="sec-chef">
-        {searchMode !== 'kpop' && (
-          <ChefCard
-            lang={lang}
-            onChefSelect={(chefName, menu) => {
-              setSearchMode('ai');
-              setQuery(`${chefName} 스타일 ${menu}`);
-              trackEvent('chef_card_click', { lang, chef: chefName, menu });
-              recommend(`${chefName} 스타일 ${menu}`, { ...filters, vibes: ['chef'] }, lang, getRecentMenus(7));
-            }}
-          />
-        )}
+          {searchMode !== 'kpop' && (
+            <ChefCard
+              lang={lang}
+              onChefSelect={(chefName, menu) => {
+                setSearchMode('ai');
+                setQuery(`${chefName} 스타일 ${menu}`);
+                trackEvent('chef_card_click', { lang, chef: chefName, menu });
+                recommend(`${chefName} 스타일 ${menu}`, { ...filters, vibes: ['chef'] }, lang, getRecentMenus(7));
+              }}
+            />
+          )}
+        </div>
 
         {/* K-pop 아이돌 추천 카드 */}
-        <KpopCard
-          lang={lang}
-          onIdolSelect={handleKpopIdolSelect}
-          onGroupSelect={handleKpopGroupSelect}
-        />
+        <div id="sec-kpop">
+          <KpopCard
+            lang={lang}
+            onIdolSelect={handleKpopIdolSelect}
+            onGroupSelect={handleKpopGroupSelect}
+          />
         </div>
 
         {/* 식단 캘린더 + 취향 분석 */}
@@ -774,6 +757,26 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
             onUpdate={handleUpdateEntry}
             favorites={favorites}
             profileLabel={t('profile.title')}
+          />
+        </div>
+
+        {/* 즐겨찾기 섹션 — 맨 아래 배치 */}
+        <div id="sec-favorites">
+          <FavoritesSection
+            favorites={favorites}
+            onRemove={removeFavorite}
+            onRecommend={(menuName) => {
+              setSearchMode('ai');
+              setQuery(menuName);
+              recommend(menuName, filters, lang, getRecentMenus(7));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            labels={{
+              title: t('favorites.title'),
+              empty: t('favorites.empty'),
+              recommend: t('favorites.recommend'),
+            }}
+            lang={lang}
           />
         </div>
       </main>
