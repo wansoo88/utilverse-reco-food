@@ -103,7 +103,7 @@ export const localRecommend = (
 
   return {
     items: selected,
-    tip: '잠시 후 다시 시도하면 AI 추천을 받을 수 있어요',
+    tip: '',
     _fallback: true,
   };
 };

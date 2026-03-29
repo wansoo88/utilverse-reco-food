@@ -37,8 +37,20 @@ export const useRecommend = () => {
         return;
       }
 
-      setData(json);
-      setIsFallback(Boolean(json._fallback));
+      // 빈 결과 방어 — items가 비어있으면 로컬 폴백 재시도
+      if (!json.items || json.items.length === 0) {
+        const fallbackRes = await fetch(apiUrl('/api/recommend'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: '', filters, lang, exclude }),
+        });
+        const fallbackJson = await fallbackRes.json() as MenuRecommendResponse;
+        setData(fallbackJson);
+        setIsFallback(true);
+      } else {
+        setData(json);
+        setIsFallback(Boolean(json._fallback));
+      }
       setStatus('success');
     } catch {
       setError('unknown');

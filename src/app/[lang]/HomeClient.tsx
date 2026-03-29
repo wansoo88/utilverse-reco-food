@@ -21,6 +21,7 @@ import { FavoritesSection } from '@/components/food/FavoritesSection';
 import { MenuBattle } from '@/components/food/MenuBattle';
 import { RateLimitContent } from '@/components/food/RateLimitContent';
 import { InstantRecommend } from '@/components/food/InstantRecommend';
+import { BakeryShowCard } from '@/components/food/BakeryShowCard';
 import { validateInput } from '@/lib/security';
 import { SEO_KEYWORDS } from '@/data/seoKeywords';
 import { trackEvent } from '@/lib/analytics';
@@ -38,6 +39,7 @@ const NAV_SECTIONS = [
   { id: 'sec-battle',    label: '배틀' },
   { id: 'sec-chef',      label: '셰프' },
   { id: 'sec-kpop',      label: 'K-pop' },
+  { id: 'sec-bakery',    label: '천하제빵' },
   { id: 'sec-calendar',  label: '캘린더' },
   { id: 'sec-favorites', label: '즐겨찾기' },
 ] as const;
@@ -106,7 +108,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
   const { favorites, toggleFavorite, removeFavorite, isFavorite } = useFavorites();
   const { history, addHistory, excludedMenus, excludeMenu } = useRecommendHistory();
 
-  const [searchMode, setSearchMode] = useState<SearchMode>('ai');
+  const [searchMode, setSearchMode] = useState<SearchMode>('text');
   const [query, setQuery] = useState('');
   const [kpopQuery, setKpopQuery] = useState('');
   const [selectedIdol, setSelectedIdol] = useState<KpopIdol | null>(null);
@@ -348,9 +350,14 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
   }, [lang, kpopRecommend]);
 
   const handleRecipeSearch = useCallback((menuName: string) => {
-    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(menuName + ' 레시피')}`;
+    // 검색창 키워드를 그대로 YouTube 검색어에 포함
+    const currentQuery = searchMode === 'kpop' ? kpopQuery : query;
+    const youtubeQuery = currentQuery
+      ? `${currentQuery} ${menuName} 레시피`
+      : `${menuName} 레시피`;
+    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(youtubeQuery)}`;
     window.open(searchUrl, '_blank', 'noopener,noreferrer');
-  }, []);
+  }, [searchMode, kpopQuery, query]);
 
   const handleSaveToday = () => {
     if (!data) return;
@@ -502,6 +509,8 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
                     onSelect={(idol) => {
                       setSelectedIdol(idol);
                       setKpopQuery(idol.name);
+                      // 선택 즉시 자동 검색
+                      kpopRecommend(idol.name, lang, idol.name, idol.group);
                     }}
                   />
                 </div>
@@ -740,6 +749,19 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
             lang={lang}
             onIdolSelect={handleKpopIdolSelect}
             onGroupSelect={handleKpopGroupSelect}
+          />
+        </div>
+
+        {/* 천하제빵 섹션 */}
+        <div id="sec-bakery">
+          <BakeryShowCard
+            lang={lang}
+            onMenuSearch={(searchQuery) => {
+              setSearchMode('text');
+              setQuery(searchQuery);
+              recommend(searchQuery, filters, lang, getRecentMenus(7));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
           />
         </div>
 
