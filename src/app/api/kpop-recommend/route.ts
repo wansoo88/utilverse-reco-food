@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     // Step 1: Gemini 시도 (flash-lite 단일 모델 — 쿼터 절약)
     if (geminiKeys.length > 0) {
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
-      const GEMINI_MODEL = 'gemini-2.0-flash-lite';
+      const GEMINI_MODEL = 'gemini-2.5-flash';
 
       for (const apiKey of geminiKeys) {
         const genAI = new GoogleGenerativeAI(apiKey);

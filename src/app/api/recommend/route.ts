@@ -69,10 +69,10 @@ export async function POST(req: NextRequest) {
     const { buildUserPrompt, SYSTEM_PROMPT } = await import('@/lib/promptBuilder');
     const userPrompt = buildUserPrompt(sanitized, filters, lang, exclude);
 
-    // Step 1: Gemini 시도 (키 순환, flash-lite 단일 모델 — 쿼터 절약)
+    // Step 1: Gemini 시도 (gemini-2.5-flash — 2.0-flash-lite free tier deprecated)
     if (geminiKeys.length > 0) {
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
-      const GEMINI_MODEL = 'gemini-2.0-flash-lite';
+      const GEMINI_MODEL = 'gemini-2.5-flash';
 
       for (const apiKey of geminiKeys) {
         const genAI = new GoogleGenerativeAI(apiKey);
