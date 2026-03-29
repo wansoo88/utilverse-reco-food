@@ -117,6 +117,15 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
   const navSectionIds = NAV_SECTIONS.map((s) => s.id) as readonly string[];
   const activeSection = useScrollSpy(navSectionIds);
   const navRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // 최초 접속 시 검색창 자동 포커스
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   const quickTopics = SEO_KEYWORDS.slice(0, 8);
 
@@ -430,9 +439,10 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
         {!hasResult && (
           <InstantRecommend
             onSearch={(menuName) => {
-              setSearchMode('ai');
+              setSearchMode('text');
               setQuery(menuName);
-              recommend(menuName, filters, lang, getRecentMenus(7));
+              // 검색창에 key-in만, 자동 실행 없음
+              setTimeout(() => searchInputRef.current?.focus(), 100);
             }}
             lastMenu={lastCalendarMenu}
           />
@@ -488,6 +498,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
                     lang={lang}
                     value={kpopQuery}
                     onChange={setKpopQuery}
+                    onSearch={() => handleSubmit()}
                     onSelect={(idol) => {
                       setSelectedIdol(idol);
                       setKpopQuery(idol.name);
@@ -503,28 +514,31 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
                 </button>
               </div>
             ) : (
-              <div className="relative">
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-                  placeholder={modeConfig[searchMode].placeholder}
-                  maxLength={200}
-                  className="w-full rounded-2xl border border-gray-200 px-5 py-3.5 pr-32 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
-                />
-                {query && (
-                  <button
-                    onClick={handleReset}
-                    className="absolute right-24 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    ✕
-                  </button>
-                )}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                    placeholder={modeConfig[searchMode].placeholder}
+                    maxLength={200}
+                    className="w-full rounded-2xl border border-gray-200 px-5 py-3.5 pr-10 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                  />
+                  {query && (
+                    <button
+                      onClick={handleReset}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
                 <button
                   onClick={() => handleSubmit()}
                   disabled={status === 'loading' || blocked}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2 text-xs font-bold text-white transition-colors disabled:opacity-50"
+                  className="shrink-0 rounded-2xl bg-orange-500 hover:bg-orange-600 px-5 py-3.5 text-sm font-bold text-white transition-colors disabled:opacity-50"
                 >
                   {status === 'loading' ? '...' : blocked ? `${remainingSeconds}s` : modeConfig[searchMode].submit}
                 </button>

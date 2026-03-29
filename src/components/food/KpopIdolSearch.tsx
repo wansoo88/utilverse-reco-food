@@ -9,6 +9,7 @@ interface KpopIdolSearchProps {
   placeholder?: string;
   value?: string;
   onChange?: (value: string) => void;
+  onSearch?: () => void; // Enter 키 또는 검색 트리거
 }
 
 const LABELS: Record<string, { placeholder: string; noResult: string }> = {
@@ -18,7 +19,7 @@ const LABELS: Record<string, { placeholder: string; noResult: string }> = {
   zh: { placeholder: '搜索偶像名字', noResult: '未找到结果' },
 };
 
-export const KpopIdolSearch = ({ lang, onSelect, placeholder, value, onChange }: KpopIdolSearchProps) => {
+export const KpopIdolSearch = ({ lang, onSelect, placeholder, value, onChange, onSearch }: KpopIdolSearchProps) => {
   const [query, setQuery] = useState(value ?? '');
   const [showDropdown, setShowDropdown] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,6 +64,12 @@ export const KpopIdolSearch = ({ lang, onSelect, placeholder, value, onChange }:
           setQuery(e.target.value);
           onChange?.(e.target.value);
           setShowDropdown(true);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            setShowDropdown(false);
+            onSearch?.();
+          }
         }}
         onFocus={() => setShowDropdown(true)}
         placeholder={placeholder ?? labels.placeholder}

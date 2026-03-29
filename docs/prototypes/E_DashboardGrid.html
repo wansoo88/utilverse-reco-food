@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>프로토타입 E: Dashboard Grid</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+</head>
+<body class="bg-gray-100">
+
+  <!-- GNB -->
+  <header class="sticky top-0 z-40 bg-white border-b">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <span class="text-lg font-bold text-orange-500">오늘뭐먹지</span>
+      <nav class="hidden md:flex items-center gap-4 text-sm text-gray-500">
+        <a href="#search" class="hover:text-orange-500 font-medium text-orange-500">추천</a>
+        <a href="#explore" class="hover:text-orange-500">탐색</a>
+        <a href="#my" class="hover:text-orange-500">마이</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <select class="text-xs border rounded-lg px-2 py-1 bg-white">
+          <option>🇰🇷 한국어</option><option>🇺🇸 English</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+
+    <!-- ━━ 2열 그리드 ━━ -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+      <!-- 좌측: 메인 영역 (2/3) -->
+      <div class="lg:col-span-2 space-y-4">
+
+        <!-- 검색 카드 -->
+        <div id="search" class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-xl font-bold text-gray-800">오늘 뭐 먹지?</h1>
+              <p class="text-sm text-gray-500">🌙 저녁 시간이에요. 오늘 저녁은 뭐 드실 건가요?</p>
+            </div>
+            <span class="text-5xl">🍜</span>
+          </div>
+          <!-- 모드 탭 -->
+          <div class="flex gap-1 bg-gray-100 rounded-xl p-1">
+            <button class="flex-1 py-2.5 text-sm rounded-lg bg-white shadow font-semibold text-orange-600">🍽️ 메뉴추천</button>
+            <button class="flex-1 py-2.5 text-sm rounded-lg text-gray-500 hover:bg-gray-50">🤖 AI검색</button>
+            <button class="flex-1 py-2.5 text-sm rounded-lg text-gray-500 hover:bg-gray-50">⭐ K-pop</button>
+          </div>
+          <!-- 검색 입력 -->
+          <div class="relative">
+            <input type="text" placeholder="현재 상황이나 원하는 메뉴를 입력하세요" class="w-full border border-gray-200 rounded-xl px-4 py-3.5 pr-24 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+            <button class="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-500 text-white text-sm px-4 py-2 rounded-lg font-medium">추천받기</button>
+          </div>
+          <!-- 필터 칩 -->
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs font-medium cursor-pointer">해먹기</span>
+            <span class="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs cursor-pointer hover:bg-gray-200">시켜먹기</span>
+            <span class="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs font-medium cursor-pointer">1인</span>
+            <span class="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs cursor-pointer hover:bg-gray-200">야근후</span>
+            <span class="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs cursor-pointer hover:bg-gray-200">예산무관</span>
+          </div>
+        </div>
+
+        <!-- 즉시 추천 배너 -->
+        <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-4 flex items-center gap-4">
+          <span class="text-4xl">🍳</span>
+          <div class="flex-1">
+            <p class="text-xs text-orange-600 font-medium">지금 딱 좋은 메뉴</p>
+            <p class="text-lg font-bold text-orange-900">계란볶음밥</p>
+            <p class="text-xs text-gray-500 mt-0.5">냉장고에 있는 재료로 5분만에 뚝딱</p>
+          </div>
+          <button class="bg-orange-500 text-white text-sm px-4 py-2 rounded-xl font-medium shrink-0">AI 추천받기</button>
+        </div>
+
+        <!-- 추천 결과 -->
+        <div class="bg-white rounded-2xl shadow-sm p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold">🍳 해먹기 추천</h3>
+            <button class="text-sm text-orange-500">🔄 다른 메뉴</button>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-4 p-4 bg-orange-50 rounded-2xl">
+              <span class="text-3xl">🍲</span>
+              <div class="flex-1">
+                <p class="font-bold">순두부찌개</p>
+                <p class="text-sm text-gray-500 mt-0.5">부드럽고 얼큰한 저녁 메뉴. 두부 영양소 가득!</p>
+              </div>
+              <button class="text-gray-300 hover:text-red-400 text-2xl transition">♥</button>
+            </div>
+            <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
+              <span class="text-3xl">🥘</span>
+              <div class="flex-1">
+                <p class="font-bold">삼겹살 구이</p>
+                <p class="text-sm text-gray-500 mt-0.5">오늘 같은 날엔 역시 고기!</p>
+              </div>
+              <button class="text-gray-300 hover:text-red-400 text-2xl transition">♥</button>
+            </div>
+          </div>
+          <div class="flex gap-2 pt-2 border-t">
+            <button class="flex-1 text-sm py-2.5 bg-gray-50 hover:bg-gray-100 rounded-xl transition">📅 오늘 식단 저장</button>
+            <button class="flex-1 text-sm py-2.5 bg-gray-50 hover:bg-gray-100 rounded-xl transition">📤 공유하기</button>
+          </div>
+        </div>
+
+        <!-- 인기 추천 -->
+        <div class="bg-white rounded-2xl shadow-sm p-5">
+          <h2 class="font-bold mb-3">🔥 인기 추천 상황</h2>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <button class="bg-gray-50 hover:bg-orange-50 hover:text-orange-600 rounded-xl p-3 text-sm transition text-left">🌧️ 비오는 날</button>
+            <button class="bg-gray-50 hover:bg-orange-50 hover:text-orange-600 rounded-xl p-3 text-sm transition text-left">🍜 혼밥 메뉴</button>
+            <button class="bg-gray-50 hover:bg-orange-50 hover:text-orange-600 rounded-xl p-3 text-sm transition text-left">💪 다이어트</button>
+            <button class="bg-gray-50 hover:bg-orange-50 hover:text-orange-600 rounded-xl p-3 text-sm transition text-left">🌙 야식</button>
+            <button class="bg-gray-50 hover:bg-orange-50 hover:text-orange-600 rounded-xl p-3 text-sm transition text-left">👨‍👩‍👧 가족 외식</button>
+            <button class="bg-gray-50 hover:bg-orange-50 hover:text-orange-600 rounded-xl p-3 text-sm transition text-left">💰 만원 이하</button>
+            <button class="bg-gray-50 hover:bg-orange-50 hover:text-orange-600 rounded-xl p-3 text-sm transition text-left">🎉 특별한 날</button>
+            <button class="bg-gray-50 hover:bg-orange-50 hover:text-orange-600 rounded-xl p-3 text-sm transition text-left">🏠 홈쿡</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 우측: 사이드바 위젯 (1/3) -->
+      <div id="my" class="space-y-4">
+
+        <!-- 즐겨찾기 위젯 -->
+        <div class="bg-white rounded-2xl shadow-sm p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold">♥ 즐겨찾기</h3>
+            <span class="text-xs text-gray-400">3개</span>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-sm"><span>🍲</span><span class="flex-1 truncate">된장찌개</span><button class="text-[10px] text-orange-500">추천</button></div>
+            <div class="flex items-center gap-2 text-sm"><span>🍕</span><span class="flex-1 truncate">마르게리타 피자</span><button class="text-[10px] text-orange-500">추천</button></div>
+            <div class="flex items-center gap-2 text-sm"><span>🍣</span><span class="flex-1 truncate">연어초밥</span><button class="text-[10px] text-orange-500">추천</button></div>
+          </div>
+          <button class="mt-3 w-full text-xs text-center text-orange-500 bg-orange-50 py-2 rounded-xl">전체보기</button>
+        </div>
+
+        <!-- 캘린더 미니 위젯 -->
+        <div class="bg-white rounded-2xl shadow-sm p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold">📅 이번 주</h3>
+            <span class="text-xs text-orange-500">7일 연속 기록 🔥</span>
+          </div>
+          <div class="grid grid-cols-7 gap-1 text-center">
+            <span class="text-[10px] text-gray-400">월</span><span class="text-[10px] text-gray-400">화</span><span class="text-[10px] text-gray-400">수</span><span class="text-[10px] text-gray-400">목</span><span class="text-[10px] text-gray-400">금</span><span class="text-[10px] text-red-400">토</span><span class="text-[10px] text-red-400">일</span>
+            <div class="aspect-square bg-orange-100 rounded-lg flex items-center justify-center text-sm">🍲</div>
+            <div class="aspect-square bg-orange-100 rounded-lg flex items-center justify-center text-sm">🍕</div>
+            <div class="aspect-square bg-blue-100 rounded-lg flex items-center justify-center text-sm">🍔</div>
+            <div class="aspect-square bg-orange-100 rounded-lg flex items-center justify-center text-sm">🍜</div>
+            <div class="aspect-square bg-gray-50 rounded-lg flex items-center justify-center text-[10px] text-gray-300">-</div>
+            <div class="aspect-square bg-gray-50 rounded-lg flex items-center justify-center text-[10px] text-gray-300">-</div>
+            <div class="aspect-square ring-2 ring-orange-400 bg-orange-50 rounded-lg flex items-center justify-center text-[10px] font-bold text-orange-600">오늘</div>
+          </div>
+          <div class="mt-3 text-xs text-blue-600 bg-blue-50 rounded-xl p-2.5">해먹기가 많았어요. 오늘은 시켜먹는 건?</div>
+        </div>
+
+        <!-- 취향 위젯 -->
+        <div class="bg-white rounded-2xl shadow-sm p-4">
+          <h3 class="font-semibold mb-3">📊 나의 취향</h3>
+          <div class="space-y-2.5">
+            <div class="flex items-center gap-2 text-xs"><span class="w-7 text-gray-500">한식</span><div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-red-400 rounded-full" style="width:55%"></div></div><span class="text-gray-400 text-[10px]">55%</span></div>
+            <div class="flex items-center gap-2 text-xs"><span class="w-7 text-gray-500">양식</span><div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-blue-400 rounded-full" style="width:25%"></div></div><span class="text-gray-400 text-[10px]">25%</span></div>
+            <div class="flex items-center gap-2 text-xs"><span class="w-7 text-gray-500">일식</span><div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-green-400 rounded-full" style="width:15%"></div></div><span class="text-gray-400 text-[10px]">15%</span></div>
+            <div class="flex items-center gap-2 text-xs"><span class="w-7 text-gray-500">중식</span><div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-yellow-400 rounded-full" style="width:5%"></div></div><span class="text-gray-400 text-[10px]">5%</span></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-3">
+            <div class="bg-orange-50 rounded-xl p-2.5 text-center"><p class="text-xl font-bold text-orange-600">7</p><p class="text-[10px] text-orange-400">연속기록</p></div>
+            <div class="bg-blue-50 rounded-xl p-2.5 text-center"><p class="text-xl font-bold text-blue-600">23</p><p class="text-[10px] text-blue-400">이번달</p></div>
+          </div>
+        </div>
+
+        <!-- 메뉴 배틀 미니 -->
+        <div class="bg-white rounded-2xl shadow-sm p-4">
+          <h3 class="font-semibold mb-3">🎯 오늘의 대결</h3>
+          <div class="flex items-center gap-2">
+            <button class="flex-1 bg-orange-50 hover:bg-orange-100 rounded-xl p-3 text-center transition">
+              <span class="text-2xl block">🍕</span><span class="text-xs mt-1 block font-medium">피자</span>
+            </button>
+            <span class="text-xs font-bold text-gray-300">VS</span>
+            <button class="flex-1 bg-orange-50 hover:bg-orange-100 rounded-xl p-3 text-center transition">
+              <span class="text-2xl block">🍔</span><span class="text-xs mt-1 block font-medium">햄버거</span>
+            </button>
+          </div>
+          <p class="text-[10px] text-gray-400 text-center mt-2">피자 62% vs 햄버거 38%</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ━━ 하단: 탐색 섹션 ━━ -->
+    <div id="explore" class="mt-6 space-y-4">
+      <h2 class="text-lg font-bold">탐색</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white rounded-2xl shadow-sm p-4">
+          <h3 class="font-bold mb-3">👨‍🍳 흑백요리사 Top 10</h3>
+          <div class="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+            <div class="shrink-0 text-center w-18"><div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-2xl mx-auto">👨‍🍳</div><p class="text-xs font-medium mt-1.5">에드워드 리</p><p class="text-[10px] text-purple-400">🥇 1위</p></div>
+            <div class="shrink-0 text-center w-18"><div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-2xl mx-auto">👩‍🍳</div><p class="text-xs font-medium mt-1.5">최현석</p><p class="text-[10px] text-purple-400">🥈 2위</p></div>
+            <div class="shrink-0 text-center w-18"><div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-2xl mx-auto">👨‍🍳</div><p class="text-xs font-medium mt-1.5">나폴리맛피아</p><p class="text-[10px] text-purple-400">🥉 3위</p></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-4">
+          <h3 class="font-bold mb-3">⭐ K-pop 아이돌 메뉴</h3>
+          <div class="flex flex-wrap gap-2">
+            <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm hover:bg-pink-100 transition">BTS 정국</button>
+            <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm hover:bg-pink-100 transition">BLACKPINK 리사</button>
+            <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm hover:bg-pink-100 transition">NewJeans</button>
+            <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm hover:bg-pink-100 transition">aespa 카리나</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-white border-t mt-8 px-4 py-6 text-center text-xs text-gray-400">
+    <p class="font-medium text-gray-500 mb-1">AI 음식 추천 서비스</p>
+    <p>© 2026 utilverse.info. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>

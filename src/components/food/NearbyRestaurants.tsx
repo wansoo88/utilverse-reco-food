@@ -121,6 +121,28 @@ export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) =
     searchRestaurants();
   }, [searchRestaurants]);
 
+  // 컴포넌트 마운트 시 자동으로 위치 권한 요청
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      searchRestaurants();
+      return;
+    }
+    // 이미 권한 확인된 경우 바로 실행
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+        if (result.state === 'granted') {
+          handleAllowLocation();
+        } else if (result.state === 'denied') {
+          setGeoStatus('denied');
+          searchRestaurants();
+        }
+        // 'prompt' 상태면 사용자 클릭 대기 (기존 UI)
+      }).catch(() => {
+        // permissions API 미지원 브라우저 → 기존 UI 유지
+      });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── 위치 동의 프롬프트 ──
   if (geoStatus === 'prompt') {
     return (

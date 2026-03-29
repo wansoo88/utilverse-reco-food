@@ -88,8 +88,8 @@
   },
   "insight": {
     "title": "📊 Meal Pattern",
-    "cookHeavy": "You've been cooking a lot in the last {{count}} days. How about ordering in today?",
-    "orderHeavy": "You've ordered a lot in the last {{count}} days. How about cooking today?",
+    "cookHeavy": "You've been cooking a lot in the last __count__ days. How about ordering in today?",
+    "orderHeavy": "You've ordered a lot in the last __count__ days. How about cooking today?",
     "balanced": "Great balance of cooking and ordering 👏",
     "noData": "Record your meals to get pattern insights"
   },

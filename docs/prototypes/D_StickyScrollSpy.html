@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>프로토타입 D: Sticky Scroll Spy</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .nav-pill { transition: all 0.2s; }
+  html { scroll-behavior: smooth; }
+</style>
+</head>
+<body class="bg-gray-50">
+<div class="min-h-screen flex flex-col max-w-lg mx-auto bg-gray-50">
+
+  <!-- GNB -->
+  <header id="gnb" class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b px-4 py-3 flex items-center justify-between">
+    <span class="text-lg font-bold text-orange-500">오늘뭐먹지</span>
+    <select class="text-xs border rounded-lg px-2 py-1 bg-white">
+      <option>🇰🇷 한국어</option><option>🇺🇸 English</option>
+    </select>
+  </header>
+
+  <!-- 검색 영역 (항상 상단) -->
+  <div class="px-4 py-4 space-y-4">
+    <div class="flex items-center justify-between">
+      <div><h1 class="text-xl font-bold">오늘 뭐 먹지?</h1><p class="text-sm text-gray-500">🌙 저녁 시간이에요</p></div>
+      <span class="text-4xl">🍜</span>
+    </div>
+    <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-4 flex items-center gap-3">
+      <span class="text-3xl">🍲</span>
+      <div class="flex-1"><p class="text-xs text-orange-600 font-medium">지금 딱 좋은 메뉴</p><p class="font-bold text-orange-900">부대찌개</p></div>
+      <button class="text-xs bg-orange-500 text-white px-3 py-1.5 rounded-full">바로 추천</button>
+    </div>
+    <section class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+      <div class="flex gap-1 bg-gray-100 rounded-xl p-1">
+        <button class="flex-1 py-2 text-sm rounded-lg bg-white shadow font-semibold text-orange-600">🍽️ 메뉴추천</button>
+        <button class="flex-1 py-2 text-sm rounded-lg text-gray-500">🤖 AI검색</button>
+        <button class="flex-1 py-2 text-sm rounded-lg text-gray-500">⭐ K-pop</button>
+      </div>
+      <div class="relative">
+        <input type="text" placeholder="현재 상황이나 원하는 메뉴를 입력하세요" class="w-full border border-gray-200 rounded-xl px-4 py-3 pr-20 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+        <button class="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-500 text-white text-xs px-3 py-1.5 rounded-lg">추천받기</button>
+      </div>
+    </section>
+    <!-- 결과 -->
+    <section class="bg-white rounded-2xl shadow-sm p-4 space-y-2">
+      <div class="flex items-center justify-between"><h3 class="font-bold text-sm">AI 추천 결과</h3><button class="text-xs text-orange-500">🔄 다른 메뉴</button></div>
+      <div class="flex items-center gap-3 p-3 bg-orange-50 rounded-xl">
+        <span class="text-2xl">🍲</span><div class="flex-1"><p class="font-semibold text-sm">순두부찌개</p><p class="text-xs text-gray-500">부드럽고 얼큰한 저녁 메뉴</p></div>
+        <button class="text-gray-300 hover:text-red-400 text-lg">♥</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ━━ Sticky Section Navigation ━━ -->
+  <div class="sticky top-[52px] z-30 bg-white/95 backdrop-blur border-b">
+    <div class="overflow-x-auto scrollbar-hide">
+      <div class="flex px-4 gap-1.5 py-2 min-w-max">
+        <button onclick="scrollToSection('popular')" id="pill-popular" class="nav-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-orange-500 text-white">🔥 인기</button>
+        <button onclick="scrollToSection('battle')" id="pill-battle" class="nav-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 hover:bg-gray-200">🎯 대결</button>
+        <button onclick="scrollToSection('favorites')" id="pill-favorites" class="nav-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 hover:bg-gray-200">♥ 즐겨찾기</button>
+        <button onclick="scrollToSection('chef')" id="pill-chef" class="nav-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 hover:bg-gray-200">👨‍🍳 셰프</button>
+        <button onclick="scrollToSection('kpop')" id="pill-kpop" class="nav-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 hover:bg-gray-200">⭐ K-pop</button>
+        <button onclick="scrollToSection('calendar')" id="pill-calendar" class="nav-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 hover:bg-gray-200">📅 캘린더</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ━━ 섹션들 ━━ -->
+  <div class="px-4 pb-12 space-y-6 mt-4">
+
+    <!-- 인기 추천 -->
+    <section id="popular" class="scroll-mt-28 space-y-3">
+      <h2 class="text-lg font-bold">🔥 인기 추천 상황</h2>
+      <div class="grid grid-cols-2 gap-2">
+        <button class="bg-white rounded-xl p-3 text-sm shadow-sm text-left hover:shadow-md transition">🌧️ 비오는 날</button>
+        <button class="bg-white rounded-xl p-3 text-sm shadow-sm text-left hover:shadow-md transition">🍜 혼밥 메뉴</button>
+        <button class="bg-white rounded-xl p-3 text-sm shadow-sm text-left hover:shadow-md transition">💪 다이어트</button>
+        <button class="bg-white rounded-xl p-3 text-sm shadow-sm text-left hover:shadow-md transition">🌙 야식</button>
+        <button class="bg-white rounded-xl p-3 text-sm shadow-sm text-left hover:shadow-md transition">👨‍👩‍👧 가족 외식</button>
+        <button class="bg-white rounded-xl p-3 text-sm shadow-sm text-left hover:shadow-md transition">💰 만원 이하</button>
+      </div>
+    </section>
+
+    <!-- 메뉴 배틀 -->
+    <section id="battle" class="scroll-mt-28">
+      <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+        <h2 class="font-bold">🎯 오늘의 메뉴 대결</h2>
+        <div class="flex items-center gap-3">
+          <button class="flex-1 bg-orange-50 hover:bg-orange-100 rounded-xl p-5 text-center transition"><span class="text-4xl block">🍕</span><span class="font-medium mt-2 block">피자</span></button>
+          <span class="font-bold text-gray-300 text-xl">VS</span>
+          <button class="flex-1 bg-orange-50 hover:bg-orange-100 rounded-xl p-5 text-center transition"><span class="text-4xl block">🍔</span><span class="font-medium mt-2 block">햄버거</span></button>
+        </div>
+        <p class="text-xs text-center text-gray-400">지금까지 피자 62% vs 햄버거 38%</p>
+      </div>
+    </section>
+
+    <!-- 즐겨찾기 -->
+    <section id="favorites" class="scroll-mt-28">
+      <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+        <div class="flex items-center justify-between"><h2 class="font-bold">♥ 즐겨찾기 메뉴북</h2><span class="text-xs text-gray-400">3개</span></div>
+        <div class="space-y-2">
+          <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-xl"><span class="text-xl">🍲</span><div class="flex-1"><p class="text-sm font-medium">된장찌개</p><p class="text-[10px] text-gray-400">한식</p></div><button class="text-xs text-orange-500 bg-orange-50 px-2 py-1 rounded-lg">추천받기</button></div>
+          <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-xl"><span class="text-xl">🍕</span><div class="flex-1"><p class="text-sm font-medium">마르게리타 피자</p><p class="text-[10px] text-gray-400">양식</p></div><button class="text-xs text-orange-500 bg-orange-50 px-2 py-1 rounded-lg">추천받기</button></div>
+          <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-xl"><span class="text-xl">🍣</span><div class="flex-1"><p class="text-sm font-medium">연어초밥</p><p class="text-[10px] text-gray-400">일식</p></div><button class="text-xs text-orange-500 bg-orange-50 px-2 py-1 rounded-lg">추천받기</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 셰프 -->
+    <section id="chef" class="scroll-mt-28">
+      <div class="bg-white rounded-2xl shadow-sm p-4">
+        <h2 class="font-bold mb-3">👨‍🍳 흑백요리사 Top 10</h2>
+        <div class="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+          <div class="shrink-0 text-center w-20"><div class="w-16 h-16 bg-purple-100 rounded-2xl mx-auto flex items-center justify-center text-2xl">👨‍🍳</div><p class="text-xs font-medium mt-1">에드워드 리</p><p class="text-[10px] text-purple-400">🥇 1위</p></div>
+          <div class="shrink-0 text-center w-20"><div class="w-16 h-16 bg-purple-100 rounded-2xl mx-auto flex items-center justify-center text-2xl">👩‍🍳</div><p class="text-xs font-medium mt-1">최현석</p><p class="text-[10px] text-purple-400">🥈 2위</p></div>
+          <div class="shrink-0 text-center w-20"><div class="w-16 h-16 bg-purple-100 rounded-2xl mx-auto flex items-center justify-center text-2xl">👨‍🍳</div><p class="text-xs font-medium mt-1">나폴리맛피아</p><p class="text-[10px] text-purple-400">🥉 3위</p></div>
+          <div class="shrink-0 text-center w-20"><div class="w-16 h-16 bg-purple-100 rounded-2xl mx-auto flex items-center justify-center text-2xl">👩‍🍳</div><p class="text-xs font-medium mt-1">여경래</p><p class="text-[10px] text-gray-400">4위</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- K-pop -->
+    <section id="kpop" class="scroll-mt-28">
+      <div class="bg-white rounded-2xl shadow-sm p-4">
+        <h2 class="font-bold mb-3">⭐ K-pop 아이돌 메뉴</h2>
+        <input type="text" placeholder="아이돌 이름을 검색하세요" class="w-full border rounded-xl px-4 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-pink-300">
+        <div class="flex flex-wrap gap-2">
+          <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm">BTS 정국</button>
+          <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm">BLACKPINK 리사</button>
+          <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm">NewJeans</button>
+          <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm">aespa 카리나</button>
+          <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm">IVE 장원영</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 캘린더 -->
+    <section id="calendar" class="scroll-mt-28 space-y-3">
+      <div class="bg-white rounded-2xl shadow-sm p-4">
+        <div class="flex items-center justify-between mb-3"><h2 class="font-bold">📅 이번 주 캘린더</h2><div class="flex gap-1"><button class="px-3 py-1 text-xs bg-orange-100 text-orange-600 rounded-lg">주간</button><button class="px-3 py-1 text-xs bg-gray-100 text-gray-500 rounded-lg">월간</button></div></div>
+        <div class="grid grid-cols-7 gap-1 text-center">
+          <span class="text-[10px] text-gray-400">월</span><span class="text-[10px] text-gray-400">화</span><span class="text-[10px] text-gray-400">수</span><span class="text-[10px] text-gray-400">목</span><span class="text-[10px] text-gray-400">금</span><span class="text-[10px] text-red-400">토</span><span class="text-[10px] text-red-400">일</span>
+          <div class="aspect-square bg-orange-100 rounded-xl flex items-center justify-center">🍲</div>
+          <div class="aspect-square bg-orange-100 rounded-xl flex items-center justify-center">🍕</div>
+          <div class="aspect-square bg-blue-100 rounded-xl flex items-center justify-center">🍔</div>
+          <div class="aspect-square bg-orange-100 rounded-xl flex items-center justify-center">🍜</div>
+          <div class="aspect-square bg-gray-50 rounded-xl flex items-center justify-center text-xs text-gray-300">28</div>
+          <div class="aspect-square bg-gray-50 rounded-xl flex items-center justify-center text-xs text-gray-300">29</div>
+          <div class="aspect-square ring-2 ring-orange-400 bg-orange-50 rounded-xl flex items-center justify-center text-xs font-bold text-orange-600">오늘</div>
+        </div>
+      </div>
+      <div class="bg-blue-50 rounded-2xl p-4 text-sm text-blue-600">📊 최근 7일 해먹기가 많았어요. 오늘은 시켜먹는 건 어떨까요?</div>
+    </section>
+  </div>
+
+  <footer class="bg-white border-t px-4 py-6 text-center text-xs text-gray-400">
+    <p>© 2026 utilverse.info. All rights reserved.</p>
+  </footer>
+</div>
+
+<script>
+const sections = ['popular','battle','favorites','chef','kpop','calendar'];
+function scrollToSection(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setActivePill(id);
+}
+function setActivePill(id) {
+  sections.forEach(s => {
+    const pill = document.getElementById('pill-'+s);
+    pill.className = 'nav-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 hover:bg-gray-200';
+  });
+  const active = document.getElementById('pill-'+id);
+  active.className = 'nav-pill shrink-0 px-3 py-1.5 rounded-full text-xs font-medium bg-orange-500 text-white';
+}
+// IntersectionObserver
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) setActivePill(e.target.id); });
+}, { rootMargin: '-120px 0px -60% 0px', threshold: 0.1 });
+sections.forEach(id => { const el = document.getElementById(id); if(el) obs.observe(el); });
+</script>
+</body>
+</html>

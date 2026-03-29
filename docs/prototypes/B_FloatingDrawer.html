@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>프로토타입 B: FAB + Bottom Sheet Drawer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .drawer { transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0.72,0,1); }
+  .drawer.open { transform: translateY(0); }
+  .dim { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .dim.open { opacity: 1; pointer-events: auto; }
+  details summary { list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+</style>
+</head>
+<body class="bg-gray-50">
+<div class="min-h-screen flex flex-col max-w-md mx-auto bg-gray-50 relative">
+
+  <!-- GNB -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b px-4 py-3 flex items-center justify-between">
+    <span class="text-lg font-bold text-orange-500">오늘뭐먹지</span>
+    <div class="flex items-center gap-3">
+      <button onclick="openDrawer('favorites')" class="text-xl text-gray-400 hover:text-red-400 transition">♥</button>
+      <select class="text-xs border rounded-lg px-2 py-1 bg-white">
+        <option>🇰🇷 한국어</option><option>🇺🇸 English</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- 메인: 검색+결과 집중 -->
+  <main class="flex-1 px-4 py-4 space-y-4 pb-24">
+    <!-- 히어로 컴팩트 -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-bold text-gray-800">오늘 뭐 먹지?</h1>
+        <p class="text-sm text-gray-500">🌙 저녁 시간이에요</p>
+      </div>
+      <span class="text-4xl">🍜</span>
+    </div>
+
+    <!-- 즉시 추천 배너 -->
+    <div class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-4 flex items-center gap-3">
+      <span class="text-3xl">🍳</span>
+      <div class="flex-1">
+        <p class="text-xs text-orange-600 font-medium">지금 딱 좋은 메뉴</p>
+        <p class="font-bold text-orange-900">부대찌개</p>
+      </div>
+      <button class="text-xs bg-orange-500 text-white px-3 py-1.5 rounded-full shrink-0">바로 추천</button>
+    </div>
+
+    <!-- 통합 검색 카드 -->
+    <section class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+      <div class="flex gap-1 bg-gray-100 rounded-xl p-1">
+        <button class="flex-1 py-2 text-sm rounded-lg bg-white shadow font-semibold text-orange-600">🍽️ 메뉴추천</button>
+        <button class="flex-1 py-2 text-sm rounded-lg text-gray-500">🤖 AI검색</button>
+        <button class="flex-1 py-2 text-sm rounded-lg text-gray-500">⭐ K-pop</button>
+      </div>
+      <div class="relative">
+        <input type="text" placeholder="현재 상황이나 원하는 메뉴를 입력하세요" class="w-full border border-gray-200 rounded-xl px-4 py-3 pr-20 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+        <button class="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-500 text-white text-xs px-3 py-1.5 rounded-lg">추천받기</button>
+      </div>
+    </section>
+
+    <!-- 추천 결과 -->
+    <section class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-sm">AI 추천 결과</h3>
+        <button class="text-xs text-orange-500">🔄 다른 메뉴</button>
+      </div>
+      <div class="space-y-2">
+        <div class="flex items-center gap-3 p-3 bg-orange-50 rounded-xl">
+          <span class="text-2xl">🍲</span>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">순두부찌개</p>
+            <p class="text-xs text-gray-500">부드럽고 얼큰한 저녁 메뉴</p>
+          </div>
+          <button class="text-gray-300 hover:text-red-400 text-lg">♥</button>
+        </div>
+        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+          <span class="text-2xl">🍖</span>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">삼겹살</p>
+            <p class="text-xs text-gray-500">오늘 같은 날엔 고기!</p>
+          </div>
+          <button class="text-gray-300 hover:text-red-400 text-lg">♥</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 인기 추천 (수평 스크롤 칩) -->
+    <section>
+      <h2 class="text-sm font-semibold text-gray-500 mb-2">인기 추천</h2>
+      <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <button class="shrink-0 bg-white rounded-full px-4 py-2 text-sm shadow-sm">🌧️ 비오는날</button>
+        <button class="shrink-0 bg-white rounded-full px-4 py-2 text-sm shadow-sm">🍜 혼밥</button>
+        <button class="shrink-0 bg-white rounded-full px-4 py-2 text-sm shadow-sm">💰 만원이하</button>
+        <button class="shrink-0 bg-white rounded-full px-4 py-2 text-sm shadow-sm">💪 다이어트</button>
+        <button class="shrink-0 bg-white rounded-full px-4 py-2 text-sm shadow-sm">🌙 야식</button>
+        <button class="shrink-0 bg-white rounded-full px-4 py-2 text-sm shadow-sm">🎉 특별한날</button>
+      </div>
+    </section>
+
+    <!-- 메뉴 배틀 (접이식) -->
+    <details class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <summary class="p-4 font-semibold cursor-pointer flex items-center justify-between">
+        <span>🎯 오늘의 메뉴 대결</span>
+        <span class="text-gray-400 text-sm">▾</span>
+      </summary>
+      <div class="px-4 pb-4">
+        <div class="flex items-center gap-3">
+          <button class="flex-1 bg-orange-50 hover:bg-orange-100 rounded-xl p-4 text-center transition"><span class="text-3xl block">🍕</span><span class="text-sm mt-1 block font-medium">피자</span></button>
+          <span class="text-sm font-bold text-gray-300">VS</span>
+          <button class="flex-1 bg-orange-50 hover:bg-orange-100 rounded-xl p-4 text-center transition"><span class="text-3xl block">🍔</span><span class="text-sm mt-1 block font-medium">햄버거</span></button>
+        </div>
+      </div>
+    </details>
+
+    <!-- 흑백요리사 (접이식) -->
+    <details class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <summary class="p-4 font-semibold cursor-pointer flex items-center justify-between">
+        <span>👨‍🍳 흑백요리사 Top 10</span>
+        <span class="text-gray-400 text-sm">▾</span>
+      </summary>
+      <div class="px-4 pb-4">
+        <div class="flex gap-2 overflow-x-auto scrollbar-hide">
+          <div class="shrink-0 text-center w-16"><div class="w-12 h-12 bg-purple-100 rounded-full mx-auto flex items-center justify-center text-lg">👨‍🍳</div><p class="text-xs mt-1">에드워드 리</p></div>
+          <div class="shrink-0 text-center w-16"><div class="w-12 h-12 bg-purple-100 rounded-full mx-auto flex items-center justify-center text-lg">👩‍🍳</div><p class="text-xs mt-1">최현석</p></div>
+          <div class="shrink-0 text-center w-16"><div class="w-12 h-12 bg-purple-100 rounded-full mx-auto flex items-center justify-center text-lg">👨‍🍳</div><p class="text-xs mt-1">나폴리맛피아</p></div>
+        </div>
+      </div>
+    </details>
+
+    <!-- K-pop (접이식) -->
+    <details class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <summary class="p-4 font-semibold cursor-pointer flex items-center justify-between">
+        <span>⭐ K-pop 아이돌 메뉴</span>
+        <span class="text-gray-400 text-sm">▾</span>
+      </summary>
+      <div class="px-4 pb-4">
+        <div class="flex gap-2 flex-wrap">
+          <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm">BTS 정국</button>
+          <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm">BLACKPINK 리사</button>
+          <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm">NewJeans</button>
+          <button class="bg-pink-50 text-pink-600 rounded-full px-3 py-1.5 text-sm">aespa 카리나</button>
+        </div>
+      </div>
+    </details>
+  </main>
+
+  <!-- FAB 버튼 -->
+  <button onclick="openDrawer('favorites')" class="fixed bottom-6 right-6 z-40 w-14 h-14 bg-orange-500 text-white rounded-full shadow-lg flex items-center justify-center text-2xl hover:bg-orange-600 active:scale-95 transition-transform">
+    📋
+  </button>
+
+  <!-- 딤 배경 -->
+  <div id="dim" class="dim fixed inset-0 z-50 bg-black/40" onclick="closeDrawer()"></div>
+
+  <!-- Bottom Sheet Drawer -->
+  <div id="drawer" class="drawer fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl max-h-[80vh] flex flex-col max-w-md mx-auto">
+    <div class="flex justify-center pt-3 pb-1">
+      <div class="w-10 h-1 bg-gray-300 rounded-full"></div>
+    </div>
+    <!-- 드로어 탭 -->
+    <div class="flex border-b px-4">
+      <button onclick="switchDrawerTab('favorites')" id="dtab-favorites" class="flex-1 py-3 text-sm font-medium border-b-2 border-orange-500 text-orange-600">♥ 즐겨찾기</button>
+      <button onclick="switchDrawerTab('calendar')" id="dtab-calendar" class="flex-1 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400">📅 캘린더</button>
+      <button onclick="switchDrawerTab('profile')" id="dtab-profile" class="flex-1 py-3 text-sm font-medium border-b-2 border-transparent text-gray-400">📊 취향</button>
+    </div>
+    <!-- 드로어 콘텐츠 -->
+    <div class="flex-1 overflow-y-auto p-4">
+      <div id="dcontent-favorites">
+        <div class="space-y-2">
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><span class="text-xl">🍲</span><div class="flex-1"><p class="text-sm font-medium">된장찌개</p><p class="text-[10px] text-gray-400">3월 24일 저장</p></div><button class="text-xs text-orange-500 bg-orange-50 px-2 py-1 rounded-lg">추천받기</button></div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><span class="text-xl">🍕</span><div class="flex-1"><p class="text-sm font-medium">마르게리타 피자</p><p class="text-[10px] text-gray-400">3월 23일 저장</p></div><button class="text-xs text-orange-500 bg-orange-50 px-2 py-1 rounded-lg">추천받기</button></div>
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"><span class="text-xl">🍣</span><div class="flex-1"><p class="text-sm font-medium">연어초밥</p><p class="text-[10px] text-gray-400">3월 22일 저장</p></div><button class="text-xs text-orange-500 bg-orange-50 px-2 py-1 rounded-lg">추천받기</button></div>
+        </div>
+      </div>
+      <div id="dcontent-calendar" class="hidden">
+        <div class="space-y-3">
+          <div class="grid grid-cols-7 gap-1 text-center">
+            <span class="text-[10px] text-gray-400">월</span><span class="text-[10px] text-gray-400">화</span><span class="text-[10px] text-gray-400">수</span><span class="text-[10px] text-gray-400">목</span><span class="text-[10px] text-gray-400">금</span><span class="text-[10px] text-red-400">토</span><span class="text-[10px] text-red-400">일</span>
+            <div class="aspect-square bg-orange-100 rounded-lg flex items-center justify-center text-sm">🍲</div>
+            <div class="aspect-square bg-orange-100 rounded-lg flex items-center justify-center text-sm">🍕</div>
+            <div class="aspect-square bg-blue-100 rounded-lg flex items-center justify-center text-sm">🍔</div>
+            <div class="aspect-square bg-orange-100 rounded-lg flex items-center justify-center text-sm">🍜</div>
+            <div class="aspect-square bg-gray-50 rounded-lg flex items-center justify-center text-xs text-gray-300">28</div>
+            <div class="aspect-square bg-gray-50 rounded-lg flex items-center justify-center text-xs text-gray-300">29</div>
+            <div class="aspect-square ring-2 ring-orange-400 bg-orange-50 rounded-lg flex items-center justify-center text-xs font-bold text-orange-600">오늘</div>
+          </div>
+          <div class="bg-blue-50 rounded-xl p-3 text-sm text-blue-600">최근 7일 해먹기가 많았어요. 오늘은 시켜먹는 건 어떨까요?</div>
+        </div>
+      </div>
+      <div id="dcontent-profile" class="hidden">
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 text-xs"><span class="w-8 text-gray-500">한식</span><div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-red-400 rounded-full" style="width:55%"></div></div><span class="w-8 text-right text-gray-400">55%</span></div>
+          <div class="flex items-center gap-2 text-xs"><span class="w-8 text-gray-500">양식</span><div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-blue-400 rounded-full" style="width:25%"></div></div><span class="w-8 text-right text-gray-400">25%</span></div>
+          <div class="flex items-center gap-2 text-xs"><span class="w-8 text-gray-500">일식</span><div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-green-400 rounded-full" style="width:15%"></div></div><span class="w-8 text-right text-gray-400">15%</span></div>
+          <div class="flex items-center gap-2 text-xs"><span class="w-8 text-gray-500">중식</span><div class="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-yellow-400 rounded-full" style="width:5%"></div></div><span class="w-8 text-right text-gray-400">5%</span></div>
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <div class="bg-orange-50 rounded-xl p-3 text-center"><p class="text-2xl font-bold text-orange-600">7</p><p class="text-[10px] text-orange-500">연속 기록일</p></div>
+            <div class="bg-blue-50 rounded-xl p-3 text-center"><p class="text-2xl font-bold text-blue-600">23</p><p class="text-[10px] text-blue-500">이번달 기록</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-white border-t px-4 py-6 text-center text-xs text-gray-400">
+    <p class="font-medium text-gray-500 mb-1">AI 음식 추천 서비스</p>
+    <p>© 2026 utilverse.info. All rights reserved.</p>
+  </footer>
+</div>
+
+<script>
+function openDrawer(tab) {
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('dim').classList.add('open');
+  switchDrawerTab(tab);
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('dim').classList.remove('open');
+}
+function switchDrawerTab(name) {
+  ['favorites','calendar','profile'].forEach(t => {
+    document.getElementById('dcontent-'+t).classList.add('hidden');
+    const btn = document.getElementById('dtab-'+t);
+    btn.classList.remove('border-orange-500','text-orange-600');
+    btn.classList.add('border-transparent','text-gray-400');
+  });
+  document.getElementById('dcontent-'+name).classList.remove('hidden');
+  const active = document.getElementById('dtab-'+name);
+  active.classList.remove('border-transparent','text-gray-400');
+  active.classList.add('border-orange-500','text-orange-600');
+}
+</script>
+</body>
+</html>

@@ -159,8 +159,8 @@ export const CalendarView = ({
   const insightText = useMemo(() => {
     if (insight.total === 0) return insightMessages.noData;
     const cookRatio = insight.cookCount / insight.total;
-    if (cookRatio >= 0.7) return insightMessages.cookHeavy.replace('{{count}}', String(insight.total));
-    if (cookRatio <= 0.3) return insightMessages.orderHeavy.replace('{{count}}', String(insight.total));
+    if (cookRatio >= 0.7) return insightMessages.cookHeavy.replace('__count__', String(insight.total));
+    if (cookRatio <= 0.3) return insightMessages.orderHeavy.replace('__count__', String(insight.total));
     return insightMessages.balanced;
   }, [insight, insightMessages]);
 
