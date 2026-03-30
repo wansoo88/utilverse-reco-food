@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { NearbyRestaurant } from '@/types/recommend';
 
-const NEARBY_RADIUS_M = 1000; // 1km 이내
+const NEARBY_RADIUS_M = 3000; // 3km 이내 (1km은 교외 지역에서 결과 없음)
 
 // Haversine 거리 계산 (미터)
 function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -23,9 +23,12 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
       { headers: { 'User-Agent': 'pjt3-reco-food/1.0' }, signal: AbortSignal.timeout(3000) },
     );
     if (!res.ok) return '';
-    const data = await res.json() as { address?: { suburb?: string; neighbourhood?: string; city_district?: string; quarter?: string } };
-    // 동/구 단위 반환 (suburb → neighbourhood → city_district 순)
-    return data.address?.suburb ?? data.address?.neighbourhood ?? data.address?.city_district ?? data.address?.quarter ?? '';
+    const data = await res.json() as { address?: { suburb?: string; neighbourhood?: string; city_district?: string; quarter?: string; borough?: string; city?: string } };
+    // 구+동 조합으로 검색 정확도 향상 (예: "중구 명동")
+    const district = data.address?.borough ?? data.address?.city_district ?? '';
+    const sub = data.address?.suburb ?? data.address?.neighbourhood ?? data.address?.quarter ?? '';
+    if (district && sub && district !== sub) return `${district} ${sub}`;
+    return sub || district;
   } catch {
     return '';
   }
@@ -138,7 +141,12 @@ export async function POST(req: NextRequest) {
         try {
           // 지역명 포함 쿼리로 근처 결과 유도
           const query = districtName ? `${districtName} ${menuName} 맛집` : `${menuName} 맛집`;
-          const items = await searchNaverLocal(query, clientId, clientSecret);
+          let items = await searchNaverLocal(query, clientId, clientSecret);
+
+          // 결과 0건이면 지역명 제외하고 재검색
+          if (items.length === 0 && districtName) {
+            items = await searchNaverLocal(`${menuName} 맛집`, clientId, clientSecret);
+          }
 
           results[menuName] = items.map((item) => {
             const coords = katecToWgs84(item.mapx, item.mapy);

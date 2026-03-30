@@ -100,9 +100,9 @@ export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) =
     try {
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000,
+          enableHighAccuracy: false,
+          timeout: 5000,
+          maximumAge: 600000,
         });
       });
       await searchRestaurants(position.coords.latitude, position.coords.longitude);
