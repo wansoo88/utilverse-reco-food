@@ -5,6 +5,7 @@ import type { FilterState } from '@/types/filter';
 
 interface FilterSectionProps {
   filters: FilterState;
+  lang: string;
   onModeChange: (mode: FilterState['mode']) => void;
   onHouseChange: (house: FilterState['house']) => void;
   onBabyChange?: (baby: FilterState['baby']) => void;
@@ -15,6 +16,7 @@ interface FilterSectionProps {
 
 export const FilterSection = ({
   filters,
+  lang,
   onModeChange,
   onHouseChange,
   onBabyChange,
@@ -53,6 +55,7 @@ export const FilterSection = ({
     <div className="space-y-4">
       {/* 흑백요리사 배너 */}
       <ChefBanner
+        lang={lang}
         active={filters.vibes.includes('chef')}
         onClick={() => onVibeToggle('chef')}
       />

@@ -1,11 +1,21 @@
 'use client';
 
 interface ChefBannerProps {
+  lang: string;
   onClick: () => void;
   active: boolean;
 }
 
-export const ChefBanner = ({ onClick, active }: ChefBannerProps) => {
+const LABELS: Record<string, { tag: string; cta: string }> = {
+  ko: { tag: '트렌드 1위 · 흑백요리사', cta: '👨‍🍳 흑백요리사 셰프 스타일로 추천받기' },
+  en: { tag: 'Trending #1 · Black & White Chef', cta: '👨‍🍳 Get recommendations in chef style' },
+  ja: { tag: 'トレンド1位 · 白黒シェフ', cta: '👨‍🍳 シェフスタイルでおすすめを見る' },
+  zh: { tag: '热门第1 · 黑白厨师', cta: '👨‍🍳 以大厨风格获取推荐' },
+};
+
+export const ChefBanner = ({ lang, onClick, active }: ChefBannerProps) => {
+  const labels = LABELS[lang] ?? LABELS.ko;
+
   return (
     <button
       onClick={onClick}
@@ -18,10 +28,10 @@ export const ChefBanner = ({ onClick, active }: ChefBannerProps) => {
       <div className="flex items-center justify-between">
         <div>
           <p className={`text-xs font-semibold mb-0.5 ${active ? 'text-purple-100' : 'text-purple-400'}`}>
-            트렌드 1위 · 흑백요리사
+            {labels.tag}
           </p>
           <p className={`text-base font-bold ${active ? 'text-white' : 'text-purple-800'}`}>
-            👨‍🍳 흑백요리사 셰프 스타일로 추천받기
+            {labels.cta}
           </p>
         </div>
         <span className={`text-2xl ml-2 ${active ? 'grayscale-0' : 'opacity-60'}`}>🏆</span>

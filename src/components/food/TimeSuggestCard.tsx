@@ -6,12 +6,11 @@ import { useMemo } from 'react';
 type TimeSlot = 'morning' | 'lunch' | 'afternoon' | 'dinner' | 'late';
 
 // 시간대별 자동 제안 키워드 (검색창에 주입)
-const TIME_SLOT_QUERIES: Record<TimeSlot, string> = {
-  morning: '아침 간단하게',
-  lunch: '점심 든든하게',
-  afternoon: '간식 달달하게',
-  dinner: '저녁 맛있게',
-  late: '야식 빠르게',
+const TIME_SLOT_QUERIES: Record<string, Record<TimeSlot, string>> = {
+  ko: { morning: '아침 간단하게', lunch: '점심 든든하게', afternoon: '간식 달달하게', dinner: '저녁 맛있게', late: '야식 빠르게' },
+  en: { morning: 'quick breakfast', lunch: 'hearty lunch', afternoon: 'sweet snack', dinner: 'tasty dinner', late: 'late night snack' },
+  ja: { morning: '朝食 簡単に', lunch: 'ランチ しっかり', afternoon: 'おやつ 甘く', dinner: '夕食 美味しく', late: '夜食 さっと' },
+  zh: { morning: '早餐 简单', lunch: '午餐 丰盛', afternoon: '下午茶 甜点', dinner: '晚餐 美味', late: '宵夜 快速' },
 };
 
 const getTimeSlot = (hour: number): TimeSlot => {

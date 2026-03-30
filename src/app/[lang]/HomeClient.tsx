@@ -568,6 +568,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
                   <div className="mt-3 pt-3 border-t border-gray-100">
                     <FilterSection
                       filters={filters}
+                      lang={lang}
                       onModeChange={handleModeChange}
                       onHouseChange={handleHouseChange}
                       onBabyChange={handleBabyChange}

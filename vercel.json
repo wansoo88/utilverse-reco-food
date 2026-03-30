@@ -1,0 +1,45 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept-language",
+          "value": "(?i)^(en|en-.*).*"
+        }
+      ],
+      "destination": "/menu-ai/en",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept-language",
+          "value": "(?i)^(ja|ja-.*).*"
+        }
+      ],
+      "destination": "/menu-ai/ja",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept-language",
+          "value": "(?i)^(zh|zh-.*).*"
+        }
+      ],
+      "destination": "/menu-ai/zh",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "destination": "/menu-ai/ko",
+      "permanent": false
+    }
+  ]
+}
