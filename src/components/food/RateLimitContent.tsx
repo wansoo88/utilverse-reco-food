@@ -4,6 +4,13 @@ import { FOOD_TRIVIA } from '@/data/foodTrivia';
 import { COOK_MENUS, ORDER_MENUS } from '@/data/localMenus';
 import { trackEvent } from '@/lib/analytics';
 
+const LABELS: Record<string, { waiting: string; reveal: string; suggest: string }> = {
+  ko: { waiting: '🕐 잠시 기다리는 동안...', reveal: '탭하여 정답 보기 👆', suggest: '이런 건 어때요? 클릭하면 바로 검색돼요' },
+  en: { waiting: '🕐 While you wait...', reveal: 'Tap to see the answer 👆', suggest: 'How about these? Click to search instantly' },
+  ja: { waiting: '🕐 少々お待ちの間に...', reveal: 'タップして答えを見る 👆', suggest: 'こんなのはどうですか？クリックで即検索' },
+  zh: { waiting: '🕐 等待的时候...', reveal: '点击查看答案 👆', suggest: '试试这些？点击即可搜索' },
+};
+
 interface RateLimitContentProps {
   onMenuClick: (menuName: string) => void;
   lang?: string;
@@ -12,6 +19,7 @@ interface RateLimitContentProps {
 type ContentType = 'trivia' | 'popular';
 
 export const RateLimitContent = ({ onMenuClick, lang = 'ko' }: RateLimitContentProps) => {
+  const l = LABELS[lang] ?? LABELS.ko;
   const [contentType, setContentType] = useState<ContentType>('trivia');
   const [triviaIdx, setTriviaIdx] = useState(0);
   const [revealed, setRevealed] = useState(false);
@@ -50,7 +58,7 @@ export const RateLimitContent = ({ onMenuClick, lang = 'ko' }: RateLimitContentP
   return (
     <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 space-y-3">
       <p className="text-xs font-semibold text-amber-700">
-        🕐 잠시 기다리는 동안...
+        {l.waiting}
       </p>
 
       {contentType === 'trivia' && trivia ? (
@@ -68,13 +76,13 @@ export const RateLimitContent = ({ onMenuClick, lang = 'ko' }: RateLimitContentP
               onClick={handleReveal}
               className="w-full rounded-xl border border-amber-300 bg-white px-3 py-2 text-xs font-semibold text-amber-700 hover:bg-amber-100 transition-colors"
             >
-              탭하여 정답 보기 👆
+              {l.reveal}
             </button>
           )}
         </div>
       ) : (
         <div className="space-y-2">
-          <p className="text-xs text-gray-500">이런 건 어때요? 클릭하면 바로 검색돼요</p>
+          <p className="text-xs text-gray-500">{l.suggest}</p>
           <div className="flex flex-wrap gap-2">
             {popularMenus.map((menu) => (
               <button

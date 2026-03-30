@@ -69,6 +69,38 @@ function useScrollSpy(sectionIds: readonly string[]): string {
   return activeId;
 }
 
+// 캘린더 섹션 접힘/펼침 래퍼
+function CalendarCollapsible({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-2xl border border-orange-100 bg-white shadow-sm overflow-hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between px-5 py-4 min-h-[56px]"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-orange-700">📅 {title}</span>
+          {count > 0 && (
+            <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-600">
+              {count}
+            </span>
+          )}
+        </div>
+        <span
+          className={`text-gray-400 text-sm transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        >
+          ▼
+        </span>
+      </button>
+      <div className={`transition-all duration-300 ease-in-out overflow-hidden ${open ? 'max-h-[3000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 type SearchMode = 'text' | 'ai' | 'kpop';
 
 interface HomeClientProps {
@@ -79,22 +111,22 @@ interface HomeClientProps {
 
 const RecommendCard = dynamic(
   () => import('@/components/food/RecommendCard').then((m) => m.RecommendCard),
-  { loading: () => <div className="min-h-[200px] animate-pulse rounded-2xl bg-gray-100" /> },
+  { loading: () => <div className="min-h-[220px] animate-pulse rounded-2xl bg-gray-100" /> },
 );
 
 const DualResultView = dynamic(
   () => import('@/components/food/DualResultView').then((m) => m.DualResultView),
-  { loading: () => <div className="min-h-[300px] animate-pulse rounded-2xl bg-gray-100" /> },
+  { loading: () => <div className="min-h-[220px] animate-pulse rounded-2xl bg-gray-100" /> },
 );
 
 const KpopResultCard = dynamic(
   () => import('@/components/food/KpopResultCard').then((m) => m.KpopResultCard),
-  { loading: () => <div className="min-h-[200px] animate-pulse rounded-2xl bg-gray-100" /> },
+  { loading: () => <div className="min-h-[220px] animate-pulse rounded-2xl bg-gray-100" /> },
 );
 
 const CalendarView = dynamic(
   () => import('@/components/food/CalendarView').then((m) => m.CalendarView),
-  { loading: () => <div className="min-h-[360px] animate-pulse rounded-3xl bg-gray-100" /> },
+  { loading: () => <div className="min-h-[220px] animate-pulse rounded-2xl bg-gray-100" /> },
 );
 
 export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
@@ -265,7 +297,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
     // Rate limit 체크
     const { allowed, waitSeconds } = checkAndRecord();
     if (!allowed) {
-      showToast(`⏳ ${waitSeconds}초 후에 다시 검색해주세요`, 'error');
+      showToast(t('home.rateLimitWait').replace('{seconds}', String(waitSeconds)), 'error');
       return;
     }
 
@@ -273,7 +305,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
     if (searchMode === 'kpop') {
       const searchTerm = kpopQuery.trim() || selectedIdol?.name || '';
       if (!searchTerm) {
-        showToast('아이돌 이름을 입력해주세요', 'error');
+        showToast(t('home.kpopRequired'), 'error');
         return;
       }
       trackEvent('kpop_recommend_submit', { lang, idol: searchTerm });
@@ -283,7 +315,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
 
     const q = overrideQuery ?? query;
     if (!q.trim()) {
-      showToast('검색어를 입력해주세요', 'error');
+      showToast(t('home.queryRequired'), 'error');
       return;
     }
 
@@ -445,10 +477,10 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
         {/* 즉시 추천 배너 (결과 없을 때만) */}
         {!hasResult && (
           <InstantRecommend
+            lang={lang}
             onSearch={(menuName) => {
               setSearchMode('text');
               setQuery(menuName);
-              // 검색창에 key-in만, 자동 실행 없음
               setTimeout(() => searchInputRef.current?.focus(), 100);
             }}
             lastMenu={lastCalendarMenu}
@@ -486,7 +518,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
             {/* AI 모드 힌트 */}
             {searchMode === 'ai' && (
               <p className="text-xs text-purple-600 bg-purple-50 rounded-xl px-3 py-2">
-                🤖 AI가 해먹기와 시켜먹기를 동시에 추천해드려요
+                🤖 {t('search.aiHint')}
               </p>
             )}
 
@@ -593,12 +625,25 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
 
             {/* 로딩 */}
             {(status === 'loading' || kpopStatus === 'loading') && (
-              <div className="flex justify-center py-6">
+              <div className="flex flex-col items-center gap-2 py-6" aria-live="polite" aria-label="추천 중">
                 <div className={`w-8 h-8 border-4 rounded-full animate-spin ${
                   searchMode === 'kpop'
                     ? 'border-pink-200 border-t-pink-500'
                     : 'border-orange-200 border-t-orange-500'
                 }`} />
+              </div>
+            )}
+
+            {/* 에러 상태 UI */}
+            {(status === 'error' || kpopStatus === 'error') && error !== 'food_only' && (
+              <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-4 text-center space-y-2">
+                <p className="text-sm text-red-600 font-medium">😅 {t('home.errorRetry')}</p>
+                <button
+                  onClick={searchMode === 'kpop' ? handleKpopRetry : handleRetry}
+                  className="rounded-xl bg-red-500 text-white text-xs font-semibold px-4 py-2 hover:bg-red-600 transition-colors min-h-[36px]"
+                >
+                  🔄 {t('recommend.retry')}
+                </button>
               </div>
             )}
 
@@ -766,8 +811,9 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
           />
         </div>
 
-        {/* 식단 캘린더 + 취향 분석 */}
-        <div id="sec-calendar" className="defer-render">
+        {/* 식단 캘린더 + 취향 분석 — 기본 접힘 */}
+        <CalendarCollapsible title={t('calendar.title')} count={entries.length}>
+        <div id="sec-calendar">
           <CalendarView
             entries={entries}
             lang={lang}
@@ -796,6 +842,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
             profileLabel={t('profile.title')}
           />
         </div>
+        </CalendarCollapsible>
 
         {/* 즐겨찾기 섹션 — 맨 아래 배치 */}
         <div id="sec-favorites">

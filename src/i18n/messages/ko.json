@@ -7,9 +7,14 @@
     "filterRestored": "✅ 이전 필터 불러옴",
     "blockToast": "🚫 음식과 관련 없는 질문은 답변할 수 없어요",
     "errorInjection": "🚫 허용되지 않는 입력입니다",
-    "errorTooLong": "⚠️ 입력이 너무 깁니다 (최대 200자)"
+    "errorTooLong": "⚠️ 입력이 너무 깁니다 (최대 200자)",
+    "rateLimitWait": "⏳ {seconds}초 후에 다시 검색해주세요",
+    "kpopRequired": "아이돌 이름을 입력해주세요",
+    "queryRequired": "검색어를 입력해주세요",
+    "errorRetry": "추천을 불러오지 못했어요. 다시 시도해주세요"
   },
   "search": {
+    "aiHint": "AI가 해먹기와 시켜먹기를 동시에 추천해드려요",
     "modeText": "🍽️ 메뉴 추천",
     "modeAi": "🤖 AI 검색",
     "modeFridge": "🧊 냉장고 파먹기",

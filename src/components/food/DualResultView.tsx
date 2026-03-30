@@ -56,7 +56,7 @@ export const DualResultView = ({
       <div className="flex gap-1 md:hidden">
         <button
           onClick={() => setActiveTab('cook')}
-          className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${
+          className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors min-h-[44px] ${
             activeTab === 'cook'
               ? 'bg-orange-500 text-white shadow-sm'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
@@ -66,9 +66,9 @@ export const DualResultView = ({
         </button>
         <button
           onClick={() => setActiveTab('order')}
-          className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${
+          className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors min-h-[44px] ${
             activeTab === 'order'
-              ? 'bg-blue-500 text-white shadow-sm'
+              ? 'bg-orange-500 text-white shadow-sm'
               : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
           }`}
         >
@@ -179,7 +179,7 @@ function CookSection({ items, tip, lang, onExclude, onToggleFavorite, isFavorite
               {onExclude && (
                 <button
                   onClick={() => onExclude(item.name)}
-                  className="text-[10px] text-gray-400 hover:text-red-500 transition-colors"
+                  className="flex items-center justify-center w-7 h-7 rounded-full text-xs text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                 >
                   ✕
                 </button>
@@ -251,7 +251,7 @@ function OrderSection({ items, tip, lang, menuNames, onExclude, onToggleFavorite
               {onExclude && (
                 <button
                   onClick={() => onExclude(item.name)}
-                  className="text-[10px] text-gray-400 hover:text-red-500 transition-colors"
+                  className="flex items-center justify-center w-7 h-7 rounded-full text-xs text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                 >
                   ✕
                 </button>

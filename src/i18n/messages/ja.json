@@ -7,9 +7,14 @@
     "filterRestored": "✅ 前回のフィルターを復元しました",
     "blockToast": "🚫 食べ物に関する質問のみお答えできます",
     "errorInjection": "🚫 この入力は許可されていません",
-    "errorTooLong": "⚠️ 入力が長すぎます（最大200文字）"
+    "errorTooLong": "⚠️ 入力が長すぎます（最大200文字）",
+    "rateLimitWait": "⏳ {seconds}秒後に再検索できます",
+    "kpopRequired": "アイドル名を入力してください",
+    "queryRequired": "検索語を入力してください",
+    "errorRetry": "おすすめの読み込みに失敗しました。もう一度お試しください"
   },
   "search": {
+    "aiHint": "AIが自炊とデリバリー両方をおすすめします",
     "modeText": "🍽️ メニュー提案",
     "modeAi": "🤖 AI検索",
     "modeFridge": "🧊 冷蔵庫レシピ",

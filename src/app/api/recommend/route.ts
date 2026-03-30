@@ -31,7 +31,11 @@ async function callGpt(
   });
 
   const text = response.choices[0]?.message.content ?? '{}';
-  return JSON.parse(text);
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -84,7 +88,10 @@ export async function POST(req: NextRequest) {
           const result = await model.generateContent(userPrompt);
           const text = result.response.text().replace(/```json\n?|\n?```/g, '').trim();
           trackUsage({ ts: Date.now(), provider: 'gemini', model: GEMINI_MODEL, endpoint: 'recommend', estimatedTokens: estimateTokens(userPrompt + text) });
-          return NextResponse.json(JSON.parse(text));
+          const parsed = JSON.parse(text);
+          return NextResponse.json(parsed, {
+            headers: { 'Cache-Control': 'private, max-age=60' },
+          });
         } catch (err) {
           // 쿼터 초과면 다음 키 시도, 그 외 에러는 즉시 폴백
           if (!isQuotaError(err)) break;
@@ -97,7 +104,9 @@ export async function POST(req: NextRequest) {
       try {
         const parsed = await callGpt(userPrompt, SYSTEM_PROMPT, gptKey);
         trackUsage({ ts: Date.now(), provider: 'gpt', model: 'gpt-4o-mini', endpoint: 'recommend', estimatedTokens: estimateTokens(userPrompt + JSON.stringify(parsed)) });
-        return NextResponse.json(parsed);
+        return NextResponse.json(parsed, {
+          headers: { 'Cache-Control': 'private, max-age=60' },
+        });
       } catch {
         // GPT 실패 → 로컬 폴백
       }

@@ -7,9 +7,14 @@
     "filterRestored": "✅ 已恢复上次筛选条件",
     "blockToast": "🚫 只能回答与食物相关的问题",
     "errorInjection": "🚫 此输入不被允许",
-    "errorTooLong": "⚠️ 输入过长（最多200字）"
+    "errorTooLong": "⚠️ 输入过长（最多200字）",
+    "rateLimitWait": "⏳ 请等待{seconds}秒后再搜索",
+    "kpopRequired": "请输入偶像名字",
+    "queryRequired": "请输入搜索词",
+    "errorRetry": "加载推荐失败，请重试"
   },
   "search": {
+    "aiHint": "AI同时推荐自己做和外卖选项",
     "modeText": "🍽️ 菜单推荐",
     "modeAi": "🤖 AI搜索",
     "modeFridge": "🧊 冰箱食材",

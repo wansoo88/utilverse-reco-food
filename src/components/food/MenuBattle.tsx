@@ -12,6 +12,16 @@ interface BattleRecord {
 
 const STORAGE_KEY = 'wmj_battles';
 
+// Fisher-Yates 셔플 — Math.random()-0.5 대비 균등 분포 보장
+function fisherYates<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function loadBattles(): BattleRecord[] {
   if (typeof window === 'undefined') return [];
   try {
@@ -34,9 +44,18 @@ function saveBattles(records: BattleRecord[]) {
 
 function pickTwoDifferent() {
   const allMenus = [...COOK_MENUS, ...ORDER_MENUS];
-  const shuffled = [...allMenus].sort(() => Math.random() - 0.5);
+  const shuffled = fisherYates(allMenus);
   return [shuffled[0], shuffled[1]] as const;
 }
+
+const LABELS: Record<string, {
+  title: string; refresh: string; sameChoice: string; hint: string;
+}> = {
+  ko: { title: '오늘의 메뉴 대결', refresh: '🔄 새로운 대결', sameChoice: '같은 선택', hint: '둘 중 오늘 더 당기는 걸 골라보세요!' },
+  en: { title: "Today's Menu Battle", refresh: '🔄 New Battle', sameChoice: 'same choice', hint: 'Pick the one you\'re craving more today!' },
+  ja: { title: '今日のメニュー対決', refresh: '🔄 次の対決', sameChoice: '同じ選択', hint: '今日より食べたいものを選んでください！' },
+  zh: { title: '今日菜单对决', refresh: '🔄 下一轮', sameChoice: '相同选择', hint: '选一个今天更想吃的！' },
+};
 
 interface MenuBattleProps {
   lang?: string;
@@ -47,11 +66,16 @@ interface MenuBattleProps {
   };
 }
 
-export const MenuBattle = ({ lang = 'ko', labels }: MenuBattleProps) => {
+export const MenuBattle = ({ lang = 'ko', labels: extLabels }: MenuBattleProps) => {
   const [menuA, setMenuA] = useState<(typeof COOK_MENUS)[0] | null>(null);
   const [menuB, setMenuB] = useState<(typeof COOK_MENUS)[0] | null>(null);
   const [choice, setChoice] = useState<'A' | 'B' | null>(null);
   const [samePercent, setSamePercent] = useState<number | null>(null);
+
+  const l = LABELS[lang] ?? LABELS.ko;
+  const title = extLabels?.title ?? l.title;
+  const vsLabel = extLabels?.vs ?? 'VS';
+  const sameChoiceLabel = extLabels?.sameChoice ?? l.sameChoice;
 
   useEffect(() => {
     const [a, b] = pickTwoDifferent();
@@ -72,7 +96,6 @@ export const MenuBattle = ({ lang = 'ko', labels }: MenuBattleProps) => {
     const updated = [newRecord, ...records].slice(0, 200);
     saveBattles(updated);
 
-    // 같은 배틀에서 같은 선택 비율 계산
     const sameBattle = records.filter(
       (r) => r.menuA === menuA.name && r.menuB === menuB.name,
     );
@@ -91,21 +114,17 @@ export const MenuBattle = ({ lang = 'ko', labels }: MenuBattleProps) => {
     setSamePercent(null);
   };
 
-  const title = labels?.title ?? '오늘의 메뉴 대결';
-  const vsLabel = labels?.vs ?? 'VS';
-  const sameChoiceLabel = labels?.sameChoice ?? '같은 선택';
-
   if (!menuA || !menuB) return null;
 
   return (
-    <section className="rounded-[2rem] border border-purple-100 bg-gradient-to-br from-purple-50 via-white to-pink-50 p-5 shadow-sm">
+    <section className="rounded-2xl border border-purple-100 bg-gradient-to-br from-purple-50 via-white to-pink-50 p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm font-bold text-purple-700">⚔️ {title}</p>
         <button
           onClick={handleRefresh}
-          className="text-xs text-gray-400 hover:text-purple-500 transition-colors"
+          className="text-xs text-gray-400 hover:text-purple-500 transition-colors px-2 py-1.5 rounded-lg hover:bg-purple-50 min-h-[36px]"
         >
-          🔄 새로운 대결
+          {l.refresh}
         </button>
       </div>
 
@@ -114,7 +133,7 @@ export const MenuBattle = ({ lang = 'ko', labels }: MenuBattleProps) => {
         <button
           onClick={() => handleChoice('A')}
           disabled={!!choice}
-          className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all ${
+          className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all min-h-[100px] ${
             choice === 'A'
               ? 'border-purple-400 bg-purple-50 scale-105 shadow-md'
               : choice === 'B'
@@ -138,7 +157,7 @@ export const MenuBattle = ({ lang = 'ko', labels }: MenuBattleProps) => {
         <button
           onClick={() => handleChoice('B')}
           disabled={!!choice}
-          className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all ${
+          className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all min-h-[100px] ${
             choice === 'B'
               ? 'border-pink-400 bg-pink-50 scale-105 shadow-md'
               : choice === 'A'
@@ -157,7 +176,7 @@ export const MenuBattle = ({ lang = 'ko', labels }: MenuBattleProps) => {
       </div>
 
       {!choice && (
-        <p className="mt-3 text-center text-xs text-gray-400">둘 중 오늘 더 당기는 걸 골라보세요!</p>
+        <p className="mt-3 text-center text-xs text-gray-400">{l.hint}</p>
       )}
     </section>
   );

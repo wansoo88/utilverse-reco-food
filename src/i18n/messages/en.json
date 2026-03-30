@@ -7,9 +7,14 @@
     "filterRestored": "✅ Previous filters restored",
     "blockToast": "🚫 Only food-related questions are allowed",
     "errorInjection": "🚫 This input is not allowed",
-    "errorTooLong": "⚠️ Input too long (max 200 chars)"
+    "errorTooLong": "⚠️ Input too long (max 200 chars)",
+    "rateLimitWait": "⏳ Please wait {seconds} seconds before searching again",
+    "kpopRequired": "Please enter an idol name",
+    "queryRequired": "Please enter a search term",
+    "errorRetry": "Failed to load recommendations. Please try again"
   },
   "search": {
+    "aiHint": "AI recommends both cook-at-home and delivery options",
     "modeText": "🍽️ Menu Pick",
     "modeAi": "🤖 AI Search",
     "modeFridge": "🧊 Fridge Cook",

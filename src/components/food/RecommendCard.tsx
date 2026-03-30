@@ -95,8 +95,8 @@ export const RecommendCard = ({
               {onExclude && (
                 <button
                   onClick={() => onExclude(item.name)}
-                  className="text-[10px] text-gray-400 hover:text-red-500 transition-colors whitespace-nowrap"
-                  title={notThisLabel}
+                  aria-label={notThisLabel}
+                  className="flex items-center justify-center w-7 h-7 rounded-full text-xs text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                 >
                   ✕
                 </button>
