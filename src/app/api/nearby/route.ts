@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { NearbyRestaurant } from '@/types/recommend';
 
-const NEARBY_RADIUS_M = 3000; // 3km 이내 (1km은 교외 지역에서 결과 없음)
+// 단계적 반경 확장: 1km → 3km → 5km
+const RADIUS_STEPS = [1000, 3000, 5000] as const;
 
 // Haversine 거리 계산 (미터)
 function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -148,13 +149,12 @@ export async function POST(req: NextRequest) {
             items = await searchNaverLocal(`${menuName} 맛집`, clientId, clientSecret);
           }
 
-          results[menuName] = items.map((item) => {
+          const mapped = items.map((item) => {
             const coords = katecToWgs84(item.mapx, item.mapy);
             const distance = userLat && userLng
               ? Math.round(haversine(userLat, userLng, coords.lat, coords.lng))
               : 0;
 
-            // 네이버 지도 URL 생성
             const naverMapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(item.title.replace(/<[^>]+>/g, ''))}`;
 
             return {
@@ -166,11 +166,21 @@ export async function POST(req: NextRequest) {
               distance,
               naverMapUrl: item.link || naverMapUrl,
             };
-          })
-          // 위치 정보 있으면 1km 이내 필터 후 거리순, 없으면 그대로
-          .filter((r) => !userLat || r.distance <= NEARBY_RADIUS_M)
-          .sort((a, b) => userLat ? a.distance - b.distance : 0)
-          .slice(0, 5);
+          });
+
+          // 위치 정보 있으면 단계적 반경 확장 (1km → 3km → 5km)
+          if (userLat) {
+            let filtered: typeof mapped = [];
+            for (const radius of RADIUS_STEPS) {
+              filtered = mapped.filter((r) => r.distance <= radius);
+              if (filtered.length > 0) break;
+            }
+            results[menuName] = filtered
+              .sort((a, b) => a.distance - b.distance)
+              .slice(0, 5);
+          } else {
+            results[menuName] = mapped.slice(0, 5);
+          }
         } catch {
           results[menuName] = [];
         }

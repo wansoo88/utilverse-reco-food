@@ -28,6 +28,7 @@ import { trackEvent } from '@/lib/analytics';
 import { HOUSE_KEYWORDS, VIBE_KEYWORDS, BUDGET_KEYWORDS } from '@/data/filterKeywords';
 import { KPOP_TREND_TOPICS, type KpopIdol, type KpopGroup } from '@/data/kpopIdols';
 import { useKpopRecommend } from '@/hooks/useKpopRecommend';
+import { useGeoLocation } from '@/hooks/useGeoLocation';
 import { SITE_URL, BASE_PATH } from '@/config/site';
 import type { Locale } from '@/config/site';
 import type { FilterState } from '@/types/filter';
@@ -150,6 +151,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
 
   const navSectionIds = NAV_SECTIONS.map((s) => s.id) as readonly string[];
   const activeSection = useScrollSpy(navSectionIds);
+  const geo = useGeoLocation(lang);
   const navRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -432,7 +434,18 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <span className="font-extrabold text-gray-900 text-lg">오늘뭐먹지</span>
-          <LanguageSelector current={lang} />
+          <div className="flex items-center gap-2">
+            {geo.status === 'granted' && geo.locationName && (
+              <span className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 rounded-full px-2.5 py-1">
+                <span className="text-blue-500">📍</span>
+                <span className="max-w-[120px] truncate">{geo.locationName}</span>
+              </span>
+            )}
+            {geo.status === 'loading' && (
+              <span className="text-xs text-gray-400 animate-pulse">📍</span>
+            )}
+            <LanguageSelector current={lang} />
+          </div>
         </div>
 
         {/* 스티키 스크롤스파이 네비 */}
