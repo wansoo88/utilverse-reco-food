@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import type { MenuRecommendResponse, FoodItem } from '@/types/recommend';
 import { ShareButton } from '@/components/ui/ShareButton';
 import { trackEvent } from '@/lib/analytics';
+
+type GeoPermission = 'unknown' | 'prompt' | 'granted' | 'denied';
 
 const RecipeLinks = dynamic(
   () => import('./RecipeLinks').then((m) => m.RecipeLinks),
@@ -43,6 +45,29 @@ export const DualResultView = ({
   labels,
 }: DualResultViewProps) => {
   const [activeTab, setActiveTab] = useState<'cook' | 'order'>('cook');
+  const [geoPermission, setGeoPermission] = useState<GeoPermission>('unknown');
+
+  // 마운트 시 위치 권한 상태 확인
+  useEffect(() => {
+    if (!navigator.geolocation) { setGeoPermission('denied'); return; }
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' }).then((perm) => {
+        setGeoPermission(perm.state as GeoPermission);
+        perm.onchange = () => setGeoPermission(perm.state as GeoPermission);
+      }).catch(() => setGeoPermission('prompt'));
+    } else {
+      setGeoPermission('prompt');
+    }
+  }, []);
+
+  const handleRequestLocation = useCallback(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      () => setGeoPermission('granted'),
+      () => setGeoPermission('denied'),
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 600000 },
+    );
+  }, []);
   const menuNames = data.items.map((item) => item.name);
   const mainItem = data.items[0];
 
@@ -52,6 +77,24 @@ export const DualResultView = ({
 
   return (
     <div className="space-y-3">
+      {/* 위치 동의 배너 — 아직 허용 안 한 경우에만 탭 위에 표시 */}
+      {(geoPermission === 'prompt' || geoPermission === 'unknown') && (
+        <button
+          onClick={handleRequestLocation}
+          className="w-full flex items-center gap-2 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-100 transition-colors"
+        >
+          <span>📍</span>
+          <span className="flex-1 text-left">내 주변 맛집을 보려면 위치를 허용해 주세요</span>
+          <span className="text-xs text-blue-400">허용 →</span>
+        </button>
+      )}
+      {geoPermission === 'denied' && (
+        <div className="flex items-center gap-2 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-xs text-gray-400">
+          <span>📍</span>
+          <span>위치 권한이 거부됨 — 브라우저 설정에서 허용해 주세요</span>
+        </div>
+      )}
+
       {/* 모바일: 탭 전환 */}
       <div className="flex gap-1 md:hidden">
         <button

@@ -168,14 +168,16 @@ export async function POST(req: NextRequest) {
             };
           });
 
-          // 위치 정보 있으면 단계적 반경 확장 (1km → 3km → 5km)
+          // 위치 정보 있으면 단계적 반경 확장 (1km → 3km → 5km → 전체 폴백)
           if (userLat) {
             let filtered: typeof mapped = [];
             for (const radius of RADIUS_STEPS) {
               filtered = mapped.filter((r) => r.distance <= radius);
               if (filtered.length > 0) break;
             }
-            results[menuName] = filtered
+            // 5km 내 결과 없으면 전체 결과를 거리순으로 반환
+            const final = filtered.length > 0 ? filtered : mapped;
+            results[menuName] = final
               .sort((a, b) => a.distance - b.distance)
               .slice(0, 5);
           } else {

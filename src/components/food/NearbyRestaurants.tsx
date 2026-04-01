@@ -106,13 +106,9 @@ export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) =
         });
       });
       await searchRestaurants(position.coords.latitude, position.coords.longitude);
-    } catch (err) {
-      if (err instanceof GeolocationPositionError && err.code === 1) {
-        setGeoStatus('denied');
-      } else {
-        // timeout 등 → 위치 없이 검색
-        await searchRestaurants();
-      }
+    } catch {
+      // 거부(code=1)든 timeout(code=3)이든 → 동의 UI로 복귀
+      setGeoStatus('prompt');
     }
   }, [searchRestaurants]);
 
@@ -121,14 +117,25 @@ export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) =
     searchRestaurants();
   }, [searchRestaurants]);
 
-  // 컴포넌트 마운트 시 자동으로 위치 권한 요청
+  // 컴포넌트 마운트 시 권한 상태 확인 후 적절히 처리
   useEffect(() => {
     if (!navigator.geolocation) {
       searchRestaurants();
       return;
     }
-    // 바로 위치 요청 (브라우저가 자동으로 권한 팝업 표시)
-    handleAllowLocation();
+    // permissions API로 기존 권한 상태 확인
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' }).then((perm) => {
+        if (perm.state === 'granted') {
+          // 이미 허용됨 → 바로 위치 가져오기
+          handleAllowLocation();
+        }
+        // 'prompt' or 'denied' → 동의 UI 표시 (사용자가 직접 버튼 클릭)
+      }).catch(() => {
+        // permissions API 미지원 → 프롬프트 표시
+        setGeoStatus('prompt');
+      });
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 위치 동의 프롬프트 ──
@@ -176,12 +183,7 @@ export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) =
     return (
       <div className="text-center py-4 space-y-2">
         <p className="text-xs text-gray-400">{labels.denied}</p>
-        <button
-          onClick={handleSkipLocation}
-          className="text-xs text-blue-500 hover:text-blue-600 font-medium"
-        >
-          {labels.skip}
-        </button>
+        <p className="text-xs text-gray-400">브라우저 설정에서 위치 권한을 허용해 주세요</p>
       </div>
     );
   }
