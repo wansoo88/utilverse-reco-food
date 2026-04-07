@@ -97,7 +97,7 @@ export default function AdminPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch('/menu-ai/api/admin/auth', {
+    const res = await fetch('/api/admin/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: loginId, pw: loginPw }),
@@ -113,7 +113,7 @@ export default function AdminPage() {
   }
 
   async function handleLogout() {
-    await fetch('/menu-ai/api/admin/auth', { method: 'DELETE', credentials: 'include' });
+    await fetch('/api/admin/auth', { method: 'DELETE', credentials: 'include' });
     setAuthed(false);
   }
 
@@ -121,14 +121,14 @@ export default function AdminPage() {
 
   const fetchUsage = useCallback(async () => {
     setUsageLoading(true);
-    const res = await adminFetch('/menu-ai/api/admin/usage');
+    const res = await adminFetch('/api/admin/usage');
     if (res.ok) setUsage(await res.json() as UsageSummary);
     setUsageLoading(false);
   }, []);
 
   async function clearUsage() {
     if (!confirm('사용량 기록을 초기화하시겠습니까?')) return;
-    await adminFetch('/menu-ai/api/admin/usage', { method: 'DELETE' });
+    await adminFetch('/api/admin/usage', { method: 'DELETE' });
     await fetchUsage();
   }
 
@@ -136,7 +136,7 @@ export default function AdminPage() {
 
   const fetchDb = useCallback(async (q = '') => {
     setDbLoading(true);
-    const res = await adminFetch(`/menu-ai/api/admin/db-status${q ? `?q=${encodeURIComponent(q)}` : ''}`);
+    const res = await adminFetch(`/api/admin/db-status${q ? `?q=${encodeURIComponent(q)}` : ''}`);
     if (res.ok) setDb(await res.json() as DbStatus);
     setDbLoading(false);
   }, []);
@@ -145,7 +145,7 @@ export default function AdminPage() {
 
   const fetchTrends = useCallback(async () => {
     setTrendsLoading(true);
-    const res = await adminFetch('/menu-ai/api/admin/trends');
+    const res = await adminFetch('/api/admin/trends');
     if (res.ok) {
       const data = await res.json() as { trends: TrendEntry[] };
       setTrends(data.trends);
@@ -155,7 +155,7 @@ export default function AdminPage() {
 
   async function addTrend() {
     if (!newTrend.name.trim()) return;
-    const res = await adminFetch('/menu-ai/api/admin/trends', {
+    const res = await adminFetch('/api/admin/trends', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'add', entry: { ...newTrend, source: 'manual' } }),
@@ -167,7 +167,7 @@ export default function AdminPage() {
   }
 
   async function removeTrend(id: string) {
-    await adminFetch('/menu-ai/api/admin/trends', {
+    await adminFetch('/api/admin/trends', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'remove', id }),
@@ -178,7 +178,7 @@ export default function AdminPage() {
   async function aiRefresh() {
     if (!confirm('AI로 트렌드 메뉴를 갱신하시겠습니까? (Gemini API 호출)')) return;
     setAiRefreshing(true);
-    const res = await adminFetch('/menu-ai/api/admin/trends', {
+    const res = await adminFetch('/api/admin/trends', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'ai-refresh' }),

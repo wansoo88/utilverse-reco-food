@@ -71,7 +71,12 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. 언어 자동감지 — 처음 방문자가 루트(/) 또는 로케일 없는 경로에 접근할 때
+  // 2. admin 페이지 — intl 미들웨어 우회
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    return NextResponse.next();
+  }
+
+  // 3. 언어 자동감지 — 처음 방문자가 루트(/) 또는 로케일 없는 경로에 접근할 때
   //    NEXT_LOCALE 쿠키가 없으면 Accept-Language 기반 자동 리다이렉트
   const hasLocalePrefix = LOCALES.some(
     (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
@@ -97,7 +102,7 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  // 3. next-intl 미들웨어: 로케일 라우팅 처리
+  // 4. next-intl 미들웨어: 로케일 라우팅 처리
   return intlMiddleware(req);
 }
 
