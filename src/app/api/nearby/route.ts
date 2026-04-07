@@ -175,9 +175,8 @@ export async function POST(req: NextRequest) {
               filtered = mapped.filter((r) => r.distance <= radius);
               if (filtered.length > 0) break;
             }
-            // 5km 내 결과 없으면 전체 결과를 거리순으로 반환
-            const final = filtered.length > 0 ? filtered : mapped;
-            results[menuName] = final
+            // 5km 초과 결과는 제외 — 너무 먼 장소 추천 방지
+            results[menuName] = filtered
               .sort((a, b) => a.distance - b.distance)
               .slice(0, 5);
           } else {

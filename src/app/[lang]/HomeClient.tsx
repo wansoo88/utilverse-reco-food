@@ -29,7 +29,7 @@ import { HOUSE_KEYWORDS, VIBE_KEYWORDS, BUDGET_KEYWORDS } from '@/data/filterKey
 import { KPOP_TREND_TOPICS, type KpopIdol, type KpopGroup } from '@/data/kpopIdols';
 import { useKpopRecommend } from '@/hooks/useKpopRecommend';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
-import { SITE_URL, BASE_PATH } from '@/config/site';
+import { SITE_URL } from '@/config/site';
 import type { Locale } from '@/config/site';
 import type { FilterState } from '@/types/filter';
 
@@ -483,7 +483,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
             <p className="mt-2 text-sm font-medium text-gray-700">{timeGreeting}</p>
           </div>
           <div className="shrink-0 w-20 h-20 md:w-28 md:h-28">
-            <Image src={`${BASE_PATH}/hero-bowl.svg`} alt="Food bowl" width={112} height={112} priority className="h-full w-full" />
+            <Image src="/hero-bowl.svg" alt="Food bowl" width={112} height={112} priority className="h-full w-full" />
           </div>
         </section>
 
