@@ -9,6 +9,7 @@ import { buildYoutubeRecipeLinks } from '@/lib/youtubeRecipes';
 import { COOK_MENUS, ORDER_MENUS } from '@/data/localMenus';
 import { LOCALES, SITE_DESCRIPTION, SITE_NAME, SITE_URL, type Locale } from '@/config/site';
 import { getTranslations } from 'next-intl/server';
+import { localePath } from '@/lib/localePath';
 
 interface Props {
   params: Promise<{ lang: string; slug: string }>;
@@ -99,14 +100,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const locale = getLocale(lang);
   const meta = keyword[locale];
-  const path = `/${locale}/eat/menu/${keyword.slug}`;
+  // as-needed: ko는 /eat/menu/slug, 외국어는 /en/eat/menu/slug
+  const path = localePath(locale, `/eat/menu/${keyword.slug}`);
 
   return {
     title: meta.title,
     description: meta.description,
     alternates: {
       canonical: path,
-      languages: Object.fromEntries(LOCALES.map((item) => [item, `/${item}/eat/menu/${keyword.slug}`])),
+      languages: Object.fromEntries(
+        LOCALES.map((item) => [item, localePath(item, `/eat/menu/${keyword.slug}`)]),
+      ),
     },
     openGraph: {
       title: meta.title,
@@ -140,7 +144,7 @@ export default async function MenuSlugPage({ params }: Props) {
   const allMenus = [...COOK_MENUS, ...ORDER_MENUS];
   const popularMenus = allMenus.slice(0, 30).sort(() => 0.5 - Math.random()).slice(0, 3);
   const youtubeLinks = buildYoutubeRecipeLinks(recommendation.items, locale);
-  const canonicalUrl = `${SITE_URL}/${locale}/eat/menu/${keyword.slug}`;
+  const canonicalUrl = `${SITE_URL}${localePath(locale, `/eat/menu/${keyword.slug}`)}`;
   const copy = PAGE_COPY[locale];
   const tags = [
     keyword.preset.house ? HOUSE_KEYWORDS[locale][keyword.preset.house] : null,
@@ -199,7 +203,7 @@ export default async function MenuSlugPage({ params }: Props) {
           />
         )}
         <nav className="mb-6 text-sm text-gray-500">
-          <Link href={`/${locale}`} className="hover:text-gray-900">{copy.home}</Link>
+          <Link href={localePath(locale, '/')} className="hover:text-gray-900">{copy.home}</Link>
           <span className="mx-2">/</span>
           <span>{meta.title}</span>
         </nav>
@@ -292,7 +296,7 @@ export default async function MenuSlugPage({ params }: Props) {
                 {relatedKeywords.map((item) => (
                   <Link
                     key={item.slug}
-                    href={`/${locale}/eat/menu/${item.slug}`}
+                    href={localePath(locale, `/eat/menu/${item.slug}`)}
                     className="flex flex-col gap-1 rounded-2xl border border-gray-100 bg-gray-50 px-3 py-3 text-xs text-gray-700 transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600"
                   >
                     <span className="font-semibold leading-snug">{item[locale].title}</span>
@@ -309,7 +313,7 @@ export default async function MenuSlugPage({ params }: Props) {
                 {popularMenus.map((menu) => (
                   <Link
                     key={menu.name}
-                    href={`/${locale}?shared=${encodeURIComponent(menu.name)}`}
+                    href={`${localePath(locale, '/')}?shared=${encodeURIComponent(menu.name)}`}
                     className="flex items-center gap-2 rounded-2xl bg-white border border-amber-100 px-3 py-2 text-sm text-gray-700 transition-colors hover:border-orange-300 hover:text-orange-600"
                   >
                     <span>{menu.emoji ?? '🍽️'}</span>
@@ -321,7 +325,7 @@ export default async function MenuSlugPage({ params }: Props) {
 
             {/* 강화된 CTA: 프리셋 필터 전달 */}
             <Link
-              href={`/${locale}?preset=${keyword.slug}`}
+              href={`${localePath(locale, '/')}?preset=${keyword.slug}`}
               className="block rounded-3xl bg-orange-500 px-6 py-4 text-center text-sm font-semibold text-white shadow-sm transition-colors hover:bg-orange-600"
             >
               🤖 {copy.cta}

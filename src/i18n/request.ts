@@ -1,8 +1,8 @@
 import { getRequestConfig } from 'next-intl/server';
+import { routing } from './routing';
 import { LOCALES, DEFAULT_LOCALE, type Locale } from '@/config/site';
 
 export default getRequestConfig(async ({ requestLocale }) => {
-  // next-intl v4: requestLocale is a Promise resolved from URL segment
   const requested = await requestLocale;
   const validLocale: Locale = (LOCALES as readonly string[]).includes(requested ?? '')
     ? (requested as Locale)
@@ -13,3 +13,6 @@ export default getRequestConfig(async ({ requestLocale }) => {
     messages: (await import(`./messages/${validLocale}.json`)).default,
   };
 });
+
+// routing 재-export (next-intl 플러그인이 참조)
+export { routing };

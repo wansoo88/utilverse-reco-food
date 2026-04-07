@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { LOCALES, SITE_NAME, SITE_DESCRIPTION, SITE_URL, type Locale } from '@/config/site';
+import { localePath } from '@/lib/localePath';
 import { HomeClient } from './HomeClient';
 
 interface Props {
@@ -13,12 +14,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
     alternates: {
-      canonical: `/${lang}`,
+      canonical: localePath(lang as Locale, '/'),
+      languages: Object.fromEntries(LOCALES.map((l) => [l, localePath(l, '/')])),
     },
     openGraph: {
       title: SITE_NAME,
       description: SITE_DESCRIPTION,
-      url: `${SITE_URL}/${lang}`,
+      url: `${SITE_URL}${localePath(lang as Locale, '/')}`,
       images: [{ url: '/opengraph-image' }],
     },
     twitter: {

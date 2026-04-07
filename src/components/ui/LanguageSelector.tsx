@@ -1,6 +1,7 @@
 'use client';
 import { useRouter, usePathname } from 'next/navigation';
 import { LOCALES, type Locale } from '@/config/site';
+import { switchLocalePath } from '@/lib/localePath';
 import { trackEvent } from '@/lib/analytics';
 
 const LANG_LABELS: Record<Locale, string> = {
@@ -15,14 +16,12 @@ export const LanguageSelector = ({ current }: { current: Locale }) => {
   const pathname = usePathname();
 
   const switchLang = (lang: Locale) => {
-    // 현재 pathname에서 언어 세그먼트 교체
-    const segments = pathname.split('/');
-    segments[1] = lang;
-    trackEvent('language_change', {
-      from_lang: current,
-      to_lang: lang,
-    });
-    router.push(segments.join('/'));
+    // as-needed 라우팅: ko는 접두사 없음, 나머지는 /en, /ja, /zh
+    const newPath = switchLocalePath(pathname, lang, LOCALES);
+    trackEvent('language_change', { from_lang: current, to_lang: lang });
+    // 언어 선택 쿠키 갱신 (1년)
+    document.cookie = `NEXT_LOCALE=${lang}; path=/; max-age=31536000; samesite=lax`;
+    router.push(newPath);
   };
 
   return (
