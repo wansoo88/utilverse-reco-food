@@ -22,6 +22,7 @@ import { MenuBattle } from '@/components/food/MenuBattle';
 import { RateLimitContent } from '@/components/food/RateLimitContent';
 import { InstantRecommend } from '@/components/food/InstantRecommend';
 import { BakeryShowCard } from '@/components/food/BakeryShowCard';
+import { WeatherRecommend } from '@/components/food/WeatherRecommend';
 import { validateInput } from '@/lib/security';
 import { SEO_KEYWORDS } from '@/data/seoKeywords';
 import { trackEvent } from '@/lib/analytics';
@@ -497,6 +498,18 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
               setTimeout(() => searchInputRef.current?.focus(), 100);
             }}
             lastMenu={lastCalendarMenu}
+          />
+        )}
+
+        {/* 날씨 기반 추천 (결과 없을 때만) */}
+        {!hasResult && (
+          <WeatherRecommend
+            lang={lang}
+            onSearch={(menuName) => {
+              setSearchMode('text');
+              setQuery(menuName);
+              handleSubmit(menuName);
+            }}
           />
         )}
 

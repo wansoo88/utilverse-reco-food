@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { NearbyRestaurant } from '@/types/recommend';
 
-// 단계적 반경 확장: 1km → 3km → 5km
-const RADIUS_STEPS = [1000, 3000, 5000] as const;
+// 단계적 반경 확장: 1km → 3km → 5km → 10km
+const RADIUS_STEPS = [1000, 3000, 5000, 10000] as const;
 
 // Haversine 거리 계산 (미터)
 function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -52,7 +52,7 @@ async function searchNaverLocal(
 }>> {
   const params = new URLSearchParams({
     query,
-    display: '5',
+    display: '10',
     sort: 'comment', // 리뷰 많은 순 (인기순)
   });
 
@@ -141,12 +141,15 @@ export async function POST(req: NextRequest) {
       menuNames.map(async (menuName) => {
         try {
           // 지역명 포함 쿼리로 근처 결과 유도
-          const query = districtName ? `${districtName} ${menuName} 맛집` : `${menuName} 맛집`;
-          let items = await searchNaverLocal(query, clientId, clientSecret);
+          const baseQuery = districtName ? `${districtName} ${menuName}` : `${menuName} 맛집`;
+          let items = await searchNaverLocal(baseQuery, clientId, clientSecret);
 
-          // 결과 0건이면 지역명 제외하고 재검색
+          // 결과 0건이면 단계적 재검색
           if (items.length === 0 && districtName) {
             items = await searchNaverLocal(`${menuName} 맛집`, clientId, clientSecret);
+          }
+          if (items.length === 0) {
+            items = await searchNaverLocal(`${menuName} 식당`, clientId, clientSecret);
           }
 
           const mapped = items.map((item) => {
@@ -168,15 +171,15 @@ export async function POST(req: NextRequest) {
             };
           });
 
-          // 위치 정보 있으면 단계적 반경 확장 (1km → 3km → 5km → 전체 폴백)
+          // 위치 정보 있으면 단계적 반경 확장 (1km → 3km → 5km → 10km → 전체 폴백)
           if (userLat) {
             let filtered: typeof mapped = [];
             for (const radius of RADIUS_STEPS) {
               filtered = mapped.filter((r) => r.distance <= radius);
               if (filtered.length > 0) break;
             }
-            // 5km 초과 결과는 제외 — 너무 먼 장소 추천 방지
-            results[menuName] = filtered
+            // 반경 내 결과 없으면 전체 결과 표시 (거리순 정렬)
+            results[menuName] = (filtered.length > 0 ? filtered : mapped)
               .sort((a, b) => a.distance - b.distance)
               .slice(0, 5);
           } else {
