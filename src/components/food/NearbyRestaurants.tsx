@@ -144,14 +144,18 @@ export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) =
       <div className="text-center space-y-3 py-4">
         <p className="text-sm text-gray-600">{labels.permission}</p>
         <button
+          type="button"
           onClick={handleAllowLocation}
-          className="w-full rounded-xl bg-blue-500 hover:bg-blue-600 text-white py-2.5 text-sm font-semibold transition-colors"
+          style={{ touchAction: 'manipulation', minHeight: '48px' }}
+          className="w-full rounded-xl bg-blue-500 active:bg-blue-700 text-white py-3 text-sm font-semibold transition-colors"
         >
           {labels.allow}
         </button>
         <button
+          type="button"
           onClick={handleSkipLocation}
-          className="text-xs text-gray-400 hover:text-gray-600 underline"
+          style={{ touchAction: 'manipulation', minHeight: '40px' }}
+          className="text-xs text-gray-400 active:text-gray-700 underline px-4 py-2"
         >
           {labels.skip}
         </button>

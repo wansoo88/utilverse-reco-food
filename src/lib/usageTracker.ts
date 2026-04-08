@@ -1,15 +1,15 @@
 /**
  * 토큰 사용량 추적기
- * - 서버 메모리 + /tmp 파일로 이중 저장
- * - API 호출 통계: provider, model, 추정 토큰, timestamp
+ * - /tmp 파일 기반 퍼시스턴스 (항상 파일에서 읽어 staleness 방지)
  */
 import { writeFileSync, readFileSync } from 'fs';
 import path from 'path';
 
 const USAGE_FILE = path.join('/tmp', 'wmj_usage.json');
+const MAX_RECORDS = 500;
 
 export interface UsageRecord {
-  ts: number;           // Unix timestamp (ms)
+  ts: number;
   provider: 'gemini' | 'gpt' | 'local';
   model: string;
   endpoint: 'recommend' | 'kpop-recommend';
@@ -25,10 +25,6 @@ export interface UsageSummary {
   recentRecords: UsageRecord[];
   lastUpdated: number;
 }
-
-// 메모리 내 버퍼 (최대 500개)
-let memBuffer: UsageRecord[] = [];
-const MAX_RECORDS = 500;
 
 function loadFromFile(): UsageRecord[] {
   try {
@@ -47,27 +43,21 @@ function saveToFile(records: UsageRecord[]) {
   }
 }
 
-function getRecords(): UsageRecord[] {
-  if (memBuffer.length === 0) {
-    memBuffer = loadFromFile();
-  }
-  return memBuffer;
-}
-
-/** 사용량 기록 추가 */
+/** 사용량 기록 추가 — 매번 파일 read/write (서버리스 인스턴스 간 공유 보장) */
 export function trackUsage(record: UsageRecord) {
-  const records = getRecords();
+  const records = loadFromFile();
   records.push(record);
-  if (records.length > MAX_RECORDS) {
-    records.splice(0, records.length - MAX_RECORDS);
-  }
-  memBuffer = records;
   saveToFile(records);
 }
 
-/** 사용량 요약 반환 */
-export function getUsageSummary(): UsageSummary {
-  const records = getRecords();
+/** 사용량 요약 반환 (from/to 옵션: Unix ms) */
+export function getUsageSummary(from?: number, to?: number): UsageSummary {
+  const all = loadFromFile();
+  const records =
+    from || to
+      ? all.filter((r) => (!from || r.ts >= from) && (!to || r.ts <= to))
+      : all;
+
   const byProvider: Record<string, number> = {};
   const byModel: Record<string, number> = {};
   const byEndpoint: Record<string, number> = {};
@@ -93,13 +83,11 @@ export function getUsageSummary(): UsageSummary {
 
 /** 사용량 초기화 */
 export function clearUsage() {
-  memBuffer = [];
   saveToFile([]);
 }
 
-/** 토큰 추정 (글자 수 기반 rough estimate) */
+/** 토큰 추정 (글자 수 기반) */
 export function estimateTokens(text: string): number {
-  // 한글/일본어/중국어: ~2자 = 1토큰, 영어: ~4자 = 1토큰
   const cjkCount = (text.match(/[\u1100-\u11FF\u3040-\u9FFF\uAC00-\uD7AF]/g) ?? []).length;
   const latinCount = text.length - cjkCount;
   return Math.ceil(cjkCount / 2 + latinCount / 4);

@@ -81,6 +81,8 @@ export default function AdminPage() {
   // Usage
   const [usage, setUsage] = useState<UsageSummary | null>(null);
   const [usageLoading, setUsageLoading] = useState(false);
+  const [usageFrom, setUsageFrom] = useState('');
+  const [usageTo, setUsageTo] = useState('');
 
   // DB
   const [db, setDb] = useState<DbStatus | null>(null);
@@ -119,12 +121,17 @@ export default function AdminPage() {
 
   // ── Usage ──────────────────────────────────────────────────────────────────
 
-  const fetchUsage = useCallback(async () => {
+  const fetchUsage = useCallback(async (from = usageFrom, to = usageTo) => {
     setUsageLoading(true);
-    const res = await adminFetch('/api/admin/usage');
+    const params = new URLSearchParams();
+    if (from) params.set('from', String(new Date(from).getTime()));
+    if (to) params.set('to', String(new Date(to + 'T23:59:59').getTime()));
+    const qs = params.toString();
+    const res = await adminFetch(`/api/admin/usage${qs ? `?${qs}` : ''}`);
     if (res.ok) setUsage(await res.json() as UsageSummary);
     setUsageLoading(false);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usageFrom, usageTo]);
 
   async function clearUsage() {
     if (!confirm('사용량 기록을 초기화하시겠습니까?')) return;
@@ -292,11 +299,11 @@ export default function AdminPage() {
         {/* ── Usage Tab ─────────────────────────────────────────────────────── */}
         {activeTab === 'usage' && (
           <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
               <SectionTitle>API 토큰 사용량</SectionTitle>
               <div className="flex gap-2">
                 <button
-                  onClick={fetchUsage}
+                  onClick={() => fetchUsage()}
                   className="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
                 >
                   새로고침
@@ -308,6 +315,42 @@ export default function AdminPage() {
                   초기화
                 </button>
               </div>
+            </div>
+
+            {/* 날짜 범위 필터 */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap items-end gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-500">시작 날짜</label>
+                <input
+                  type="date"
+                  value={usageFrom}
+                  onChange={(e) => setUsageFrom(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-500">종료 날짜</label>
+                <input
+                  type="date"
+                  value={usageTo}
+                  onChange={(e) => setUsageTo(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                />
+              </div>
+              <button
+                onClick={() => fetchUsage(usageFrom, usageTo)}
+                className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-1.5 rounded-lg transition-colors"
+              >
+                조회
+              </button>
+              {(usageFrom || usageTo) && (
+                <button
+                  onClick={() => { setUsageFrom(''); setUsageTo(''); fetchUsage('', ''); }}
+                  className="text-sm text-gray-500 hover:text-gray-700 px-2 py-1.5"
+                >
+                  초기화
+                </button>
+              )}
             </div>
 
             {usageLoading && <p className="text-gray-500 text-sm">로딩 중...</p>}
