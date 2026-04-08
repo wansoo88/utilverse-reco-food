@@ -13,6 +13,25 @@ const nextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
   },
+  // sitemap/robots에서 Next.js 내부 Vary 헤더 제거 — Google 크롤러 호환성
+  async headers() {
+    return [
+      {
+        source: '/sitemap.xml',
+        headers: [
+          { key: 'Vary', value: 'Accept-Encoding' },
+          { key: 'Cache-Control', value: 'public, max-age=3600, s-maxage=86400' },
+        ],
+      },
+      {
+        source: '/robots.txt',
+        headers: [
+          { key: 'Vary', value: 'Accept-Encoding' },
+          { key: 'Cache-Control', value: 'public, max-age=3600, s-maxage=86400' },
+        ],
+      },
+    ];
+  },
 };
 
 export default withBundleAnalyzer(withNextIntl(nextConfig));
