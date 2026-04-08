@@ -71,8 +71,8 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. admin 페이지 — intl 미들웨어 우회
-  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+  // 2. 모든 API 경로 + admin 페이지 — intl 미들웨어 우회
+  if (pathname.startsWith('/api/') || pathname === '/admin' || pathname.startsWith('/admin/')) {
     return NextResponse.next();
   }
 
