@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react'; // useCallback: searchRestaurants memoization
 import type { NearbyRestaurant } from '@/types/recommend';
 import { apiUrl } from '@/lib/basePath';
 
@@ -64,7 +64,7 @@ const LABELS: Record<string, {
 };
 
 export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) => {
-  const [geoStatus, setGeoStatus] = useState<GeoStatus>('prompt');
+  const [geoStatus, setGeoStatus] = useState<GeoStatus>('loading');
   const [results, setResults] = useState<Record<string, NearbyRestaurant[]>>({});
   const labels = LABELS[lang] ?? LABELS.ko;
 
@@ -94,74 +94,33 @@ export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) =
     }
   }, [menuNames]);
 
-  // 위치 허용 후 검색
-  const handleAllowLocation = useCallback(async () => {
-    setGeoStatus('loading');
-    try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: false,
-          timeout: 5000,
-          maximumAge: 600000,
-        });
-      });
-      await searchRestaurants(position.coords.latitude, position.coords.longitude);
-    } catch {
-      // 거부(code=1)든 timeout(code=3)이든 → 동의 UI로 복귀
-      setGeoStatus('prompt');
-    }
-  }, [searchRestaurants]);
-
-  // 위치 없이 검색
-  const handleSkipLocation = useCallback(() => {
-    searchRestaurants();
-  }, [searchRestaurants]);
-
-  // 컴포넌트 마운트 시 권한 상태 확인 후 적절히 처리
+  // 마운트 시 즉시 위치 요청 → 브라우저 권한 다이얼로그 자동 표시
   useEffect(() => {
     if (!navigator.geolocation) {
+      // geolocation 미지원 → 위치 없이 검색
       searchRestaurants();
       return;
     }
-    // permissions API로 기존 권한 상태 확인
-    if (navigator.permissions) {
-      navigator.permissions.query({ name: 'geolocation' }).then((perm) => {
-        if (perm.state === 'granted') {
-          // 이미 허용됨 → 바로 위치 가져오기
-          handleAllowLocation();
-        }
-        // 'prompt' or 'denied' → 동의 UI 표시 (사용자가 직접 버튼 클릭)
-      }).catch(() => {
-        // permissions API 미지원 → 프롬프트 표시
-        setGeoStatus('prompt');
-      });
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── 위치 동의 프롬프트 ──
-  if (geoStatus === 'prompt') {
-    return (
-      <div className="text-center space-y-3 py-4">
-        <p className="text-sm text-gray-600">{labels.permission}</p>
-        <button
-          type="button"
-          onClick={handleAllowLocation}
-          style={{ touchAction: 'manipulation', minHeight: '48px' }}
-          className="w-full rounded-xl bg-blue-500 active:bg-blue-700 text-white py-3 text-sm font-semibold transition-colors"
-        >
-          {labels.allow}
-        </button>
-        <button
-          type="button"
-          onClick={handleSkipLocation}
-          style={{ touchAction: 'manipulation', minHeight: '40px' }}
-          className="text-xs text-gray-400 active:text-gray-700 underline px-4 py-2"
-        >
-          {labels.skip}
-        </button>
-      </div>
+    setGeoStatus('loading');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        searchRestaurants(position.coords.latitude, position.coords.longitude);
+      },
+      (err) => {
+        if (err.code === 1) {
+          // 거부 → 위치 없이 검색 (결과는 보여주되 거리 정보 없음)
+          searchRestaurants();
+        } else {
+          // timeout/기타 → 마찬가지로 위치 없이 검색
+          searchRestaurants();
+        }
+      },
+      { enableHighAccuracy: false, timeout: 6000, maximumAge: 600000 },
     );
-  }
+  // menuNames 변경 시 재검색하지 않음 (최초 1회만)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── 로딩 ──
   if (geoStatus === 'loading' || geoStatus === 'searching') {
@@ -197,7 +156,8 @@ export const NearbyRestaurants = ({ menuNames, lang }: NearbyRestaurantsProps) =
     return (
       <div className="text-center py-4">
         <button
-          onClick={handleAllowLocation}
+          type="button"
+          onClick={() => searchRestaurants()}
           className="text-xs text-blue-500 hover:text-blue-600 font-medium"
         >
           {labels.retry}

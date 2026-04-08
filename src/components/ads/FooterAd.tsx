@@ -25,15 +25,18 @@ export const FooterAd = () => {
   if (!isAdsenseEnabled()) return null;
 
   return (
-    <div ref={ref} className="w-full flex justify-center py-4 min-h-[90px] bg-gray-50">
-      <ins
-        className="adsbygoogle"
-        style={{ display: 'block', width: '100%', maxWidth: '728px', height: '90px' }}
-        data-ad-client={ADSENSE_PUB_ID}
-        data-ad-slot={AD_SLOTS.footer}
-        data-ad-format="horizontal"
-        data-full-width-responsive="true"
-      />
+    <div ref={ref} className="w-full py-4 bg-gray-50">
+      <p className="text-center text-[10px] text-gray-400 mb-1 tracking-wide">광고</p>
+      <div className="flex justify-center">
+        <ins
+          className="adsbygoogle"
+          style={{ display: 'block', width: '100%', maxWidth: '728px', height: '90px' }}
+          data-ad-client={ADSENSE_PUB_ID}
+          data-ad-slot={AD_SLOTS.footer}
+          data-ad-format="horizontal"
+          data-full-width-responsive="true"
+        />
+      </div>
     </div>
   );
 };
