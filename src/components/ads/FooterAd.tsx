@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import { ADSENSE_PUB_ID, AD_SLOTS, isAdsenseEnabled } from '@/config/adsense';
+import { ADSENSE_PUB_ID, AD_SLOTS, isSlotEnabled } from '@/config/adsense';
 
 declare global {
   interface Window {
@@ -13,7 +13,7 @@ export const FooterAd = () => {
   const pushed = useRef(false);
 
   useEffect(() => {
-    if (!isAdsenseEnabled() || pushed.current) return;
+    if (!isSlotEnabled(AD_SLOTS.footer) || pushed.current) return;
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
       pushed.current = true;
@@ -22,7 +22,7 @@ export const FooterAd = () => {
     }
   }, []);
 
-  if (!isAdsenseEnabled()) return null;
+  if (!isSlotEnabled(AD_SLOTS.footer)) return null;
 
   return (
     <div ref={ref} className="w-full py-4 bg-gray-50">
