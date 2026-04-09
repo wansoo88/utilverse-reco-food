@@ -34,7 +34,6 @@
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.27",
     "cross-env": "^10.1.0",
-    "next-sitemap": "^4.2.3",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
