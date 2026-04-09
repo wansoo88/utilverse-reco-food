@@ -39,6 +39,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   const entries: MetadataRoute.Sitemap = [];
 
+  // 기본 로케일(ko) 홈 URL — x-default 기준값
+  const defaultHomeUrl = buildUrl(SITE_URL, homePath('ko'));
+
   // 1. 홈페이지 (4개 언어)
   for (const locale of LOCALES) {
     entries.push({
@@ -47,15 +50,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily',
       priority: 1.0,
       alternates: {
-        languages: Object.fromEntries(
-          LOCALES.map((l) => [l, buildUrl(SITE_URL, homePath(l))]),
-        ),
+        languages: {
+          ...Object.fromEntries(LOCALES.map((l) => [l, buildUrl(SITE_URL, homePath(l))])),
+          'x-default': defaultHomeUrl,
+        },
       },
     });
   }
 
   // 2. SEO 키워드 페이지 (프로그래매틱 SEO 핵심)
   for (const keyword of SEO_KEYWORDS) {
+    const koPath = localePath('ko', `/eat/menu/${keyword.slug}`);
+    const defaultKeywordUrl = buildUrl(SITE_URL, koPath);
     for (const locale of LOCALES) {
       const path = localePath(locale as Locale, `/eat/menu/${keyword.slug}`);
       entries.push({
@@ -64,12 +70,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
         changeFrequency: 'weekly',
         priority: 0.8,
         alternates: {
-          languages: Object.fromEntries(
-            LOCALES.map((l) => [
-              l,
-              buildUrl(SITE_URL, localePath(l as Locale, `/eat/menu/${keyword.slug}`)),
-            ]),
-          ),
+          languages: {
+            ...Object.fromEntries(
+              LOCALES.map((l) => [
+                l,
+                buildUrl(SITE_URL, localePath(l as Locale, `/eat/menu/${keyword.slug}`)),
+              ]),
+            ),
+            'x-default': defaultKeywordUrl,
+          },
         },
       });
     }
