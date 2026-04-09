@@ -44,6 +44,7 @@ const PAGE_COPY: Record<Locale, {
   faqA2Order: string;
   faqQ3: string;
   faqA3: string;
+  popularTitle: string;
 }> = {
   ko: {
     home: '홈',
@@ -68,6 +69,7 @@ const PAGE_COPY: Record<Locale, {
     faqA2Order: '재료가 없거나 피로한 상태라면 배달이 현실적인 선택입니다. 배달비를 고려해도 시간 절약 가치가 큽니다.',
     faqQ3: 'AI 추천이 실제 상황에 맞지 않으면 어떻게 하나요?',
     faqA3: '메인 페이지에서 가구 유형, 상황, 예산 필터를 직접 조정하거나, 검색창에 원하는 상황을 자유롭게 입력하면 더 맞춤화된 결과를 받을 수 있습니다. AI가 매번 다른 메뉴를 제안하므로 다시 추천받기 버튼을 눌러보세요.',
+    popularTitle: '오늘의 인기 추천',
   },
   en: {
     home: 'Home',
@@ -92,6 +94,7 @@ const PAGE_COPY: Record<Locale, {
     faqA2Order: 'If you\'re tired or lacking ingredients, delivery is the practical choice. The time saved often outweighs the delivery fee.',
     faqQ3: 'What if the AI recommendation doesn\'t match my situation?',
     faqA3: 'Use the filters on the main page to adjust household type, situation, and budget, or type your situation freely in the search bar. The AI generates different results each time, so try the "retry" button.',
+    popularTitle: 'Popular today',
   },
   ja: {
     home: 'ホーム',
@@ -116,6 +119,7 @@ const PAGE_COPY: Record<Locale, {
     faqA2Order: '疲れていたり食材がない場合は、デリバリーが現実的な選択です。時間節約の価値が配達料を上回ります。',
     faqQ3: 'AIのおすすめが状況に合わない場合はどうすればいいですか？',
     faqA3: 'メインページで家族構成・状況・予算のフィルターを調整するか、検索欄に状況を自由に入力すると、よりカスタマイズされた結果が得られます。',
+    popularTitle: '今日の人気メニュー',
   },
   zh: {
     home: '首页',
@@ -140,6 +144,7 @@ const PAGE_COPY: Record<Locale, {
     faqA2Order: '如果疲惫或缺少食材，点外卖是现实的选择。节省的时间价值往往超过配送费。',
     faqQ3: 'AI推荐与实际情况不符时怎么办？',
     faqA3: '在主页调整家庭类型、场景、预算筛选条件，或在搜索框中自由输入情况，即可获得更个性化的结果。AI每次生成不同菜单，也可以点击重新推荐按钮。',
+    popularTitle: '今日热门推荐',
   },
 };
 
@@ -404,7 +409,7 @@ export default async function MenuSlugPage({ params }: Props) {
 
             {/* 오늘의 인기 추천 */}
             <section className="rounded-3xl border border-amber-100 bg-amber-50 p-5 shadow-sm">
-              <p className="text-sm font-semibold text-amber-700">오늘의 인기 추천</p>
+              <p className="text-sm font-semibold text-amber-700">{copy.popularTitle}</p>
               <div className="mt-3 space-y-2">
                 {popularMenus.map((menu) => (
                   <Link
