@@ -81,8 +81,9 @@ export default function AdminPage() {
   // Usage
   const [usage, setUsage] = useState<UsageSummary | null>(null);
   const [usageLoading, setUsageLoading] = useState(false);
-  const [usageFrom, setUsageFrom] = useState('');
-  const [usageTo, setUsageTo] = useState('');
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [usageFrom, setUsageFrom] = useState(todayStr);
+  const [usageTo, setUsageTo] = useState(todayStr);
 
   // DB
   const [db, setDb] = useState<DbStatus | null>(null);
@@ -299,6 +300,11 @@ export default function AdminPage() {
         {/* ── Usage Tab ─────────────────────────────────────────────────────── */}
         {activeTab === 'usage' && (
           <div className="flex flex-col gap-6">
+            {/* /tmp 초기화 경고 */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700 flex items-start gap-2">
+              <span className="text-base shrink-0">⚠️</span>
+              <span>사용량 데이터는 서버 <strong>/tmp</strong> 에 저장됩니다. 서버 재기동·재배포 시 자동으로 초기화됩니다.</span>
+            </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
               <SectionTitle>API 토큰 사용량</SectionTitle>
               <div className="flex gap-2">
@@ -343,14 +349,18 @@ export default function AdminPage() {
               >
                 조회
               </button>
-              {(usageFrom || usageTo) && (
-                <button
-                  onClick={() => { setUsageFrom(''); setUsageTo(''); fetchUsage('', ''); }}
-                  className="text-sm text-gray-500 hover:text-gray-700 px-2 py-1.5"
-                >
-                  초기화
-                </button>
-              )}
+              <button
+                onClick={() => { setUsageFrom(todayStr); setUsageTo(todayStr); fetchUsage(todayStr, todayStr); }}
+                className="text-sm text-gray-500 hover:text-gray-700 px-2 py-1.5"
+              >
+                오늘
+              </button>
+              <button
+                onClick={() => { setUsageFrom(''); setUsageTo(''); fetchUsage('', ''); }}
+                className="text-sm text-gray-400 hover:text-gray-600 px-2 py-1.5"
+              >
+                전체
+              </button>
             </div>
 
             {usageLoading && <p className="text-gray-500 text-sm">로딩 중...</p>}
