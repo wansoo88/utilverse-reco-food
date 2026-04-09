@@ -10,7 +10,9 @@ import { DEFAULT_LOCALE, type Locale } from '@/config/site';
  */
 export function localePath(lang: Locale, path: string): string {
   if (lang === DEFAULT_LOCALE) return path;
-  return `/${lang}${path}`;
+  const combined = `/${lang}${path}`;
+  // trailing slash 방지: /en/ → /en (루트 경로에서 발생)
+  return combined.length > 1 && combined.endsWith('/') ? combined.slice(0, -1) : combined;
 }
 
 /**

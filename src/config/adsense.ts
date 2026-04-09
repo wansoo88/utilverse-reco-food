@@ -8,3 +8,8 @@ export const AD_SLOTS = {
 export const isAdsenseEnabled = (): boolean => {
   return Boolean(ADSENSE_PUB_ID && ADSENSE_PUB_ID.startsWith('ca-pub-'));
 };
+
+/** 광고 슬롯이 설정됐는지 확인 — 빈 슬롯 ID로 ads.push() 방지 */
+export const isSlotEnabled = (slot: string): boolean => {
+  return isAdsenseEnabled() && slot.length > 0;
+};
