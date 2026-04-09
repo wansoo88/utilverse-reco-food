@@ -14,6 +14,15 @@ const STATIC_PAGES = ['/about', '/privacy', '/terms', '/contact'] as const;
  * 한국어(ko): URL 접두사 없음 (/ /eat/menu/slug /about ...)
  * 외국어: /en/... /ja/... /zh/...
  */
+/** URL의 non-ASCII 문자를 퍼센트 인코딩 — Google XML 파서 strict 모드 대응 */
+function encodeUrl(url: string): string {
+  try {
+    return new URL(url).href;
+  } catch {
+    return encodeURI(url);
+  }
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
@@ -23,7 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const locale of LOCALES) {
     const path = localePath(locale, '/');
     entries.push({
-      url: `${SITE_URL}${path === '/' ? '' : path}`,
+      url: encodeUrl(`${SITE_URL}${path === '/' ? '' : path}`),
       lastModified: now,
       changeFrequency: 'daily',
       priority: 1.0,
@@ -31,7 +40,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         languages: Object.fromEntries(
           LOCALES.map((l) => {
             const lPath = localePath(l, '/');
-            return [l, `${SITE_URL}${lPath === '/' ? '' : lPath}`];
+            return [l, encodeUrl(`${SITE_URL}${lPath === '/' ? '' : lPath}`)];
           }),
         ),
       },
@@ -43,13 +52,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     for (const locale of LOCALES) {
       const path = localePath(locale, `/eat/menu/${keyword.slug}`);
       entries.push({
-        url: `${SITE_URL}${path}`,
+        url: encodeUrl(`${SITE_URL}${path}`),
         lastModified: now,
         changeFrequency: 'weekly',
         priority: 0.8,
         alternates: {
           languages: Object.fromEntries(
-            LOCALES.map((l) => [l, `${SITE_URL}${localePath(l, `/eat/menu/${keyword.slug}`)}`]),
+            LOCALES.map((l) => [l, encodeUrl(`${SITE_URL}${localePath(l, `/eat/menu/${keyword.slug}`)}`)])
           ),
         },
       });
@@ -61,7 +70,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     for (const locale of LOCALES) {
       const path = localePath(locale, page);
       entries.push({
-        url: `${SITE_URL}${path}`,
+        url: encodeUrl(`${SITE_URL}${path}`),
         lastModified: now,
         changeFrequency: 'monthly',
         priority: 0.5,
