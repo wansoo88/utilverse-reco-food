@@ -1,4 +1,4 @@
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://utilverse.info';
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://food-ai.utilverse.info';
 // BASE_PATH: 루트 배포 (basePath 없음)
 export const BASE_PATH = '';
 export const SITE_NAME = '오늘뭐먹지';

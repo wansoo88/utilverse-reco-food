@@ -47,7 +47,7 @@ export default async function OgImage({ params }: Props) {
           <div style={{ fontSize: 58, lineHeight: 1.2, fontWeight: 800, maxWidth: '92%' }}>{meta.title}</div>
           <div style={{ fontSize: 28, lineHeight: 1.4, color: '#4b5563', maxWidth: '88%' }}>{meta.description}</div>
         </div>
-        <div style={{ fontSize: 24, color: '#6b7280' }}>오늘뭐먹지 · utilverse.info</div>
+        <div style={{ fontSize: 24, color: '#6b7280' }}>오늘뭐먹지 · food-ai.utilverse.info</div>
       </div>
     ),
     size,
