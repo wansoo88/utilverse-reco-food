@@ -11,17 +11,6 @@ export interface LegalPageContent {
   sections: LegalSection[];
 }
 
-export const FOOTER_COPY: Record<Locale, {
-  about: string;
-  privacy: string;
-  terms: string;
-  contact: string;
-}> = {
-  ko: { about: '소개', privacy: '개인정보처리방침', terms: '이용약관', contact: '문의' },
-  en: { about: 'About', privacy: 'Privacy', terms: 'Terms', contact: 'Contact' },
-  ja: { about: '紹介', privacy: 'プライバシー', terms: '利用規約', contact: 'お問い合わせ' },
-  zh: { about: '关于', privacy: '隐私政策', terms: '服务条款', contact: '联系' },
-};
 
 export const ABOUT_CONTENT: Record<Locale, LegalPageContent> = {
   ko: {
