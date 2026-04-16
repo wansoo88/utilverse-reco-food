@@ -252,6 +252,69 @@ export default async function MenuSlugPage({ params }: Props) {
     `${primaryItem.name}은(는) ${primaryItem.reason}라는 점에서 첫 선택지로 적합합니다. ${tags.length > 0 ? `특히 ${tags.join(', ')} 조건을 함께 고려할 때 더 자연스럽게 연결됩니다.` : '현재 페이지의 상황 설명과도 무리 없이 연결됩니다.'}`,
     `대안 메뉴는 같은 상황 안에서 취향, 비용감, 준비 방식만 조금 다르게 가져갈 수 있도록 묶었습니다. 바로 주문할지 직접 만들지 망설이는 사용자에게 비교 출발점을 제공하는 것이 목적입니다.`,
   ] : [];
+
+  // ── 해먹기/시켜먹기 섹션 — 페이지별 메뉴 특화 문구 (AdSense 저품질 방지) ──────
+  const cookFavored = keyword.preset.mode === 'cook';
+  const orderFavored = keyword.preset.mode === 'order';
+  const menuInsight: Record<Locale, { cook: string; order: string }> = {
+    ko: {
+      cook: primaryItem
+        ? `${primaryItem.name}은(는) 집에서도 어렵지 않게 만들 수 있는 메뉴입니다. ${cookFavored ? '이 상황엔 직접 해먹는 쪽이 특히 잘 맞습니다.' : '재료가 있다면 배달비 없이 즐길 수 있어요.'}`
+        : '',
+      order: primaryItem
+        ? `${primaryItem.name}은(는) 대부분의 배달 앱에서 주문할 수 있습니다. ${orderFavored ? '이 상황엔 배달이 가장 현실적인 선택입니다.' : '피곤하거나 재료가 없을 때 활용하기 좋아요.'}`
+        : '',
+    },
+    en: {
+      cook: primaryItem
+        ? `${primaryItem.name} is approachable to make at home. ${cookFavored ? 'Cooking it yourself is especially recommended for this situation.' : 'If you have the ingredients, you can skip the delivery fee.'}`
+        : '',
+      order: primaryItem
+        ? `${primaryItem.name} is available on most delivery platforms. ${orderFavored ? 'Ordering delivery is the most practical choice here.' : "Great option when you're too tired to cook."}`
+        : '',
+    },
+    ja: {
+      cook: primaryItem
+        ? `${primaryItem.name}は自宅でも作りやすいメニューです。${cookFavored ? 'この状況では自炊が特におすすめです。' : '食材があれば配達料なしで楽しめます。'}`
+        : '',
+      order: primaryItem
+        ? `${primaryItem.name}はほとんどのデリバリーアプリで注文できます。${orderFavored ? 'この状況ではデリバリーが最も現実的な選択です。' : '疲れているときや食材がないときに活用しましょう。'}`
+        : '',
+    },
+    zh: {
+      cook: primaryItem
+        ? `${primaryItem.name}在家也容易制作。${cookFavored ? '这种情况下特别推荐自己动手做。' : '如果有食材，可以省去配送费。'}`
+        : '',
+      order: primaryItem
+        ? `${primaryItem.name}在大多数外卖平台都能点到。${orderFavored ? '这种情况下点外卖是最现实的选择。' : '在疲惫或没有食材时很方便。'}`
+        : '',
+    },
+  };
+
+  // ── FAQ Q2 — 페이지 제목 포함하여 고유화 ────────────────────────────────────
+  const faqQ2Contextual: Record<Locale, string> = {
+    ko: `"${meta.title}"에서 직접 요리와 배달, 어느 쪽이 더 나을까요?`,
+    en: `For "${meta.title}", is it better to cook at home or order delivery?`,
+    ja: `「${meta.title}」では自炊とデリバリーどちらがよいですか？`,
+    zh: `"${meta.title}"的情况下，自己做还是点外卖更好？`,
+  };
+
+  // ── FAQ Q3 답변 — 추천 메뉴 이름 포함 ─────────────────────────────────────
+  const faqA3Contextual: Record<Locale, string> = {
+    ko: primaryItem
+      ? `${primaryItem.name}이(가) 맞지 않는다면 메인 페이지에서 가구 유형·상황·예산 필터를 직접 조정하거나, 검색창에 원하는 상황을 자유롭게 입력해보세요. 다시 추천받기 버튼을 누르면 AI가 매번 다른 결과를 제안합니다.`
+      : copy.faqA3,
+    en: primaryItem
+      ? `If ${primaryItem.name} doesn't fit, adjust the household type, situation, or budget filters on the main page, or type your specific context into the search bar. The AI generates different suggestions every time you press retry.`
+      : copy.faqA3,
+    ja: primaryItem
+      ? `${primaryItem.name}が合わない場合は、メインページで家族構成・状況・予算のフィルターを変えるか、検索欄に状況を直接入力してください。再推薦ボタンを押すとAIが毎回新しい候補を提案します。`
+      : copy.faqA3,
+    zh: primaryItem
+      ? `如果${primaryItem.name}不适合，可以在主页调整家庭类型、场景或预算筛选条件，也可以在搜索框直接输入具体情况。点击重新推荐，AI每次都会给出不同结果。`
+      : copy.faqA3,
+  };
+
   const t = await getTranslations();
 
   return (
@@ -317,12 +380,12 @@ export default async function MenuSlugPage({ params }: Props) {
                 <div className="rounded-2xl bg-amber-50 p-4">
                   <p className="text-sm font-semibold text-amber-900">{copy.cookTitle}</p>
                   <p className="mt-2 text-sm leading-6 text-amber-800">{copy.cookBody}</p>
-                  <p className="mt-2 text-xs text-amber-700">{copy.faqA2Cook}</p>
+                  <p className="mt-2 text-xs text-amber-700">{menuInsight[locale].cook || copy.faqA2Cook}</p>
                 </div>
                 <div className="rounded-2xl bg-sky-50 p-4">
                   <p className="text-sm font-semibold text-sky-900">{copy.orderTitle}</p>
                   <p className="mt-2 text-sm leading-6 text-sky-800">{copy.orderBody}</p>
-                  <p className="mt-2 text-xs text-sky-700">{copy.faqA2Order}</p>
+                  <p className="mt-2 text-xs text-sky-700">{menuInsight[locale].order || copy.faqA2Order}</p>
                 </div>
               </div>
             </section>
@@ -338,8 +401,8 @@ export default async function MenuSlugPage({ params }: Props) {
                     '@type': 'FAQPage',
                     mainEntity: [
                       { '@type': 'Question', name: `${meta.title}${copy.faqQ1Suffix}`, acceptedAnswer: { '@type': 'Answer', text: copy.faqA1 } },
-                      { '@type': 'Question', name: copy.faqQ2, acceptedAnswer: { '@type': 'Answer', text: `${copy.faqA2Cook} ${copy.faqA2Order}` } },
-                      { '@type': 'Question', name: copy.faqQ3, acceptedAnswer: { '@type': 'Answer', text: copy.faqA3 } },
+                      { '@type': 'Question', name: faqQ2Contextual[locale], acceptedAnswer: { '@type': 'Answer', text: `${copy.faqA2Cook} ${copy.faqA2Order}` } },
+                      { '@type': 'Question', name: copy.faqQ3, acceptedAnswer: { '@type': 'Answer', text: faqA3Contextual[locale] } },
                     ],
                   }),
                 }}
@@ -347,8 +410,8 @@ export default async function MenuSlugPage({ params }: Props) {
               <div className="mt-4 space-y-5">
                 {[
                   { q: `${meta.title}${copy.faqQ1Suffix}`, a: copy.faqA1 },
-                  { q: copy.faqQ2, a: `${copy.faqA2Cook} ${copy.faqA2Order}` },
-                  { q: copy.faqQ3, a: copy.faqA3 },
+                  { q: faqQ2Contextual[locale], a: `${copy.faqA2Cook} ${copy.faqA2Order}` },
+                  { q: copy.faqQ3, a: faqA3Contextual[locale] },
                 ].map(({ q, a }) => (
                   <details key={q} className="group rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
                     <summary className="cursor-pointer text-sm font-semibold text-gray-800 list-none flex items-center justify-between gap-2">

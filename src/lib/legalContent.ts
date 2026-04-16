@@ -11,53 +11,154 @@ export interface LegalPageContent {
   sections: LegalSection[];
 }
 
-export const FOOTER_COPY: Record<Locale, {
-  about: string;
-  privacy: string;
-  terms: string;
-  contact: string;
-}> = {
-  ko: { about: '소개', privacy: '개인정보처리방침', terms: '이용약관', contact: '문의' },
-  en: { about: 'About', privacy: 'Privacy', terms: 'Terms', contact: 'Contact' },
-  ja: { about: '紹介', privacy: 'プライバシー', terms: '利用規約', contact: 'お問い合わせ' },
-  zh: { about: '关于', privacy: '隐私政策', terms: '服务条款', contact: '联系' },
-};
 
 export const ABOUT_CONTENT: Record<Locale, LegalPageContent> = {
   ko: {
     title: '오늘뭐먹지 소개',
     description: '오늘뭐먹지는 상황, 인원, 예산에 맞는 음식 선택을 빠르게 돕는 AI 기반 메뉴 추천 서비스입니다.',
     sections: [
-      { heading: '서비스 목적', paragraphs: ['오늘뭐먹지는 사용자가 오늘 먹을 메뉴를 빠르게 정할 수 있도록 돕기 위해 만들어졌습니다.', '혼밥, 가족 식사, 야근 후 배달, 가성비 식사처럼 자주 겪는 고민을 검색과 필터로 바로 풀 수 있게 설계했습니다.'] },
-      { heading: '콘텐츠 원칙', paragraphs: ['추천 결과는 음식 선택을 돕기 위한 참고 정보이며, 실제 취향과 상황에 따라 달라질 수 있습니다.', '검색 유입용 페이지도 단순 키워드 나열이 아니라 상황별 메뉴 탐색에 도움이 되는 구조를 목표로 운영합니다.'] },
-      { heading: '운영 방식', paragraphs: ['서비스는 다국어 페이지, 로컬 저장 캘린더, 프로그래매틱 SEO 페이지를 함께 운영합니다.', '광고는 사용자 경험을 해치지 않도록 최소 위치에만 배치합니다.'] },
+      {
+        heading: '서비스 목적',
+        paragraphs: [
+          '오늘뭐먹지는 사용자가 오늘 먹을 메뉴를 빠르게 정할 수 있도록 돕기 위해 만들어졌습니다.',
+          '혼밥, 가족 식사, 야근 후 배달, 가성비 식사처럼 자주 겪는 고민을 검색과 필터로 바로 풀 수 있게 설계했습니다.',
+          '메뉴 추천에는 Google Gemini Flash AI를 활용하며, 사용자의 필터(가구 유형, 상황, 예산, 해먹기/시켜먹기)를 기반으로 맥락에 맞는 결과를 제공합니다.',
+        ],
+      },
+      {
+        heading: '콘텐츠 원칙',
+        paragraphs: [
+          '추천 결과는 음식 선택을 돕기 위한 참고 정보이며, 실제 취향과 상황에 따라 달라질 수 있습니다.',
+          '검색 유입용 페이지도 단순 키워드 나열이 아니라 상황별 메뉴 탐색에 실질적으로 도움이 되는 구조로 운영합니다.',
+          '다국어 콘텐츠(한국어·영어·일본어·중국어)는 각 언어 화자의 식문화를 고려해 현지화했습니다.',
+        ],
+      },
+      {
+        heading: '운영 방식',
+        paragraphs: [
+          '서비스는 다국어 페이지, 로컬 저장 캘린더, 프로그래매틱 SEO 페이지를 함께 운영합니다.',
+          '광고는 사용자 경험을 해치지 않도록 최소 위치에만 배치합니다.',
+        ],
+      },
+      {
+        heading: '운영자',
+        paragraphs: [
+          '오늘뭐먹지는 1인 개발자가 직접 기획·개발·운영하는 서비스입니다.',
+          '음식과 AI 기술에 관심을 가진 개발자가 일상의 불편함("오늘 뭐 먹지?"를 하루에도 몇 번씩 고민하는 문제)을 해결하기 위해 만들었습니다.',
+          '문의 및 협업 제안은 연락처 페이지를 통해 이메일로 받고 있습니다.',
+        ],
+      },
     ],
   },
   en: {
     title: 'About What Should I Eat?',
     description: 'What Should I Eat? is an AI-powered menu recommendation service for choosing food quickly based on situation, group size, and budget.',
     sections: [
-      { heading: 'Purpose', paragraphs: ['The service exists to help people decide what to eat without overthinking.', 'It focuses on practical meal decisions such as solo meals, family dinners, late-night delivery, and budget-friendly food.'] },
-      { heading: 'Content principle', paragraphs: ['Recommendations are guidance, not guarantees, and should be interpreted with personal taste and context in mind.', 'Search landing pages are designed to provide real menu discovery value, not just target keywords.'] },
-      { heading: 'How the site runs', paragraphs: ['The product combines multilingual pages, local saved meal calendars, and SEO landing pages.', 'Advertising is intentionally limited to avoid harming the reading experience.'] },
+      {
+        heading: 'Purpose',
+        paragraphs: [
+          'The service exists to help people decide what to eat without overthinking.',
+          'It focuses on practical meal decisions such as solo meals, family dinners, late-night delivery, and budget-friendly food.',
+          'Recommendations are powered by Google Gemini Flash AI, using filters like household type, situation, budget, and cook/order preference to deliver contextually relevant results.',
+        ],
+      },
+      {
+        heading: 'Content principle',
+        paragraphs: [
+          'Recommendations are guidance, not guarantees, and should be interpreted with personal taste and context in mind.',
+          'Search landing pages are designed to provide real menu discovery value, not just target keywords.',
+          'Multilingual content (Korean, English, Japanese, Chinese) is localized to reflect the food culture of each audience.',
+        ],
+      },
+      {
+        heading: 'How the site runs',
+        paragraphs: [
+          'The product combines multilingual pages, local saved meal calendars, and SEO landing pages.',
+          'Advertising is intentionally limited to avoid harming the reading experience.',
+        ],
+      },
+      {
+        heading: 'About the creator',
+        paragraphs: [
+          'What Should I Eat? is independently built and operated by a solo developer.',
+          'The service was created to solve a simple but recurring daily frustration — spending too much time deciding what to eat.',
+          'Feedback and collaboration inquiries are welcome via the contact page.',
+        ],
+      },
     ],
   },
   ja: {
     title: '今日何食べる？について',
     description: '今日何食べる？は、状況・人数・予算に合わせて食事をすばやく選ぶためのAIメニュー推薦サービスです。',
     sections: [
-      { heading: 'サービスの目的', paragraphs: ['このサービスは、今日の食事をすばやく決めたい人のために作られました。', '一人ごはん、家族の食事、残業後の出前、節約メニューなど、よくある悩みに実用的に対応します。'] },
-      { heading: 'コンテンツ方針', paragraphs: ['おすすめ結果は参考情報であり、最終的な選択は好みや状況に応じて変わります。', 'SEOページも単なるキーワード一覧ではなく、実際の献立検討に役立つ内容を目指しています。'] },
-      { heading: '運営方針', paragraphs: ['多言語ページ、ローカル保存カレンダー、SEOページを組み合わせて運営しています。', '広告は閲覧体験を損なわない最小限の位置にのみ配置します。'] },
+      {
+        heading: 'サービスの目的',
+        paragraphs: [
+          'このサービスは、今日の食事をすばやく決めたい人のために作られました。',
+          '一人ごはん、家族の食事、残業後の出前、節約メニューなど、よくある悩みに実用的に対応します。',
+          '推薦にはGoogle Gemini Flash AIを活用しており、家族構成・状況・予算・自炊か出前かのフィルターに基づいて最適な結果を提供します。',
+        ],
+      },
+      {
+        heading: 'コンテンツ方針',
+        paragraphs: [
+          'おすすめ結果は参考情報であり、最終的な選択は好みや状況に応じて変わります。',
+          'SEOページも単なるキーワード一覧ではなく、実際の献立検討に役立つ内容を目指しています。',
+          '多言語コンテンツ（韓国語・英語・日本語・中国語）は、各言語圏の食文化を考慮してローカライズしています。',
+        ],
+      },
+      {
+        heading: '運営方針',
+        paragraphs: [
+          '多言語ページ、ローカル保存カレンダー、SEOページを組み合わせて運営しています。',
+          '広告は閲覧体験を損なわない最小限の位置にのみ配置します。',
+        ],
+      },
+      {
+        heading: '運営者について',
+        paragraphs: [
+          '今日何食べる？は個人開発者が企画・開発・運営しているサービスです。',
+          '「今日何食べよう？」という毎日繰り返す悩みを解決したいという思いから生まれました。',
+          'ご意見・ご提案はお問い合わせページよりメールにてお送りください。',
+        ],
+      },
     ],
   },
   zh: {
     title: '关于今天吃什么',
     description: '今天吃什么是一个根据场景、人数和预算快速给出菜单建议的 AI 美食推荐服务。',
     sections: [
-      { heading: '服务目的', paragraphs: ['这个服务的目标是帮助用户更快决定今天吃什么。', '它重点解决一人食、家庭晚餐、加班后外卖、预算有限等高频决策场景。'] },
-      { heading: '内容原则', paragraphs: ['推荐结果仅供参考，最终选择应结合个人口味和实际情况判断。', '搜索落地页也以真实的菜单发现价值为目标，而不是单纯堆砌关键词。'] },
-      { heading: '运营方式', paragraphs: ['网站由多语言页面、本地保存日历和 SEO 菜单页面组成。', '广告位会控制在尽量不影响阅读体验的范围内。'] },
+      {
+        heading: '服务目的',
+        paragraphs: [
+          '这个服务的目标是帮助用户更快决定今天吃什么。',
+          '它重点解决一人食、家庭晚餐、加班后外卖、预算有限等高频决策场景。',
+          '推荐功能由 Google Gemini Flash AI 驱动，根据家庭类型、场景、预算及自己做/点外卖偏好提供个性化结果。',
+        ],
+      },
+      {
+        heading: '内容原则',
+        paragraphs: [
+          '推荐结果仅供参考，最终选择应结合个人口味和实际情况判断。',
+          '搜索落地页以真实的菜单发现价值为目标，而不是单纯堆砌关键词。',
+          '多语言内容（韩语、英语、日语、中文）针对各语言用户的饮食文化进行了本地化处理。',
+        ],
+      },
+      {
+        heading: '运营方式',
+        paragraphs: [
+          '网站由多语言页面、本地保存日历和 SEO 菜单页面组成。',
+          '广告位控制在不影响阅读体验的最小范围内。',
+        ],
+      },
+      {
+        heading: '关于开发者',
+        paragraphs: [
+          '今天吃什么是由独立开发者独立规划、开发和运营的服务。',
+          '该服务的初衷是解决每天都会遇到的烦恼——花太多时间决定吃什么。',
+          '欢迎通过联系页面发邮件提交反馈和合作建议。',
+        ],
+      },
     ],
   },
 };
@@ -143,38 +244,130 @@ export const TERMS_CONTENT: Record<Locale, LegalPageContent> = {
 export const CONTACT_CONTENT: Record<Locale, LegalPageContent> = {
   ko: {
     title: '문의',
-    description: '서비스 제안, 오류 제보, 광고 및 협업 문의를 위한 안내입니다.',
+    description: '서비스 이용 중 불편한 점, 오류 제보, 제안 사항이 있으시면 이메일로 연락해주세요. 모든 문의에 성실히 답변드립니다.',
     sections: [
-      { heading: '문의 가능한 내용', paragraphs: ['추천 결과 오류, 잘못된 번역, 페이지 문제, 서비스 제안 등을 문의할 수 있습니다.', '광고 및 협업 관련 문의도 이 페이지를 통해 접수할 수 있습니다.'] },
-      { heading: '문의 방법', paragraphs: ['현재는 저장형 문의 폼 대신 이메일 기반 응대를 준비 중입니다.', '임시 문의 채널: kimcomplete8888@gmail.com'] },
-      { heading: '처리 안내', paragraphs: ['문의 내용에 따라 회신까지 시간이 걸릴 수 있습니다.', '개인정보나 결제정보처럼 민감한 정보는 보내지 마세요.'] },
+      {
+        heading: '문의 가능한 내용',
+        paragraphs: [
+          '추천 결과 오류 또는 품질 개선 의견 — 특정 상황에서 추천이 이상하게 작동하는 경우 구체적인 내용을 적어주시면 빠르게 확인합니다.',
+          '번역 오류 및 다국어 콘텐츠 문제 — 한국어 외 언어(영어·일본어·중국어)에서 발견한 어색한 표현이나 오역을 알려주세요.',
+          '페이지 오류 또는 기술적 문제 — 흰 화면, 로딩 지연, 깨진 레이아웃 등 기술 문제도 접수합니다.',
+          '서비스 제안 및 기능 요청 — 새로운 기능 아이디어나 UX 개선 의견을 자유롭게 보내주세요.',
+          '광고 및 협업 문의 — 콘텐츠 제휴, 광고 게재, 비즈니스 협업 관련 문의도 환영합니다.',
+        ],
+      },
+      {
+        heading: '이메일 문의',
+        paragraphs: [
+          '문의 이메일: kimcomplete8888@gmail.com',
+          '제목 형식: [문의 유형] 내용 요약 — 예: [오류] 야근 추천 페이지 흰 화면, [제안] 알레르기 필터 추가 요청',
+          '평균 응답 시간: 영업일 기준 1~3일 이내 회신을 목표로 합니다.',
+        ],
+      },
+      {
+        heading: '문의 시 유의사항',
+        paragraphs: [
+          '오류 제보 시 브라우저 종류, 발생 페이지 URL, 재현 방법을 함께 알려주시면 빠른 처리에 도움이 됩니다.',
+          '개인정보(주민번호, 금융 정보, 비밀번호 등)는 문의 내용에 포함하지 마세요.',
+          '스팸이나 광고성 메일은 자동 처리될 수 있습니다.',
+        ],
+      },
     ],
   },
   en: {
     title: 'Contact',
-    description: 'Contact guidance for product feedback, bug reports, and advertising inquiries.',
+    description: 'If you encounter any issues, have suggestions, or want to report a bug, feel free to reach out by email. We respond to all inquiries.',
     sections: [
-      { heading: 'Topics', paragraphs: ['You can contact us about translation issues, recommendation quality, bugs, or product suggestions.', 'Advertising and partnership inquiries are also accepted through this page.'] },
-      { heading: 'How to reach us', paragraphs: ['A structured contact form is not live yet, so email is the temporary channel.', 'Temporary contact email: kimcomplete8888@gmail.com'] },
-      { heading: 'Response note', paragraphs: ['Response time may vary depending on the inquiry type and workload.', 'Please do not send sensitive personal or payment information.'] },
+      {
+        heading: 'What you can contact us about',
+        paragraphs: [
+          'Recommendation quality issues — if the AI suggestions feel off for a specific situation, describe it in detail and we will investigate.',
+          'Translation or multilingual content errors — spotted awkward phrasing or mistranslations in English, Japanese, or Chinese? Let us know.',
+          'Technical problems — blank screens, slow loading, broken layouts, or any other technical issues are welcome to report.',
+          'Feature requests and suggestions — share your ideas for new features or UX improvements freely.',
+          'Advertising and partnership inquiries — content partnerships, advertising placement, and business collaboration are also welcome.',
+        ],
+      },
+      {
+        heading: 'How to reach us',
+        paragraphs: [
+          'Email: kimcomplete8888@gmail.com',
+          'Subject format: [Type] Brief summary — e.g. [Bug] White screen on overtime page, [Request] Add allergy filter',
+          'Expected response time: We aim to reply within 1–3 business days.',
+        ],
+      },
+      {
+        heading: 'Before you write',
+        paragraphs: [
+          'For bug reports, including your browser, the page URL, and steps to reproduce helps us fix issues faster.',
+          'Please do not include personal information (ID numbers, financial details, passwords) in your message.',
+          'Spam or unsolicited promotional emails may be filtered automatically.',
+        ],
+      },
     ],
   },
   ja: {
     title: 'お問い合わせ',
-    description: 'サービス提案、不具合報告、広告や協業相談のための案内です。',
+    description: 'ご不便な点、バグ報告、ご提案などはメールでお気軽にご連絡ください。すべてのお問い合わせに誠実にお答えします。',
     sections: [
-      { heading: '問い合わせ内容', paragraphs: ['翻訳の問題、推薦品質、不具合、サービス提案などを送ることができます。', '広告や協業に関する相談も受け付けています。'] },
-      { heading: '連絡方法', paragraphs: ['現在は保存型フォームではなく、メール対応を準備中です。', '暫定連絡先: kimcomplete8888@gmail.com'] },
-      { heading: '案内', paragraphs: ['内容によって返信まで時間がかかる場合があります。', '機密性の高い個人情報や決済情報は送らないでください。'] },
+      {
+        heading: 'お問い合わせ内容',
+        paragraphs: [
+          '推薦品質の問題 — 特定の状況でAIの提案がおかしいと感じた場合は、具体的な内容をお知らせください。',
+          '翻訳ミスや多言語コンテンツの問題 — 英語・日本語・中国語で不自然な表現や誤訳を見つけた場合はご報告ください。',
+          '技術的な問題 — 白い画面、読み込み遅延、レイアウト崩れなどの技術的な問題も受け付けています。',
+          '機能リクエストやご提案 — 新機能のアイデアやUX改善のご意見をお気軽にお送りください。',
+          '広告・協業に関するご相談 — コンテンツ提携、広告掲載、ビジネス協力のご相談も歓迎します。',
+        ],
+      },
+      {
+        heading: '連絡先',
+        paragraphs: [
+          'メールアドレス: kimcomplete8888@gmail.com',
+          '件名の形式: [種類] 内容要約 — 例: [バグ] 残業後ページが真っ白、[提案] アレルギーフィルター追加',
+          '返信目安: 営業日ベースで1〜3日以内のご返信を目標としています。',
+        ],
+      },
+      {
+        heading: 'ご連絡の際の注意事項',
+        paragraphs: [
+          'バグ報告の際は、使用ブラウザ、発生ページのURL、再現手順をあわせてお知らせいただくとスムーズです。',
+          '個人情報（マイナンバー、金融情報、パスワードなど）はメールに含めないようにしてください。',
+          'スパムや広告メールは自動的に処理される場合があります。',
+        ],
+      },
     ],
   },
   zh: {
-    title: '联系',
-    description: '用于产品建议、错误反馈、广告与合作咨询的联系说明。',
+    title: '联系我们',
+    description: '如果您遇到问题、有改进建议或想报告错误，欢迎发邮件联系我们。我们会认真回复每一封邮件。',
     sections: [
-      { heading: '可联系内容', paragraphs: ['可反馈翻译问题、推荐质量、页面错误或产品建议。', '广告和合作咨询也可通过本页进行联系。'] },
-      { heading: '联系方式', paragraphs: ['目前尚未上线表单，暂时通过邮箱处理。', '临时联系邮箱：kimcomplete8888@gmail.com'] },
-      { heading: '处理说明', paragraphs: ['根据咨询内容不同，回复时间可能有所差异。', '请不要发送敏感个人信息或支付信息。'] },
+      {
+        heading: '可联系的内容',
+        paragraphs: [
+          '推荐质量问题 — 如果AI在特定情况下的推荐感觉不对，请详细描述，我们会及时核查。',
+          '翻译错误或多语言内容问题 — 发现英文、日文或中文页面的翻译不当或用词尴尬？请告知我们。',
+          '技术问题 — 白屏、加载缓慢、页面布局错乱等技术问题均可反馈。',
+          '功能建议和改进意见 — 欢迎自由分享新功能创意或用户体验改进建议。',
+          '广告与合作咨询 — 内容合作、广告投放、商业合作等相关咨询也欢迎联系。',
+        ],
+      },
+      {
+        heading: '联系方式',
+        paragraphs: [
+          '邮件地址：kimcomplete8888@gmail.com',
+          '邮件主题格式：[类型] 简要说明 — 例：[Bug] 加班页面白屏，[建议] 增加过敏原筛选',
+          '预计回复时间：我们目标在1-3个工作日内回复。',
+        ],
+      },
+      {
+        heading: '联系前请注意',
+        paragraphs: [
+          '报告问题时，提供浏览器类型、页面URL和重现步骤，有助于我们更快解决问题。',
+          '请勿在邮件中包含个人信息（身份证号、金融信息、密码等）。',
+          '垃圾邮件或广告类邮件可能会被自动过滤。',
+        ],
+      },
     ],
   },
 };
