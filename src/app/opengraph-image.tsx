@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { SITE_DESCRIPTION, SITE_NAME } from '@/config/site';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/config/site';
 
 export const runtime = 'edge';
 
@@ -30,7 +30,7 @@ export default function OpenGraphImage() {
           <div style={{ fontSize: 72, fontWeight: 800 }}>{SITE_NAME}</div>
           <div style={{ fontSize: 32, lineHeight: 1.4, maxWidth: '88%' }}>{SITE_DESCRIPTION}</div>
         </div>
-        <div style={{ fontSize: 24, color: '#6b7280' }}>food-ai.utilverse.info</div>
+        <div style={{ fontSize: 24, color: '#6b7280' }}>{new URL(SITE_URL).host}</div>
       </div>
     ),
     size,

@@ -42,6 +42,29 @@ export default function RootLayout({
 }) {
   return (
     <html suppressHydrationWarning>
+      <head>
+        {/* Consent Mode v2 기본값 — GA/AdSense 로드 전에 반드시 실행 (EU 정책 준수) */}
+        <Script id="consent-default" strategy="beforeInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('consent', 'default', {
+              ad_storage: 'denied',
+              ad_user_data: 'denied',
+              ad_personalization: 'denied',
+              analytics_storage: 'granted',
+              wait_for_update: 500,
+              region: ['EU', 'EEA', 'GB', 'CH']
+            });
+            gtag('consent', 'default', {
+              ad_storage: 'granted',
+              ad_user_data: 'granted',
+              ad_personalization: 'granted',
+              analytics_storage: 'granted'
+            });
+          `}
+        </Script>
+      </head>
       <body className="text-gray-900 antialiased" style={{ fontFamily: "'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" }}>
         {children}
         <Suspense fallback={null}>

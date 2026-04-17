@@ -27,7 +27,8 @@ export const FooterAd = () => {
   return (
     <div ref={ref} className="w-full py-4 bg-gray-50">
       <p className="text-center text-[10px] text-gray-400 mb-1 tracking-wide">광고</p>
-      <div className="flex justify-center">
+      {/* CLS 방지: 광고가 로드되기 전에도 90px 높이 미리 확보 */}
+      <div className="flex justify-center" style={{ minHeight: '90px' }}>
         <ins
           className="adsbygoogle"
           style={{ display: 'block', width: '100%', maxWidth: '728px', height: '90px' }}

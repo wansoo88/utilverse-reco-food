@@ -218,6 +218,9 @@ export default async function MenuSlugPage({ params }: Props) {
       : null,
     ...(keyword.preset.vibes ?? []).map((item) => VIBE_KEYWORDS[locale][item]),
   ].filter((item): item is string => Boolean(item));
+  // Article 발행/수정 일자 — 빌드 시점 기준 (ISR revalidate 마다 갱신)
+  const publishedAt = new Date('2025-01-01T00:00:00Z').toISOString();
+  const modifiedAt = new Date().toISOString();
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -226,10 +229,28 @@ export default async function MenuSlugPage({ params }: Props) {
     inLanguage: locale,
     mainEntityOfPage: canonicalUrl,
     about: recommendation.items.map((item) => item.name),
+    datePublished: publishedAt,
+    dateModified: modifiedAt,
+    author: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
     publisher: {
       '@type': 'Organization',
       name: SITE_NAME,
+      url: SITE_URL,
     },
+  };
+  // BreadcrumbList — Google 리치 결과 강화
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: copy.home, item: `${SITE_URL}${localePath(locale, '/')}` },
+      { '@type': 'ListItem', position: 2, name: copy.guide, item: canonicalUrl },
+      { '@type': 'ListItem', position: 3, name: meta.title, item: canonicalUrl },
+    ],
   };
   const recipeJsonLd = primaryItem ? {
     '@context': 'https://schema.org',
@@ -247,11 +268,32 @@ export default async function MenuSlugPage({ params }: Props) {
       '@id': canonicalUrl,
     },
   } : null;
-  const bodyParagraphs = primaryItem ? [
-    `${copy.direct} ${meta.title}처럼 검색 의도가 분명한 경우에는 메뉴를 넓게 늘어놓기보다, 지금 상황에서 실패 확률이 낮은 선택지를 먼저 제시하는 편이 더 유용합니다.`,
-    `${primaryItem.name}은(는) ${primaryItem.reason}라는 점에서 첫 선택지로 적합합니다. ${tags.length > 0 ? `특히 ${tags.join(', ')} 조건을 함께 고려할 때 더 자연스럽게 연결됩니다.` : '현재 페이지의 상황 설명과도 무리 없이 연결됩니다.'}`,
-    `대안 메뉴는 같은 상황 안에서 취향, 비용감, 준비 방식만 조금 다르게 가져갈 수 있도록 묶었습니다. 바로 주문할지 직접 만들지 망설이는 사용자에게 비교 출발점을 제공하는 것이 목적입니다.`,
-  ] : [];
+  // 페이지 본문 — 언어별 템플릿 (한국어 텍스트가 외국어 페이지에 노출되던 i18n 누수 수정)
+  const bodyTemplates: Record<Locale, (args: { title: string; name: string; reason: string; tags: string[] }) => string[]> = {
+    ko: ({ title, name, reason, tags: t }) => [
+      `${copy.direct} ${title}처럼 검색 의도가 분명한 경우에는 메뉴를 넓게 늘어놓기보다, 지금 상황에서 실패 확률이 낮은 선택지를 먼저 제시하는 편이 더 유용합니다.`,
+      `${name}은(는) ${reason}라는 점에서 첫 선택지로 적합합니다. ${t.length > 0 ? `특히 ${t.join(', ')} 조건을 함께 고려할 때 더 자연스럽게 연결됩니다.` : '현재 페이지의 상황 설명과도 무리 없이 연결됩니다.'}`,
+      '대안 메뉴는 같은 상황 안에서 취향, 비용감, 준비 방식만 조금 다르게 가져갈 수 있도록 묶었습니다. 바로 주문할지 직접 만들지 망설이는 사용자에게 비교 출발점을 제공하는 것이 목적입니다.',
+    ],
+    en: ({ title, name, reason, tags: t }) => [
+      `${copy.direct} For a focused query like "${title}", it's more useful to surface a few low-risk options first rather than listing every possible menu.`,
+      `${name} is a strong opening pick because ${reason}. ${t.length > 0 ? `It pairs especially well with the conditions: ${t.join(', ')}.` : 'It also matches the situation described on this page.'}`,
+      'The alternative menus stay within the same situation but vary by taste, cost, and prep style — giving you a comparison starting point when you\'re torn between cooking and ordering.',
+    ],
+    ja: ({ title, name, reason, tags: t }) => [
+      `${copy.direct} 「${title}」のように検索意図が明確な場合は、メニューを広く並べるより、今の状況で失敗しにくい選択肢を先に示す方が役立ちます。`,
+      `${name}は${reason}という点で最初の選択肢として適しています。${t.length > 0 ? `特に${t.join('・')}の条件と合わせるとより自然に繋がります。` : 'このページの状況説明とも無理なく合います。'}`,
+      '代替メニューは同じ状況内で、好み・予算感・調理方法だけを少し変えられるようにまとめました。自炊か注文かで迷っているユーザーに比較の起点を提供することが目的です。',
+    ],
+    zh: ({ title, name, reason, tags: t }) => [
+      `${copy.direct} 像"${title}"这样搜索意图明确的情况下，与其罗列大量菜单，不如先给出当前场景中失败率较低的选项更实用。`,
+      `${name}作为首选很合适，因为${reason}。${t.length > 0 ? `特别是结合${t.join('、')}等条件时更顺畅。` : '与本页面描述的场景也很契合。'}`,
+      '备选菜单在同一场景下，仅在口味、预算和准备方式上稍作变化，旨在为犹豫"自己做还是点外卖"的用户提供一个比较起点。',
+    ],
+  };
+  const bodyParagraphs = primaryItem
+    ? bodyTemplates[locale]({ title: meta.title, name: primaryItem.name, reason: primaryItem.reason, tags })
+    : [];
 
   // ── 해먹기/시켜먹기 섹션 — 페이지별 메뉴 특화 문구 (AdSense 저품질 방지) ──────
   const cookFavored = keyword.preset.mode === 'cook';
@@ -323,6 +365,10 @@ export default async function MenuSlugPage({ params }: Props) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
         {recipeJsonLd && (
           <script
