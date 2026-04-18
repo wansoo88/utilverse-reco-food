@@ -3,6 +3,9 @@ node_modules
 out
 dist
 
+# 어드민 퍼시스턴트 스토어 (persistStore local 백엔드)
+.data/
+
 # 환경변수 — 절대 커밋 금지
 .env.local
 .env*.local

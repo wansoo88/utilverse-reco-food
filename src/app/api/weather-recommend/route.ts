@@ -99,7 +99,7 @@ JSON만 출력하세요.`;
         const result = await model.generateContent(prompt);
         const text = result.response.text().replace(/```json\n?|\n?```/g, '').trim();
         const parsed = JSON.parse(text) as { name: string; reason: string; emoji: string };
-        trackUsage({ ts: Date.now(), provider: 'gemini', model: 'gemini-2.5-flash', endpoint: 'recommend', estimatedTokens: estimateTokens(prompt + text) });
+        trackUsage({ ts: Date.now(), provider: 'gemini', model: 'gemini-2.5-flash', endpoint: 'recommend', estimatedTokens: estimateTokens(prompt + text) }).catch(() => {});
 
         return NextResponse.json({ ...parsed, weather: `${condition} ${weatherEmoji}`, temp: Math.round(temp) });
       } catch {
@@ -109,7 +109,7 @@ JSON만 출력하세요.`;
 
     // 3. 로컬 폴백
     const local = localWeatherMenu(isRainy, isCold, temp, hour);
-    trackUsage({ ts: Date.now(), provider: 'local', model: 'local', endpoint: 'recommend', estimatedTokens: 0 });
+    trackUsage({ ts: Date.now(), provider: 'local', model: 'local', endpoint: 'recommend', estimatedTokens: 0 }).catch(() => {});
     return NextResponse.json({ ...local, weather: `${condition} ${weatherEmoji}`, temp: Math.round(temp) });
   } catch {
     return NextResponse.json({ error: 'internal' }, { status: 500 });

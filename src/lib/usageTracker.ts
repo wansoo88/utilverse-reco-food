@@ -1,11 +1,11 @@
 /**
  * 토큰 사용량 추적기
- * - /tmp 파일 기반 퍼시스턴스 (항상 파일에서 읽어 staleness 방지)
+ * - persistStore 기반 퍼시스턴스 (Upstash > .data/ > /tmp 자동 선택)
+ * - 서버 재기동·재배포 시에도 데이터 유지 (Upstash/`.data/` 구성 시)
  */
-import { writeFileSync, readFileSync } from 'fs';
-import path from 'path';
+import { readJson, writeJson, deleteKey, getBackendName } from './persistStore';
 
-const USAGE_FILE = path.join('/tmp', 'wmj_usage.json');
+const USAGE_KEY = 'usage';
 const MAX_RECORDS = 500;
 
 export interface UsageRecord {
@@ -24,35 +24,19 @@ export interface UsageSummary {
   totalEstimatedTokens: number;
   recentRecords: UsageRecord[];
   lastUpdated: number;
+  storage: 'upstash' | 'local' | 'tmp';
 }
 
-function loadFromFile(): UsageRecord[] {
-  try {
-    const raw = readFileSync(USAGE_FILE, 'utf-8');
-    return JSON.parse(raw) as UsageRecord[];
-  } catch {
-    return [];
-  }
-}
-
-function saveToFile(records: UsageRecord[]) {
-  try {
-    writeFileSync(USAGE_FILE, JSON.stringify(records.slice(-MAX_RECORDS)));
-  } catch {
-    // /tmp 쓰기 실패 무시
-  }
-}
-
-/** 사용량 기록 추가 — 매번 파일 read/write (서버리스 인스턴스 간 공유 보장) */
-export function trackUsage(record: UsageRecord) {
-  const records = loadFromFile();
+/** 사용량 기록 추가 — 매번 스토리지 read/write (인스턴스 간 공유 보장) */
+export async function trackUsage(record: UsageRecord): Promise<void> {
+  const records = await readJson<UsageRecord[]>(USAGE_KEY, []);
   records.push(record);
-  saveToFile(records);
+  await writeJson(USAGE_KEY, records.slice(-MAX_RECORDS));
 }
 
 /** 사용량 요약 반환 (from/to 옵션: Unix ms) */
-export function getUsageSummary(from?: number, to?: number): UsageSummary {
-  const all = loadFromFile();
+export async function getUsageSummary(from?: number, to?: number): Promise<UsageSummary> {
+  const all = await readJson<UsageRecord[]>(USAGE_KEY, []);
   const records =
     from || to
       ? all.filter((r) => (!from || r.ts >= from) && (!to || r.ts <= to))
@@ -78,12 +62,13 @@ export function getUsageSummary(from?: number, to?: number): UsageSummary {
     totalEstimatedTokens: totalTokens,
     recentRecords: records.slice(-20).reverse(),
     lastUpdated: Date.now(),
+    storage: getBackendName(),
   };
 }
 
 /** 사용량 초기화 */
-export function clearUsage() {
-  saveToFile([]);
+export async function clearUsage(): Promise<void> {
+  await deleteKey(USAGE_KEY);
 }
 
 /** 토큰 추정 (글자 수 기반) */

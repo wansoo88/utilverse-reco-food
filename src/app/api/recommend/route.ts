@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
           });
           const result = await model.generateContent(userPrompt);
           const text = result.response.text().replace(/```json\n?|\n?```/g, '').trim();
-          trackUsage({ ts: Date.now(), provider: 'gemini', model: GEMINI_MODEL, endpoint: 'recommend', estimatedTokens: estimateTokens(userPrompt + text) });
+          trackUsage({ ts: Date.now(), provider: 'gemini', model: GEMINI_MODEL, endpoint: 'recommend', estimatedTokens: estimateTokens(userPrompt + text) }).catch(() => {});
           const parsed = JSON.parse(text);
           return NextResponse.json(parsed, {
             headers: { 'Cache-Control': 'private, max-age=60' },
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     if (gptKey) {
       try {
         const parsed = await callGpt(userPrompt, SYSTEM_PROMPT, gptKey);
-        trackUsage({ ts: Date.now(), provider: 'gpt', model: 'gpt-4o-mini', endpoint: 'recommend', estimatedTokens: estimateTokens(userPrompt + JSON.stringify(parsed)) });
+        trackUsage({ ts: Date.now(), provider: 'gpt', model: 'gpt-4o-mini', endpoint: 'recommend', estimatedTokens: estimateTokens(userPrompt + JSON.stringify(parsed)) }).catch(() => {});
         return NextResponse.json(parsed, {
           headers: { 'Cache-Control': 'private, max-age=60' },
         });
@@ -113,10 +113,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Step 3: 로컬 폴백
-    trackUsage({ ts: Date.now(), provider: 'local', model: 'local', endpoint: 'recommend', estimatedTokens: 0 });
+    trackUsage({ ts: Date.now(), provider: 'local', model: 'local', endpoint: 'recommend', estimatedTokens: 0 }).catch(() => {});
     return NextResponse.json(localRecommend(filters, sanitized));
   } catch {
-    trackUsage({ ts: Date.now(), provider: 'local', model: 'local', endpoint: 'recommend', estimatedTokens: 0 });
+    trackUsage({ ts: Date.now(), provider: 'local', model: 'local', endpoint: 'recommend', estimatedTokens: 0 }).catch(() => {});
     return NextResponse.json(localRecommend(DEFAULT_FILTER));
   }
 }

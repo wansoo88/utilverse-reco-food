@@ -2,6 +2,31 @@
 
 > 모든 스킬이 작업 완료 시 이 문서에 변경사항을 기록합니다.
 
+## [2026-04-18] - 어드민 퍼시스턴트 스토어 도입
+
+### Fixed (Critical)
+- **어드민 데이터가 서버 재기동 시 사라지던 문제 해결**: 사용량(`/tmp/wmj_usage.json`)·트렌드(`/tmp/wmj_trends.json`) 데이터가 Vercel 콜드 스타트·재배포마다 초기화되던 문제를 티어드 퍼시스턴트 스토어로 해결
+
+### Added
+- **`src/lib/persistStore.ts`** — 퍼시스턴트 스토리지 추상화. 환경에 따라 자동 선택:
+  1. **Upstash Redis REST** (`UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` 설정 시) — Vercel 운영 권장, 재기동·재배포 후에도 유지
+  2. **로컬 `.data/` 파일** — 로컬 개발 FS 쓰기 가능 시, `pnpm dev` 재기동 후에도 유지
+  3. **`/tmp` 폴백** — 이전 위치. 기존 `/tmp/wmj_*.json` 데이터가 있으면 상위 백엔드로 1회 자동 마이그레이션
+- **스토리지 백엔드별 어드민 UI 배너** — 현재 저장 위치에 따라 색상·문구 동적 변경 (Upstash=녹색/영구, local=파랑/dev-only, tmp=주황/휘발 경고)
+
+### Changed
+- `src/lib/usageTracker.ts` — `readFileSync/writeFileSync` 동기 I/O → persistStore 기반 async. `trackUsage`/`getUsageSummary`/`clearUsage` 시그니처 `Promise` 반환
+- `src/app/api/admin/trends/route.ts` — persistStore 사용으로 변경
+- `src/app/api/admin/usage/route.ts` — `await getUsageSummary/clearUsage` 적용
+- `src/app/api/{recommend,kpop-recommend,weather-recommend}/route.ts` — 9곳의 `trackUsage(...)` 호출에 `.catch(() => {})` 추가 (fire-and-forget, 실패 silent)
+- `.gitignore` — `.data/` 추가 (로컬 퍼시스턴트 파일 미커밋)
+- `.env.example` — `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` 추가 (선택)
+
+### Migration Notes
+- **Vercel 운영 환경**: Upstash 콘솔(https://console.upstash.com)에서 Redis DB 생성 → REST URL/Token을 Vercel 환경변수에 입력 → 재배포. 이후 모든 어드민 데이터 영구 유지
+- **로컬 개발**: 별도 설정 없이 `.data/` 디렉터리가 자동 생성되어 서버 재기동 후에도 데이터 유지
+- **기존 데이터**: 첫 읽기 시 `/tmp/wmj_usage.json`·`/tmp/wmj_trends.json`이 존재하면 상위 백엔드로 자동 복사
+
 ## [2026-04-16] - AdSense/Sitemap/SEO 종합 개선
 
 ### Fixed (Critical)

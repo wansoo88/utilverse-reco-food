@@ -18,7 +18,23 @@ interface UsageSummary {
     estimatedTokens: number;
   }>;
   lastUpdated: number;
+  storage: 'upstash' | 'local' | 'tmp';
 }
+
+const STORAGE_DESC: Record<'upstash' | 'local' | 'tmp', { color: string; text: string }> = {
+  upstash: {
+    color: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+    text: '✅ Upstash Redis에 영구 저장 중 — 서버 재기동·재배포 후에도 데이터 유지',
+  },
+  local: {
+    color: 'bg-sky-50 border-sky-200 text-sky-700',
+    text: '💾 로컬 .data/ 디렉터리에 저장 중 — 개발 서버 재기동 후에도 유지됩니다 (운영 환경은 Upstash 필요)',
+  },
+  tmp: {
+    color: 'bg-amber-50 border-amber-200 text-amber-700',
+    text: '⚠️ 휘발성 /tmp 폴백 사용 중 — 서버 재기동·재배포 시 데이터 초기화됩니다. 운영 유지를 위해 UPSTASH_REDIS_REST_URL/TOKEN 환경변수를 설정하세요.',
+  },
+};
 
 interface DbStatus {
   counts: Record<string, number>;
@@ -300,11 +316,12 @@ export default function AdminPage() {
         {/* ── Usage Tab ─────────────────────────────────────────────────────── */}
         {activeTab === 'usage' && (
           <div className="flex flex-col gap-6">
-            {/* /tmp 초기화 경고 */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700 flex items-start gap-2">
-              <span className="text-base shrink-0">⚠️</span>
-              <span>사용량 데이터는 서버 <strong>/tmp</strong> 에 저장됩니다. 서버 재기동·재배포 시 자동으로 초기화됩니다.</span>
-            </div>
+            {/* 스토리지 상태 배너 — 실제 백엔드에 따라 동적 표시 */}
+            {usage && (
+              <div className={`border rounded-xl px-4 py-3 text-xs flex items-start gap-2 ${STORAGE_DESC[usage.storage].color}`}>
+                <span>{STORAGE_DESC[usage.storage].text}</span>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
               <SectionTitle>API 토큰 사용량</SectionTitle>
               <div className="flex gap-2">
