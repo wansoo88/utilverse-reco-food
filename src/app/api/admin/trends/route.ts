@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFileSync, writeFileSync } from 'fs';
-import path from 'path';
+import { readJson, writeJson } from '@/lib/persistStore';
 import { isAdminAuthorized } from '@/lib/adminAuth';
 
-const TRENDS_FILE = path.join('/tmp', 'wmj_trends.json');
+const TRENDS_KEY = 'trends';
 
 export interface TrendEntry {
   id: string;
@@ -14,25 +13,19 @@ export interface TrendEntry {
   source: 'manual' | 'ai';
 }
 
-function loadTrends(): TrendEntry[] {
-  try {
-    return JSON.parse(readFileSync(TRENDS_FILE, 'utf-8')) as TrendEntry[];
-  } catch {
-    return [];
-  }
+async function loadTrends(): Promise<TrendEntry[]> {
+  return readJson<TrendEntry[]>(TRENDS_KEY, []);
 }
 
-function saveTrends(trends: TrendEntry[]) {
-  try {
-    writeFileSync(TRENDS_FILE, JSON.stringify(trends));
-  } catch {}
+async function saveTrends(trends: TrendEntry[]): Promise<void> {
+  await writeJson(TRENDS_KEY, trends);
 }
 
 export async function GET(req: NextRequest) {
   if (!isAdminAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  return NextResponse.json({ trends: loadTrends() });
+  return NextResponse.json({ trends: await loadTrends() });
 }
 
 export async function POST(req: NextRequest) {
@@ -46,7 +39,7 @@ export async function POST(req: NextRequest) {
     id?: string;
   };
 
-  const trends = loadTrends();
+  const trends = await loadTrends();
 
   if (body.action === 'add' && body.entry) {
     const newEntry: TrendEntry = {
@@ -55,13 +48,13 @@ export async function POST(req: NextRequest) {
       addedAt: Date.now(),
     };
     trends.unshift(newEntry);
-    saveTrends(trends.slice(0, 100));
+    await saveTrends(trends.slice(0, 100));
     return NextResponse.json({ ok: true, entry: newEntry });
   }
 
   if (body.action === 'remove' && body.id) {
     const updated = trends.filter((t) => t.id !== body.id);
-    saveTrends(updated);
+    await saveTrends(updated);
     return NextResponse.json({ ok: true });
   }
 
@@ -94,7 +87,7 @@ JSON만 출력하세요.`;
       }));
 
       const merged = [...newEntries, ...trends].slice(0, 100);
-      saveTrends(merged);
+      await saveTrends(merged);
       return NextResponse.json({ ok: true, added: newEntries.length, trends: merged });
     } catch (err) {
       return NextResponse.json({ error: String(err) }, { status: 500 });

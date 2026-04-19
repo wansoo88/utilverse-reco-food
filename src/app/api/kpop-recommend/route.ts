@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
           });
           const result = await model.generateContent(userPrompt);
           const text = result.response.text().replace(/```json\n?|\n?```/g, '').trim();
-          trackUsage({ ts: Date.now(), provider: 'gemini', model: GEMINI_MODEL, endpoint: 'kpop-recommend', estimatedTokens: estimateTokens(userPrompt + text) });
+          trackUsage({ ts: Date.now(), provider: 'gemini', model: GEMINI_MODEL, endpoint: 'kpop-recommend', estimatedTokens: estimateTokens(userPrompt + text) }).catch(() => {});
           return NextResponse.json(JSON.parse(text));
         } catch (err) {
           // 쿼터 초과면 다음 키 시도, 그 외 에러는 즉시 폴백
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     if (gptKey) {
       try {
         const parsed = await callGpt(userPrompt, KPOP_SYSTEM_PROMPT, gptKey);
-        trackUsage({ ts: Date.now(), provider: 'gpt', model: 'gpt-4o-mini', endpoint: 'kpop-recommend', estimatedTokens: estimateTokens(userPrompt + JSON.stringify(parsed)) });
+        trackUsage({ ts: Date.now(), provider: 'gpt', model: 'gpt-4o-mini', endpoint: 'kpop-recommend', estimatedTokens: estimateTokens(userPrompt + JSON.stringify(parsed)) }).catch(() => {});
         return NextResponse.json(parsed);
       } catch {
         // GPT 실패 → 로컬 폴백
@@ -100,10 +100,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Step 3: 로컬 폴백
-    trackUsage({ ts: Date.now(), provider: 'local', model: 'local', endpoint: 'kpop-recommend', estimatedTokens: 0 });
+    trackUsage({ ts: Date.now(), provider: 'local', model: 'local', endpoint: 'kpop-recommend', estimatedTokens: 0 }).catch(() => {});
     return NextResponse.json(kpopLocalRecommend(idolName ?? sanitized, lang));
   } catch {
-    trackUsage({ ts: Date.now(), provider: 'local', model: 'local', endpoint: 'kpop-recommend', estimatedTokens: 0 });
+    trackUsage({ ts: Date.now(), provider: 'local', model: 'local', endpoint: 'kpop-recommend', estimatedTokens: 0 }).catch(() => {});
     return NextResponse.json(kpopLocalRecommend('', 'ko'));
   }
 }
