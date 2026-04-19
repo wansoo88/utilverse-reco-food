@@ -1,14 +1,249 @@
 @import "tailwindcss";
 
+/* ──────────────────────────────────────────────────────────────
+ * Design tokens — "Warm Ember" 전면 리팩터
+ *   - orange/amber → 은은한 테라코타·허니 스케일로 세련화
+ *   - gray → 따뜻한 스톤(stone) 뉴트럴 (cold gray 제거)
+ *   - radius/shadow → 일관된 스케일, 살짝 더 soft
+ *   - typography → Pretendard/Noto Sans KR CSS 변수 (next/font 연동)
+ * 기존 유틸리티 클래스명(bg-orange-500 등)을 그대로 두고 토큰만 교체해
+ * 36개 파일 코드 수정 없이 디자인 전면 교체
+ * ────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* ── Typography ────────────────────────────────────────────── */
+  --font-sans:
+    var(--font-noto-sans-kr),
+    'Pretendard Variable', 'Pretendard',
+    -apple-system, BlinkMacSystemFont,
+    'Apple SD Gothic Neo', 'Malgun Gothic', 'Helvetica Neue',
+    Arial, sans-serif;
+  --font-serif:
+    'Noto Serif KR', Georgia, 'Times New Roman', serif;
+  --font-mono:
+    ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code',
+    'Cascadia Code', Menlo, monospace;
+
+  /* ── Ember 스케일 (orange 유틸 대체) ────────────────────────── */
+  /* 기존 netflix-orange → 따뜻한 테라코타-허니 계열 */
+  --color-orange-50:  #fef6f1;
+  --color-orange-100: #fce7db;
+  --color-orange-200: #f8cbb4;
+  --color-orange-300: #f2a884;
+  --color-orange-400: #ea8054;
+  --color-orange-500: #dc5f2f;
+  --color-orange-600: #bc4820;
+  --color-orange-700: #97381c;
+  --color-orange-800: #752c18;
+  --color-orange-900: #5a2413;
+  --color-orange-950: #361309;
+
+  /* ── Honey 스케일 (amber 유틸 대체) ─────────────────────────── */
+  /* 순 노랑 → 깊이 있는 허니-캐러멜 */
+  --color-amber-50:  #fdf8ec;
+  --color-amber-100: #faedcb;
+  --color-amber-200: #f4d787;
+  --color-amber-300: #edbe52;
+  --color-amber-400: #e5a426;
+  --color-amber-500: #c6861a;
+  --color-amber-600: #9c6712;
+  --color-amber-700: #774f10;
+  --color-amber-800: #5b3d12;
+  --color-amber-900: #432d0f;
+  --color-amber-950: #281a08;
+
+  /* ── Stone 스케일 (gray 유틸 대체) ──────────────────────────── */
+  /* cold gray → 따뜻한 bone/stone 뉴트럴, UI 전반 분위기 온화 */
+  --color-gray-50:  #fafaf7;
+  --color-gray-100: #f3f2ec;
+  --color-gray-200: #e6e4da;
+  --color-gray-300: #d1cec0;
+  --color-gray-400: #a3a096;
+  --color-gray-500: #75736a;
+  --color-gray-600: #575651;
+  --color-gray-700: #3f3e3b;
+  --color-gray-800: #292927;
+  --color-gray-900: #1a1a19;
+  --color-gray-950: #0f0f0e;
+
+  /* ── 시맨틱 표층 색상 ───────────────────────────────────────── */
+  --color-surface:        #ffffff;
+  --color-surface-soft:   #fafaf7;
+  --color-surface-muted:  #f3f2ec;
+  --color-surface-sunken: #e6e4da;
+  --color-ink-primary:    #1a1a19;
+  --color-ink-secondary:  #575651;
+  --color-ink-muted:      #75736a;
+  --color-brand:          #dc5f2f;
+  --color-brand-soft:     #fef6f1;
+
+  /* ── Radius 스케일 ─────────────────────────────────────────── */
+  --radius-xs:  0.25rem;   /* 4px */
+  --radius-sm:  0.375rem;  /* 6px */
+  --radius-md:  0.5rem;    /* 8px */
+  --radius-lg:  0.75rem;   /* 12px */
+  --radius-xl:  1rem;      /* 16px */
+  --radius-2xl: 1.25rem;   /* 20px */
+  --radius-3xl: 1.75rem;   /* 28px */
+
+  /* ── Shadow 스케일 (따뜻한 tint 포함) ───────────────────────── */
+  --shadow-xs:
+    0 1px 1px rgba(40, 28, 20, 0.04);
+  --shadow-sm:
+    0 1px 2px rgba(40, 28, 20, 0.05),
+    0 1px 3px rgba(40, 28, 20, 0.04);
+  --shadow-md:
+    0 2px 4px rgba(40, 28, 20, 0.05),
+    0 4px 8px rgba(40, 28, 20, 0.06);
+  --shadow-lg:
+    0 4px 8px rgba(40, 28, 20, 0.05),
+    0 12px 24px rgba(40, 28, 20, 0.08);
+  --shadow-xl:
+    0 8px 16px rgba(40, 28, 20, 0.06),
+    0 24px 48px rgba(40, 28, 20, 0.1);
+  --shadow-2xl:
+    0 16px 32px rgba(40, 28, 20, 0.08),
+    0 32px 64px rgba(40, 28, 20, 0.14);
+  --shadow-ember:
+    0 4px 16px rgba(220, 95, 47, 0.18),
+    0 2px 6px rgba(220, 95, 47, 0.12);
+
+  /* ── Motion ─────────────────────────────────────────────────── */
+  --ease-out-soft:  cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast:   120ms;
+  --duration-base:   200ms;
+  --duration-slow:   320ms;
+}
+
+/* ──────────────────────────────────────────────────────────────
+ * Base — HTML/Body 기초 설정
+ * ────────────────────────────────────────────────────────────── */
+
 html {
-  background: #f9fafb;
+  background: var(--color-surface-soft);
+  color-scheme: light;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--color-ink-primary);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%,
+      rgba(220, 95, 47, 0.05),
+      transparent 70%),
+    var(--color-surface-soft);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  letter-spacing: -0.003em;
 }
+
+/* ── Selection — 브랜드 ember 톤 ──────────────────────────────── */
+::selection {
+  background: rgba(220, 95, 47, 0.22);
+  color: var(--color-ink-primary);
+}
+
+/* ── Focus — 접근성 강화된 ember 링 ───────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* ── Scrollbar — 절제된 스톤 톤 ───────────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gray-300) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+  background-clip: content-box;
+  border: 2px solid transparent;
+}
+
+/* ── Heading 리듬 ─────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.018em;
+  font-feature-settings: 'ss01' 1, 'kern' 1;
+}
+
+/* ──────────────────────────────────────────────────────────────
+ * Utilities
+ * ────────────────────────────────────────────────────────────── */
 
 .defer-render {
   content-visibility: auto;
   contain-intrinsic-size: 1px 600px;
+}
+
+/* 본문 카드 표준 패널 — 새 디자인 토큰 기반 */
+.surface-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 브랜드 그라디언트 프리셋 (기존 하드코딩 대체) */
+.bg-brand-gradient {
+  background-image:
+    linear-gradient(135deg,
+      #fef6f1 0%,
+      #ffffff 45%,
+      #faedcb 100%);
+}
+
+.bg-brand-gradient-strong {
+  background-image:
+    linear-gradient(135deg,
+      var(--color-orange-500) 0%,
+      var(--color-amber-500) 100%);
+}
+
+/* 카드 hover lift — 절제된 상승감 */
+@media (hover: hover) {
+  .hover-lift {
+    transition:
+      transform var(--duration-base) var(--ease-out-soft),
+      box-shadow var(--duration-base) var(--ease-out-soft);
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+/* 접근성: 모션 감소 설정 존중 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

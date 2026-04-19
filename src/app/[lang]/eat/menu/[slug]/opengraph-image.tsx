@@ -34,20 +34,20 @@ export default async function OgImage({ params }: Props) {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          background: 'linear-gradient(135deg, #fff7ed 0%, #ffffff 48%, #fde68a 100%)',
+          background: 'linear-gradient(135deg, #fef6f1 0%, #ffffff 48%, #faedcb 100%)',
           padding: '64px',
-          color: '#111827',
+          color: '#1a1a19',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 28, fontWeight: 700 }}>
-          <span style={{ color: '#f97316' }}>AI MENU PICK</span>
-          <span style={{ color: '#6b7280' }}>{locale.toUpperCase()}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 28, fontWeight: 700, letterSpacing: '0.04em' }}>
+          <span style={{ color: '#dc5f2f' }}>AI MENU PICK</span>
+          <span style={{ color: '#75736a' }}>{locale.toUpperCase()}</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <div style={{ fontSize: 58, lineHeight: 1.2, fontWeight: 800, maxWidth: '92%' }}>{meta.title}</div>
-          <div style={{ fontSize: 28, lineHeight: 1.4, color: '#4b5563', maxWidth: '88%' }}>{meta.description}</div>
+          <div style={{ fontSize: 58, lineHeight: 1.2, fontWeight: 800, maxWidth: '92%', letterSpacing: '-0.02em' }}>{meta.title}</div>
+          <div style={{ fontSize: 28, lineHeight: 1.4, color: '#3f3e3b', maxWidth: '88%' }}>{meta.description}</div>
         </div>
-        <div style={{ fontSize: 24, color: '#6b7280' }}>{SITE_NAME} · {new URL(SITE_URL).host}</div>
+        <div style={{ fontSize: 24, color: '#75736a' }}>{SITE_NAME} · {new URL(SITE_URL).host}</div>
       </div>
     ),
     size,

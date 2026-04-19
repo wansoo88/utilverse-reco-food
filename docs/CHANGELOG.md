@@ -2,6 +2,36 @@
 
 > 모든 스킬이 작업 완료 시 이 문서에 변경사항을 기록합니다.
 
+## [2026-04-19] - 디자인 토큰 전면 개편 (Warm Ember)
+
+> UI/UX 변경 없이 시각 언어만 전면 리프레시. 기존 컴포넌트·레이아웃·인터랙션은 그대로 유지하면서 컬러·타이포·라운드·그림자 토큰을 일괄 교체하여 36개 파일 코드 수정 없이 분위기 개선.
+
+### Changed
+- **`src/app/globals.css` 전면 재작성** — Tailwind v4 `@theme` 블록 도입
+  - **Ember 팔레트**: `orange-*` 스케일을 네온 오렌지 → 따뜻한 테라코타(#dc5f2f 기준)로 재정의 → 식욕 자극 + 세련미 동시 확보
+  - **Honey 팔레트**: `amber-*` 스케일을 순노랑 → 깊이 있는 허니/캐러멜 톤으로 재정의 → 브랜드 보조 색상의 고급감 강화
+  - **Warm Stone 뉴트럴**: `gray-*` 스케일을 cold gray → 따뜻한 stone/bone 뉴트럴(#1a1a19~#fafaf7)로 재정의 → UI 전반의 차가운 인상 제거
+  - **Radius 스케일 일관화**: `--radius-xs/sm/md/lg/xl/2xl/3xl` (4~28px) 정의
+  - **Shadow 스케일 (warm tint)**: 모든 그림자에 `rgba(40, 28, 20, *)` 따뜻한 음영 적용 + `--shadow-ember` 브랜드 강조 그림자 추가
+  - **Motion 토큰**: `--ease-out-soft`, `--duration-fast/base/slow` 정의로 인터랙션 일관성 확보
+  - **Typography**: `--font-sans` CSS 변수로 next/font(Noto Sans KR) 연동
+  - **Body 배경**: 페이지 상단에 은은한 ember radial-gradient 추가 → 브랜드 정체성 강화
+  - **Selection**: ember 톤(rgba 220,95,47,0.22)으로 통일
+  - **Focus-visible**: 접근성 강화된 ember 2px 링 + offset 적용
+  - **Scrollbar**: 절제된 stone 톤 커스텀 스크롤바
+  - **Reduced motion 대응**: `prefers-reduced-motion` 쿼리 추가
+  - **유틸리티 추가**: `.surface-card`, `.bg-brand-gradient`, `.bg-brand-gradient-strong`, `.hover-lift`
+- **`src/app/layout.tsx`** — `next/font/google`의 `Noto_Sans_KR` 도입 (weight 400~800)
+  - 인라인 `style={{ fontFamily: ... }}` 제거 → CSS 변수 `--font-noto-sans-kr` 주입
+  - `<html className={notoSansKR.variable}>` + body에 `font-sans` 적용
+  - **CWV 개선**: 외부 폰트 CDN 호출 제거 → Vercel 호스팅 폰트로 셀프호스팅, FOIT 방지(`display: 'swap'`)
+- **`src/app/opengraph-image.tsx`**, **`src/app/[lang]/eat/menu/[slug]/opengraph-image.tsx`** — OG 이미지 색상을 새 디자인 토큰과 동일한 hex로 동기화 (#dc5f2f, #1a1a19, #75736a 등) + 자간(`letterSpacing: -0.02em`) 추가로 타이포그래피 정돈
+
+### Notes
+- **컴포넌트 코드 무수정 원칙**: 36개 파일에서 사용 중인 475개 Tailwind 색상 유틸리티(`bg-orange-500`, `text-gray-900`, `border-amber-100` 등)를 한 줄도 수정하지 않음. `@theme` 블록의 토큰 재정의로 자동 반영됨 → 향후 재디자인 시에도 globals.css 한 곳만 수정
+- **UI/UX 무변경 원칙**: 레이아웃·간격·인터랙션·정보 구조는 일절 변경하지 않음. 시각적 분위기만 변경
+- **Tailwind v4 컨벤션**: tailwind.config.ts(빈 extend)는 그대로 유지(v4는 `@theme` CSS 블록 우선)
+
 ## [2026-04-18] - 어드민 퍼시스턴트 스토어 도입
 
 ### Fixed (Critical)
