@@ -29,7 +29,9 @@ export const Toast = ({ message, type = 'info', duration = 3000, onClose }: Toas
       role="alert"
       aria-live="polite"
       aria-atomic="true"
-      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl text-white text-sm font-medium shadow-lg transition-all duration-300 ${bg} ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
+      // 모바일 키보드/하단 안전영역 회피 위해 env(safe-area-inset-bottom) 사용
+      style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+      className={`fixed left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl text-white text-sm font-medium shadow-lg max-w-[92vw] text-center transition-all duration-300 ${bg} ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
     >
       {message}
     </div>

@@ -4,6 +4,7 @@ import { LOCALES, SITE_NAME, type Locale } from '@/config/site';
 import { SiteFooter } from '@/components/ui/SiteFooter';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { localePath } from '@/lib/localePath';
 
 interface Props {
   params: Promise<{ lang: string }>;
@@ -20,6 +21,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: content.title,
     description: content.description,
+    alternates: {
+      canonical: localePath(locale, '/terms'),
+      languages: Object.fromEntries(LOCALES.map((l) => [l, localePath(l, '/terms')])),
+    },
   };
 }
 

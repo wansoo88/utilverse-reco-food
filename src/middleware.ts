@@ -9,6 +9,8 @@ const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
 const RATE_LIMIT = 10;
 const WINDOW_MS = 60_000;
+// 컨테이너 장기 실행 시 만료된 IP 엔트리 누적 방지 — 호출 시 lazy GC
+const GC_THRESHOLD = 500;
 
 const RATE_LIMITED_PATHS = new Set([
   '/api/recommend',
@@ -20,6 +22,13 @@ const RATE_LIMITED_PATHS = new Set([
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
   const entry = rateLimitStore.get(ip);
+
+  // Map 크기가 임계값 초과 시 만료된 엔트리 일괄 삭제 (Vercel cold-start 사이 누수 방어)
+  if (rateLimitStore.size > GC_THRESHOLD) {
+    for (const [key, value] of rateLimitStore) {
+      if (now > value.resetAt) rateLimitStore.delete(key);
+    }
+  }
 
   if (!entry || now > entry.resetAt) {
     rateLimitStore.set(ip, { count: 1, resetAt: now + WINDOW_MS });

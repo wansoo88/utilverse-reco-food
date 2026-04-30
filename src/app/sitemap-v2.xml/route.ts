@@ -7,6 +7,9 @@ const STATIC_PAGES = ['/about', '/privacy', '/terms', '/contact'] as const;
 export const dynamic = 'force-static';
 export const revalidate = 3600;
 
+// 빌드 시점에 한 번 평가 — sitemap.ts와 동일한 정책 (크롤 예산 낭비 방지)
+const BUILD_LASTMOD = new Date().toISOString().split('T')[0];
+
 function buildUrl(path: string): string {
   const raw = `${SITE_URL}${path}`;
   try {
@@ -63,7 +66,7 @@ function buildAlternates(pathFn: (l: Locale) => string): Record<string, string> 
 }
 
 export function GET(): Response {
-  const today = new Date().toISOString().split('T')[0];
+  const today = BUILD_LASTMOD;
   const entries: UrlEntry[] = [];
 
   // 1. 홈 × 4언어

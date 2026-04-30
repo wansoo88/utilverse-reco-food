@@ -24,8 +24,12 @@ function homePath(locale: string): string {
   return locale === 'ko' ? '' : `/${locale}`;
 }
 
+// 사이트맵 lastmod — 빌드 시점에 한 번 평가되어 모든 요청이 동일한 값을 받음
+// (런타임 new Date()를 매번 호출하면 Google이 매일 변경된 것으로 오인 → 크롤 예산 낭비)
+const BUILD_LASTMOD = new Date().toISOString().split('T')[0];
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const today = BUILD_LASTMOD;
   const entries: MetadataRoute.Sitemap = [];
 
   // 1. 홈페이지 × 4언어

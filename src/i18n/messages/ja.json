@@ -11,7 +11,8 @@
     "rateLimitWait": "⏳ {seconds}秒後に再検索できます",
     "kpopRequired": "アイドル名を入力してください",
     "queryRequired": "検索語を入力してください",
-    "errorRetry": "おすすめの読み込みに失敗しました。もう一度お試しください"
+    "errorRetry": "おすすめの読み込みに失敗しました。もう一度お試しください",
+    "loading": "AIがおすすめを探しています..."
   },
   "search": {
     "aiHint": "AIが自炊とデリバリー両方をおすすめします",
@@ -24,6 +25,7 @@
     "submitText": "おすすめを見る",
     "submitAi": "AIにおすすめを聞く",
     "submitFridge": "食材からおすすめを見る",
+    "clear": "検索をクリア",
     "filterToggle": "フィルター設定",
     "filterHide": "フィルターを隠す",
     "fridgeHint": "冷蔵庫の食材で作れるメニューをAIが提案します",

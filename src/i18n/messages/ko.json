@@ -11,7 +11,8 @@
     "rateLimitWait": "⏳ {seconds}초 후에 다시 검색해주세요",
     "kpopRequired": "아이돌 이름을 입력해주세요",
     "queryRequired": "검색어를 입력해주세요",
-    "errorRetry": "추천을 불러오지 못했어요. 다시 시도해주세요"
+    "errorRetry": "추천을 불러오지 못했어요. 다시 시도해주세요",
+    "loading": "AI가 추천하는 중..."
   },
   "search": {
     "aiHint": "AI가 해먹기와 시켜먹기를 동시에 추천해드려요",
@@ -24,6 +25,7 @@
     "submitText": "추천받기",
     "submitAi": "AI 추천받기",
     "submitFridge": "재료로 추천받기",
+    "clear": "검색어 지우기",
     "filterToggle": "필터 설정",
     "filterHide": "필터 접기",
     "fridgeHint": "냉장고 속 재료로 만들 수 있는 메뉴를 AI가 추천해드려요",

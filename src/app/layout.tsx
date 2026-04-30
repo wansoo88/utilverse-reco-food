@@ -52,6 +52,14 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning className={notoSansKR.variable}>
       <head>
+        {/* AdSense/GA 호스트 preconnect — DNS+TLS 지연 절감으로 LCP 개선 */}
+        {isAdsenseEnabled() && (
+          <>
+            <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
+            <link rel="preconnect" href="https://googleads.g.doubleclick.net" crossOrigin="anonymous" />
+          </>
+        )}
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         {/* Consent Mode v2 기본값 — GA/AdSense 로드 전에 반드시 실행 (EU 정책 준수) */}
         <Script id="consent-default" strategy="beforeInteractive">
           {`
@@ -73,6 +81,33 @@ export default function RootLayout({
             });
           `}
         </Script>
+        {/* Organization + WebSite 구조화 데이터 — 브랜드 검색 SERP 향상 (사이트 링크/검색박스 후보) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'Organization',
+                  '@id': `${SITE_URL}/#organization`,
+                  name: SITE_NAME,
+                  url: SITE_URL,
+                  logo: `${SITE_URL}/hero-bowl.svg`,
+                },
+                {
+                  '@type': 'WebSite',
+                  '@id': `${SITE_URL}/#website`,
+                  url: SITE_URL,
+                  name: SITE_NAME,
+                  description: SITE_DESCRIPTION,
+                  inLanguage: ['ko', 'en', 'ja', 'zh'],
+                  publisher: { '@id': `${SITE_URL}/#organization` },
+                },
+              ],
+            }),
+          }}
+        />
       </head>
       <body className="text-gray-900 antialiased font-sans">
         {children}

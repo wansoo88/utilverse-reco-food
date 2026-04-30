@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { BUDGET_KEYWORDS, HOUSE_KEYWORDS, VIBE_KEYWORDS } from '@/data/filterKeywords';
 import { SEO_KEYWORDS } from '@/data/seoKeywords';
 import { SiteFooter } from '@/components/ui/SiteFooter';
+import { InArticleAd } from '@/components/ads/InArticleAd';
 import { getSeoRecommendation } from '@/lib/seoRecommendationCache';
 import { buildYoutubeRecipeLinks } from '@/lib/youtubeRecipes';
 import { COOK_MENUS, ORDER_MENUS } from '@/data/localMenus';
@@ -435,6 +436,10 @@ export default async function MenuSlugPage({ params }: Props) {
                 </div>
               </div>
             </section>
+
+            {/* 본문 중간 광고 — 비교 섹션과 FAQ 사이, 충분한 본문 콘텐츠 사이에 자연스럽게 배치
+                (NEXT_PUBLIC_ADSENSE_SLOT_IN_ARTICLE 미설정 시 자동 비활성화 — 승인 후 활성화) */}
+            <InArticleAd />
 
             {/* FAQ 섹션 — 페이지당 고유 콘텐츠 확보 (AdSense 정책: 충분한 원본 콘텐츠) */}
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">

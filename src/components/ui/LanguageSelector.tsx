@@ -25,15 +25,18 @@ export const LanguageSelector = ({ current }: { current: Locale }) => {
   };
 
   return (
-    <div className="flex gap-1">
+    <div className="flex gap-1" role="group" aria-label="Language">
       {LOCALES.map((lang) => (
         <button
           key={lang}
           onClick={() => switchLang(lang)}
-          className={`px-2 py-1 text-xs rounded-md transition-colors cursor-pointer ${
+          aria-pressed={current === lang}
+          aria-label={`Switch to ${LANG_LABELS[lang]}`}
+          lang={lang}
+          className={`px-3 py-2 min-h-[40px] text-xs rounded-md transition-colors cursor-pointer ${
             current === lang
               ? 'bg-orange-500 text-white font-semibold'
-              : 'text-gray-400 hover:text-gray-600'
+              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
           }`}
         >
           {LANG_LABELS[lang]}

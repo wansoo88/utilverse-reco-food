@@ -11,7 +11,8 @@
     "rateLimitWait": "⏳ Please wait {seconds} seconds before searching again",
     "kpopRequired": "Please enter an idol name",
     "queryRequired": "Please enter a search term",
-    "errorRetry": "Failed to load recommendations. Please try again"
+    "errorRetry": "Failed to load recommendations. Please try again",
+    "loading": "AI is finding picks..."
   },
   "search": {
     "aiHint": "AI recommends both cook-at-home and delivery options",
@@ -24,6 +25,7 @@
     "submitText": "Recommend",
     "submitAi": "Get AI Recommendation",
     "submitFridge": "Recommend from Ingredients",
+    "clear": "Clear search",
     "filterToggle": "Set Filters",
     "filterHide": "Hide Filters",
     "fridgeHint": "AI will suggest menus you can make with your fridge ingredients",

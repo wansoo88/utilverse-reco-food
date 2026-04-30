@@ -11,7 +11,8 @@
     "rateLimitWait": "⏳ 请等待{seconds}秒后再搜索",
     "kpopRequired": "请输入偶像名字",
     "queryRequired": "请输入搜索词",
-    "errorRetry": "加载推荐失败，请重试"
+    "errorRetry": "加载推荐失败，请重试",
+    "loading": "AI正在为您推荐..."
   },
   "search": {
     "aiHint": "AI同时推荐自己做和外卖选项",
@@ -24,6 +25,7 @@
     "submitText": "获取推荐",
     "submitAi": "获取AI推荐",
     "submitFridge": "根据食材推荐",
+    "clear": "清空搜索",
     "filterToggle": "筛选设置",
     "filterHide": "收起筛选",
     "fridgeHint": "AI将根据您冰箱里的食材推荐可做的菜单",

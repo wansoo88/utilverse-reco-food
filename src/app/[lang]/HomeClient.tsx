@@ -183,6 +183,7 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
   }, [entries]);
 
   // ?preset= 파라미터 처리 — SEO 페이지 CTA에서 필터 자동 적용 + 추천 실행
+  // preset/shared/lang 변경 시 1회만 실행 (filters는 의도적으로 제외 — 초기 추천만 트리거)
   useEffect(() => {
     if (!preset) return;
     const keyword = SEO_KEYWORDS.find((k) => k.slug === preset);
@@ -191,7 +192,8 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
     const title = keyword[lang]?.title ?? keyword.ko.title;
     setQuery(title);
     recommend(title, filters, lang, []);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preset, lang]);
 
   // ?shared= 파라미터 처리 — 공유 링크에서 메뉴 자동 검색
   useEffect(() => {
@@ -199,7 +201,8 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
     setSearchMode('ai');
     setQuery(shared);
     recommend(shared, filters, lang, []);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shared, lang]);
 
   useEffect(() => {
     if (restored && !restoredShown) {
@@ -217,14 +220,15 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
     if (isFallback || kpopFallback) setQuotaExhausted(true);
   }, [isFallback, kpopFallback, setQuotaExhausted]);
 
-  // 추천 성공 시 히스토리 추가
+  // 추천 성공 시 히스토리 추가 — data/status 변경 시점의 query·searchMode·lang을 캡처
   useEffect(() => {
     if (status === 'success' && data) {
       trackEvent('recommend_success', { lang, fallback: isFallback });
       addHistory({ query, result: data, mode: searchMode });
       setHasResult(true);
     }
-  }, [data, status]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, status]);
 
   useEffect(() => {
     if (kpopStatus === 'success' && kpopData) {
@@ -581,34 +585,47 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
                 </button>
               </div>
             ) : (
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-                    placeholder={modeConfig[searchMode].placeholder}
-                    maxLength={200}
-                    className="w-full rounded-2xl border border-gray-200 px-5 py-3.5 pr-10 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
-                  />
-                  {query && (
-                    <button
-                      onClick={handleReset}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      ✕
-                    </button>
-                  )}
+              <div>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                      placeholder={modeConfig[searchMode].placeholder}
+                      maxLength={200}
+                      enterKeyHint="search"
+                      autoComplete="off"
+                      aria-label={modeConfig[searchMode].placeholder}
+                      className="w-full rounded-2xl border border-gray-200 px-5 py-3.5 pr-10 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                    />
+                    {query && (
+                      <button
+                        onClick={handleReset}
+                        aria-label={t('search.clear')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 min-w-[28px] min-h-[28px]"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleSubmit()}
+                    disabled={status === 'loading' || blocked}
+                    aria-label={modeConfig[searchMode].submit}
+                    className="shrink-0 rounded-2xl bg-orange-500 hover:bg-orange-600 px-5 py-3.5 text-sm font-bold text-white transition-colors disabled:opacity-50 min-h-[44px]"
+                  >
+                    {status === 'loading' ? '...' : blocked ? `${remainingSeconds}s` : modeConfig[searchMode].submit}
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleSubmit()}
-                  disabled={status === 'loading' || blocked}
-                  className="shrink-0 rounded-2xl bg-orange-500 hover:bg-orange-600 px-5 py-3.5 text-sm font-bold text-white transition-colors disabled:opacity-50"
-                >
-                  {status === 'loading' ? '...' : blocked ? `${remainingSeconds}s` : modeConfig[searchMode].submit}
-                </button>
+                {/* 글자 수 카운터 — 200자 한도 가시화 (사용자 silent truncation 방지) */}
+                {query.length > 0 && (
+                  <p className={`mt-1 text-right text-[11px] ${query.length >= 180 ? 'text-orange-500 font-semibold' : 'text-gray-400'}`}>
+                    {query.length}/200
+                  </p>
+                )}
               </div>
             )}
 
@@ -649,14 +666,15 @@ export const HomeClient = ({ lang, preset, shared }: HomeClientProps) => {
               />
             )}
 
-            {/* 로딩 */}
+            {/* 로딩 — 2-5초 Gemini 호출 중 사용자가 멈춰있다고 오해하지 않도록 가시 텍스트 노출 */}
             {(status === 'loading' || kpopStatus === 'loading') && (
-              <div className="flex flex-col items-center gap-2 py-6" aria-live="polite" aria-label="추천 중">
+              <div className="flex flex-col items-center gap-2 py-6" aria-live="polite" aria-busy="true">
                 <div className={`w-8 h-8 border-4 rounded-full animate-spin ${
                   searchMode === 'kpop'
                     ? 'border-pink-200 border-t-pink-500'
                     : 'border-orange-200 border-t-orange-500'
                 }`} />
+                <p className="text-xs font-medium text-gray-500">🤖 {t('home.loading')}</p>
               </div>
             )}
 
